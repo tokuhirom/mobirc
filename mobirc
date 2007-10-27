@@ -12,11 +12,10 @@ use YAML::Syck;
 
 use lib File::Spec->catfile( $FindBin::Bin, 'lib');
 
+use Mobirc;
 use Mobirc::Util;
 use Mobirc::HTTPD;
 use Mobirc::IRCClient;
-
-our $VERSION = '0.01';
 
 $SIG{INT} = sub { die "SIGINT!\n" };
 

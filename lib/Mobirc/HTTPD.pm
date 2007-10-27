@@ -19,12 +19,12 @@ use HTTP::Response;
 use HTML::Entities;
 use Scalar::Util qw/blessed/;
 
+use Mobirc;
 use Mobirc::Util;
 
 # TODO: should be configurable?
 use constant cookie_ttl => 86400 * 3;    # 3 days
 
-our $VERSION = 0.01;                     # TODO: should use $Mobirc::VERSION
 our $GLOBAL_CONFIG;                      # TODO: should use HEAP.
 
 sub init {
@@ -275,7 +275,7 @@ sub render {
         render_list          => sub { render_list( $c, @_ ) },
         user_agent           => $c->{user_agent},
         title                => $c->{config}->{httpd}->{title},
-        version              => $VERSION,
+        version              => $Mobirc::VERSION,
 
         %{ $c->{irc_heap} },
 
