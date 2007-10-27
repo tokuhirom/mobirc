@@ -13,6 +13,7 @@ use URI::Escape;
 use HTTP::Response;
 use HTML::Entities;
 use Scalar::Util qw/blessed/;
+use List::Util qw/first/;
 
 use Mobirc;
 use Mobirc::Util;
@@ -182,6 +183,12 @@ sub set_cookie {
     my ( $sec, $min, $hour, $mday, $mon, $year, $wday ) =
       localtime( time + $c->{httpd}->{cookie_ttl} );
 
+    my ( $user_info, ) =
+      map { $_->{config} }
+      first { $_->{module} =~ /Cookie$/ }
+    @{ $c->{config}->{httpd}->{authorizer} };
+    croak "Can't get user_info" unless $user_info;
+
     my $expiration = sprintf(
         '%.3s, %.2d-%.3s-%.4s %.2d:%.2d:%.2d',
         qw(Sun Mon Tue Wed Thu Fri Sat) [$wday],
@@ -196,14 +203,14 @@ sub set_cookie {
         'Set-Cookie',
         sprintf(
             "username=%s; expires=%s; \n",
-            $c->{config}->{httpd}->{username}, $expiration
+            $user_info->{username}, $expiration
         )
     );
     $response->push_header(
         'Set-Cookie',
         sprintf(
             "passwd=%s; expires=%s; \n",
-            $c->{config}->{httpd}->{password}, $expiration
+            $user_info->{password}, $expiration
         )
     );
 }

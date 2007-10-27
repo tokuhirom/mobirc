@@ -18,6 +18,7 @@ use URI::Escape;
 use HTTP::Response;
 use HTML::Entities;
 use Scalar::Util qw/blessed/;
+use UNIVERSAL::require;
 
 use Mobirc::Util;
 use Mobirc::HTTPD::Controller;
@@ -59,47 +60,7 @@ sub on_web_request {
         return;
     }
 
-    # cookie
-    my $cookie_authorized;
-    if ( $config->{httpd}->{use_cookie} ) {
-        my %cookie;
-        for ( split( /; */, $request->header('Cookie') ) ) {
-            my ( $name, $value ) = split(/=/);
-            $value =~ s/%([0-9A-Fa-f][0-9A-Fa-f])/pack('C', hex($1))/eg;
-            $cookie{$name} = $value;
-        }
-
-        if (   $cookie{username} eq $config->{httpd}->{username}
-            && $cookie{passwd} eq $config->{httpd}->{password} )
-        {
-            $cookie_authorized = true;
-        }
-    }
-
-    # authorization
-    unless ($cookie_authorized) {
-        unless ( defined( $config->{httpd}->{au_subscriber_id} )
-            && $request->header('x-up-subno')
-            && $request->header('x-up-subno') eq
-            $config->{httpd}->{au_subscriber_id} )
-        {
-            if ( defined( $config->{httpd}->{username} ) ) {
-                unless ( $request->headers->authorization_basic eq
-                      $config->{httpd}->{username} . ':'
-                    . $config->{httpd}->{password} )
-                {
-                    my $response = HTTP::Response->new(401);
-                    $response->push_header(
-                        WWW_Authenticate => qq(Basic Realm="keitairc") );
-                    $heap->{client}->put($response);
-                    $kernel->yield('shutdown');
-                    return;
-                }
-            }
-        }
-    }
-
-    my $ctx = {
+    my $c = {
         config     => $config,
         poe        => $poe,
         req        => $request,
@@ -107,10 +68,30 @@ sub on_web_request {
         irc_heap   => $poe->kernel->alias_resolve('irc_session')->get_heap,
     };
 
-    my $response = process_request($ctx, $request->uri);
+    # authorization phase
+    my $authorized_fg = 0;
+    for my $authorizer ( @{ $c->{config}->{httpd}->{authorizer} } ) {
+        $authorizer->{module}->use or die $@;
 
-    $poe->heap->{client}->put($response);
-    $poe->kernel->yield('shutdown');
+        if ($authorizer->{module}->authorize($c, $authorizer->{config})) {
+            $authorized_fg++;
+            last; # authorization succeeded.
+        }
+    }
+
+    if ($authorized_fg) {
+        my $response = process_request($c, $request->uri);
+        $poe->heap->{client}->put($response);
+        $poe->kernel->yield('shutdown');
+    } else {
+        my $response = HTTP::Response->new(401);
+        $response->push_header(
+            WWW_Authenticate => qq(Basic Realm="mobirc") );
+        $response->content( "authorization required" );
+        $poe->heap->{client}->put($response);
+        $poe->kernel->yield('shutdown');
+        return;
+    }
 }
 
 sub process_request {
