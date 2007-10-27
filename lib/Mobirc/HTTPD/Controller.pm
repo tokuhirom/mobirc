@@ -60,7 +60,7 @@ sub dispatch_recent {
     # reset counter.
     for my $canon_channel ( sort keys %{ $c->{irc_heap}->{channel_name} } ) {
         $c->{irc_heap}->{unread_lines}->{$canon_channel}   = 0;
-        $c->{irc_heap}->{channel_recent}->{$canon_channel} = '';
+        $c->{irc_heap}->{channel_recent}->{$canon_channel} = [];
     }
 
     return $out;
@@ -121,7 +121,7 @@ sub dispatch_show_channel {
         $c->{irc_heap}->{unread_lines}->{$canon_channel} = 0;
 
         # clear recent messages buffer
-        $c->{irc_heap}->{channel_recent}->{$canon_channel} = '';
+        $c->{irc_heap}->{channel_recent}->{$canon_channel} = [];
     }
 
     return $out;
@@ -212,7 +212,8 @@ sub render_list {
     my $c   = shift;
     my $src = shift;
 
-    croak "must be flagged utf8" unless Encode::is_utf8($src);
+    return "" unless $src;
+    croak "must be flagged utf8: $src" unless Encode::is_utf8($src);
 
     $src = join "\n", reverse split /\n/, $src;
 

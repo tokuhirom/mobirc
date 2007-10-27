@@ -1,13 +1,13 @@
 [% INCLUDE 'include/header.html' %]
 
 [% FOR canon_channel IN channel_name.keys.sort %]
-    [% IF channel_name.item(canon_channel) and channel_recent.item(canon_channel) %]
+    [% IF channel_name.item(canon_channel) and channel_recent.item(canon_channel) and channel_recent.item(canon_channel).size %]
         <div class="ChannelHeader">
             <b class="ChannelName">[% channel_name.item(canon_channel) | html %]</b>
             <a href="[% docroot %]channels/[% channel_name.item(canon_channel) | uri%]">more..</a><br />
         </div>
 
-        [% render_list( channel_recent.item(canon_channel) ) %]
+        [% render_list( channel_recent.item(canon_channel).join("\n") ) %]
 
         <hr />
     [% END %]
