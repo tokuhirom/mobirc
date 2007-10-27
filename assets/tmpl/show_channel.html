@@ -19,7 +19,7 @@
         [%- IF recent_mode %]
             [% render_list( channel_recent.item(canon_channel) ) %]
             <hr />
-            <a accesskey="5" href="[% docroot %][% channel | uri %]">more[5]</a><br />
+            <a accesskey="5" href="[% docroot %]channels/[% channel | uri %]">more[5]</a><br />
         [% ELSE %]
             [% render_list( channel_buffer.item(canon_channel) ) %]
         [% END %]
