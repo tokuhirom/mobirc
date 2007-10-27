@@ -14,14 +14,14 @@
 </form>
 
 [% IF channel_name.item(canon_channel) %]
-    [% IF channel_buffer.item(canon_channel) %]
+    [% IF channel_buffer.item(canon_channel) and channel_buffer.item(canon_channel).size %]
         <a accesskey="9" href="#2"></a>
         [%- IF recent_mode %]
-            [% render_list( channel_recent.item(canon_channel) ) %]
+            [% render_list( channel_recent.item(canon_channel).join("\n") ) %]
             <hr />
             <a accesskey="5" href="[% docroot %]channels/[% channel | uri %]">more[5]</a><br />
         [% ELSE %]
-            [% render_list( channel_buffer.item(canon_channel) ) %]
+            [% render_list( channel_buffer.item(canon_channel).join("\n") ) %]
         [% END %]
         <a accesskey="9" href="#2"></a>
         <a name="2"></a>

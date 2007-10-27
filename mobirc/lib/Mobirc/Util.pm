@@ -43,6 +43,7 @@ sub add_message {
 
     DEBUG "ADD MESSAGE TO $channel";
 
+    # validation
     unless (Encode::is_utf8($msg)) {
         croak "$msg shuld be flagged utf8";
     }
@@ -55,7 +56,7 @@ sub add_message {
     my $config = $heap->{config} or die "missing config in heap";
 
     my $message;
-    if ( length $who ) {
+    if ( $who ) {
         $message = sprintf( '%s %s> %s', _now(), $who, $msg );
     }
     else {
@@ -63,33 +64,26 @@ sub add_message {
     }
 
     my $canon_channel = canon_name($channel);
-    my @tmp = split( "\n", $heap->{channel_buffer}->{$canon_channel} || '' );
-    push @tmp, $message;
 
-    my @tmp2 = split( "\n", $heap->{channel_recent}->{$canon_channel} || '' );
-    push @tmp2, $message;
-
-    if ( @tmp > $config->{httpd}->{lines} ) {
-        $heap->{channel_buffer}->{$canon_channel} =
-          join( "\n", splice( @tmp, -$config->{httpd}->{web_lines} ) );
-    }
-    else {
-        $heap->{channel_buffer}->{$canon_channel} = join( "\n", @tmp );
+    # update message log
+    $heap->{channel_buffer}->{$canon_channel} ||= [];
+    push @{ $heap->{channel_buffer}->{$canon_channel} }, $message;
+    if ( @{ $heap->{channel_buffer}->{$canon_channel} } > $config->{httpd}->{lines} ) {
+        shift @{$heap->{channel_buffer}->{$canon_channel}}; # trash old one.
     }
 
-    if ( @tmp2 > $config->{httpd}->{lines} ) {
-        $heap->{channel_recent}->{$canon_channel} =
-          join( "\n", @tmp2[ 1 .. $config->{httpd}->{lines} ] );
-    }
-    else {
-        $heap->{channel_recent}->{$canon_channel} = join( "\n", @tmp2 );
+    # update recent messages buffer
+    $heap->{channel_recent}->{$canon_channel} ||= [];
+    push @{$heap->{channel_recent}->{$canon_channel}}, $message;
+    if ( @{$heap->{channel_recent}->{$canon_channel}} > $config->{httpd}->{lines}) {
+        shift @{$heap->{channel_recent}->{$canon_channel}}; # trash old one.
     }
 
+    # update mtime
     $heap->{channel_mtime}->{$canon_channel} = time;
 
-    # unread lines
-    $heap->{unread_lines}->{$canon_channel} = scalar(@tmp2);
-
+    # update unread lines
+    $heap->{unread_lines}->{$canon_channel} = scalar @{ $heap->{channel_recent}->{$canon_channel} };
     if ( $heap->{unread_lines}->{$canon_channel} > $config->{httpd}->{lines} ) {
         $heap->{unread_lines}->{$canon_channel} = $config->{httpd}->{lines};
     }
