@@ -1,0 +1,129 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use utf8;
+use boolean ':all';
+use POE;
+use Encode;
+use File::Spec;
+use FindBin;
+use Carp;
+use YAML::Syck;
+
+use lib File::Spec->catfile( $FindBin::Bin, 'lib');
+
+use Mobirc::Util;
+use Mobirc::HTTPD;
+use Mobirc::IRCClient;
+
+our $VERSION = '0.01';
+
+$SIG{INT} = sub { die "SIGINT!\n" };
+
+DEBUG "NOW LOADING";
+
+my $conffname = File::Spec->catfile($FindBin::Bin, 'config.ini');
+if ($ARGV[0]) {
+    $conffname = $ARGV[0];
+}
+die "file does not exist: $conffname" unless -f $conffname;
+
+DEBUG "load config: $conffname";
+my $config = YAML::Syck::LoadFile($conffname);
+
+# set default vars.
+$config->{irc}->{ping_delay} ||= 30;
+$config->{irc}->{reconnect_delay} ||= 10;
+$config->{irc}->{incode} ||= 'utf8';
+$config->{httpd}->{charset} ||= 'cp932';
+$config->{httpd}->{root} ||= '/';
+
+# daemonize
+if ( $config->{global}->{daemonize} ) {
+    daemonize($config->{global}->{pid_fname});
+}
+
+Mobirc::IRCClient->init($config);
+Mobirc::HTTPD->init($config);
+$poe_kernel->run();
+
+exit 0;
+
+__END__
+
+=head1 SYNOPSIS
+
+   mobirc config.yaml
+
+  # in your config.yaml
+
+  irc:
+    nick: kakuei
+    username: Tanaka Kakuei
+    desc: description
+    server: irc.freenode.net
+    port: 6667
+    password:
+    ping_delay: 200
+    incode: utf8
+  httpd:
+    au_subscriber_id: 5025235252523_em.ezweb.ne.jp
+    au_pcsv: 0
+    use_cookie: 1
+    port: 5252
+    title: mobirc
+    lines: 20
+    # root: / # optional.
+    username: kakuei
+    password: 2007
+    reconnect_delay
+    charset
+  global:
+    daemonize: 1
+    pid_fname: /var/run/mobirc.pid
+
+=head1 WARNINGS
+
+This program is still ALPHA QUALITY. Don't use at production environment.
+
+=head1 CONCEPT
+
+easy hack, easy maintenance, modern style, easy to use for perl hackers.
+
+=head1 DONE
+
+    use Encode instead of Unicode::Japanese
+    rebirth channel list
+    internal string should be flagged utf8
+    Perl critic clean
+    show_channel should use TT.
+    split irc client feature to IRCClient.pm instead of keitaric.pl
+    new name.
+    use YAML instead of AppConfig
+
+=head1 TODO
+
+    dispatcher likes Sledge(HTTPD)
+    avoid warnings.
+    use poe's heap instead of global variables ;-(
+    templates should configurable
+    use TT at dispatch_index
+    TT should in the assets dir?
+    cool uri
+    Makefile.PL
+
+=head1 supported phones
+
+  au WIN
+  docomo foma
+
+that's all...
+
+=head1 HISTORY
+
+mobirc is based on 'keitairc,v 1.33 2007/10/16 23:44:55 morimoto'.
+
+=head1 LICENSE
+
+This program is covered by the GNU General Public License 2
+
