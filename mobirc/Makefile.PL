@@ -16,12 +16,14 @@ requires 'POE::Component::Server::TCP';
 requires 'POE::Filter::HTTPD';
 requires 'POE::Sugar::Args';
 requires 'Scalar::Util';
+requires 'List::Util';
 requires 'Template';
 requires 'URI::Escape';
 requires 'URI::Find';
 requires 'YAML::Syck';
 requires 'boolean';
 requires 'utf8';
+requires 'UNIVERSAL::require';
 
 build_requires 'Test::More';
 use_test_base;
