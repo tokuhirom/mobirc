@@ -149,7 +149,7 @@ sub route {
     elsif ( $uri eq '/recent' ) {
         return 'recent';
     }
-    elsif ($uri =~ m{^/channels(-recent)?/(.+)}) {
+    elsif ($uri =~ m{^/channels(-recent)?/([^?]+)(?:\?time=\d+)?$}) {
         my $recent_mode = $1 ? true : false;
         my $channel_name = $2;
         return 'show_channel', $recent_mode, uri_unescape($channel_name);
@@ -181,7 +181,7 @@ sub post_dispatch_show_channel {
     }
 
     my $response = HTTP::Response->new(302);
-    $response->push_header( 'Location' => $c->{req}->uri); # TODO: must be absoulute url.
+    $response->push_header( 'Location' => $c->{req}->uri . '?time=' . time); # TODO: must be absoulute url.
     return $response;
 }
 
