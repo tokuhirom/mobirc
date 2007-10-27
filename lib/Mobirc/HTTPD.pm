@@ -39,8 +39,8 @@ sub init {
 }
 
 sub on_web_request {
-    my ( $kernel, $heap, $request ) = @_[ KERNEL, HEAP, ARG0 ];
     my $poe        = sweet_args;
+    my $request    = $poe->args->[0];
     my $user_agent = $request->{_headers}->{'user-agent'};
 
     my $config = $GLOBAL_CONFIG or die "config missing";
@@ -55,8 +55,8 @@ sub on_web_request {
     # while parsing the client's HTTP request.  It's easiest to send
     # the responses as they are and finish up.
     if ( $request->isa('HTTP::Response') ) {
-        $heap->{client}->put($request);
-        $kernel->yield('shutdown');
+        $poe->heap->{client}->put($request);
+        $poe->kernel->yield('shutdown');
         return;
     }
 
