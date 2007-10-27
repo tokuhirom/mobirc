@@ -17,6 +17,7 @@ use URI::Find;
 use URI::Escape;
 use HTTP::Response;
 use HTML::Entities;
+use Scalar::Util qw/blessed/;
 
 use Mobirc::Util;
 
@@ -106,53 +107,33 @@ sub on_web_request {
         poe        => $poe,
         req        => $request,
         user_agent => $user_agent,
-        channel_topics =>
-          $poe->kernel->alias_resolve('irc_session')->get_heap->{channel_topic},
-        channel_name =>
-          $poe->kernel->alias_resolve('irc_session')->get_heap->{channel_name},
-        channel_mtime =>
-          $poe->kernel->alias_resolve('irc_session')->get_heap->{channel_mtime},
-        channel_buffer => $poe->kernel->alias_resolve('irc_session')
-          ->get_heap->{channel_buffer},
-        channel_recent => $poe->kernel->alias_resolve('irc_session')
-          ->get_heap->{channel_recent},
-        unread_lines =>
-          $poe->kernel->alias_resolve('irc_session')->get_heap->{unread_lines},
+        irc_heap   => $poe->kernel->alias_resolve('irc_session')->get_heap,
     };
 
-    # process post request.
-    if ( $request->method =~ /POST/i ) {
-        post_dispatch($ctx);
-    }
+    my $response = process_request($ctx, $request->uri);
 
-    my $uri = $request->uri;
-    my $response = process_request($ctx, $uri);
-
-    $heap->{client}->put($response);
-    $kernel->yield('shutdown');
+    $poe->heap->{client}->put($response);
+    $poe->kernel->yield('shutdown');
 }
 
 sub process_request {
     my ($c, $uri) = @_;
     croak 'uri missing' unless $uri;
 
-    my $meth = route($c, $uri);
-    my $content;
+    my ($meth, @args) = route($c, $uri);
+
+    if (blessed $meth && $meth->isa('HTTP::Response')) {
+        return $meth;
+    }
+
     {
         no strict 'refs'; ## no critic.
-        $content = &{__PACKAGE__ . "::$meth"}($c);
+        if ( $c->{req}->method =~ /POST/i && *{__PACKAGE__ . "::post_dispatch_$meth"}) {
+            return &{__PACKAGE__ . "::post_dispatch_$meth"}($c, @args);
+        } else {
+            return &{__PACKAGE__ . "::dispatch_$meth"}($c, @args);
+        }
     }
-    $content = encode($c->{config}->{httpd}->{charset}, $content);
-
-    my $response = HTTP::Response->new(200);
-    $response->push_header( 'Content-type', 'text/html; charset=Shift_JIS' ); # TODO: should be configurable
-
-    if ( $c->{config}->{httpd}->{use_cookie} ) {
-        set_cookie( $c, $response );
-    }
-
-    $response->content( $content );
-    return $response;
 }
 
 sub route {
@@ -160,38 +141,48 @@ sub route {
     croak 'uri missing' unless $uri;
 
     if ( $uri eq '/' ) {
-        return 'dispatch_index';
+        return 'index';
     }
     elsif ( $uri eq '/topics' ) {
-        return 'dispatch_topics';
+        return 'topics';
     }
     elsif ( $uri eq '/recent' ) {
-        return 'dispatch_recent';
+        return 'recent';
     }
-    else {
-        return 'dispatch_show_channel';
+    elsif ($uri =~ m{^/channels(-recent)?/(.+)}) {
+        my $recent_mode = $1 ? true : false;
+        my $channel_name = $2;
+        return 'show_channel', $recent_mode, uri_unescape($channel_name);
+    } else {
+        warn "dan the 404 not found: $uri";
+        my $response = HTTP::Response->new(404);
+        $response->content("Dan the 404 not found: $uri");
+        return $response;
     }
 }
 
-sub post_dispatch {
-    my ( $c, ) = @_;
+sub post_dispatch_show_channel {
+    my ( $c, $recent_mode, $channel) = @_;
 
     my $r       = CGI->new( $c->{req}->content );
-    my $message = $r->param('m');
+    my $message = $r->param('msg');
     $message = decode( $c->{config}->{httpd}->{charset}, $message );
 
+    DEBUG "POST MESSAGE $message";
+
     if ($message) {
-        my $uri = $c->{req}->uri;
-        $uri =~ s|^/||;
-        my $channel = uri_unescape($uri);
-        $c->{poe}
-          ->kernel->post( 'keitairc_irc', privmsg => $channel => $message );
+        $c->{poe}->kernel->post( 'keitairc_irc', privmsg => $channel => $message );
+
         add_message(
             $c->{poe},
             decode( $c->{config}->{irc}->{incode}, $channel ),
             $c->{config}->{irc}->{nick}, $message
         );
     }
+
+    my $response = HTTP::Response->new(302);
+    $response->push_header( 'Location' => $c->{req}->uri); # TODO: must be absoulute url.
+    return $response;
 }
 
 sub dispatch_index {
@@ -200,22 +191,17 @@ sub dispatch_index {
     return render(
         $c,
         'index' => {
-            channel_name          => $c->{channel_name},
-            version               => $VERSION,
-            compact_channel_name  => \&compact_channel_name,
-            docroot               => $c->{config}->{httpd}->{root},
-            unread_lines          => $c->{unread_lines},
             exists_recent_entries => (
-                grep( $c->{unread_lines}->{$_}, keys %{ $c->{unread_lines} } )
+                grep( $c->{irc_heap}->{unread_lines}->{$_}, keys %{ $c->{irc_heap}->{unread_lines} } )
                 ? true
                 : false
             ),
             canon_channels => [
                 reverse
                   sort {
-                    $c->{channel_mtime}->{$a} <=> $c->{channel_mtime}->{$b}
+                    $c->{irc_heap}->{channel_mtime}->{$a} <=> $c->{irc_heap}->{channel_mtime}->{$b}
                   }
-                  keys %{ $c->{channel_name} }
+                  keys %{ $c->{irc_heap}->{channel_name} }
             ],
         }
     );
@@ -228,19 +214,13 @@ sub dispatch_recent {
     my $out = render(
         $c,
         'recent' => {
-            docroot        => $c->{config}->{httpd}->{root},
-            channel_name   => $c->{channel_name},
-            render_list    => sub { render_list( $c, @_ ) },
-            channel_recent => $c->{channel_recent},
-            user_agent     => $c->{user_agent},
-            title          => $c->{config}->{httpd}->{title},
         },
     );
 
     # reset counter.
-    for my $canon_channel ( sort keys %{ $c->{channel_name} } ) {
-        $c->{unread_lines}->{$canon_channel}   = 0;
-        $c->{channel_recent}->{$canon_channel} = '';
+    for my $canon_channel ( sort keys %{ $c->{irc_heap}->{channel_name} } ) {
+        $c->{irc_heap}->{unread_lines}->{$canon_channel}   = 0;
+        $c->{irc_heap}->{channel_recent}->{$canon_channel} = '';
     }
 
     return $out;
@@ -253,50 +233,20 @@ sub dispatch_topics {
     return render(
         $c,
         'topics' => {
-            docroot      => $c->{config}->{httpd}->{root},
-            channel_name => $c->{channel_name},
-            topic        => $c->{channel_topics},
-            user_agent   => $c->{user_agent},
-            title        => $c->{config}->{httpd}->{title},
         },
     );
 }
 
 sub dispatch_show_channel {
-    my $c = shift;
-
-    # channel conversation
-    my $uri = $c->{req}->uri;
-    $uri =~ s|^/||;
-
-    # RFC 2811:
-    # Apart from the the requirement that the first character
-    # being either '&', '#', '+' or '!' (hereafter called "channel
-    # prefix"). The only restriction on a channel name is that it
-    # SHALL NOT contain any spaces (' '), a control G (^G or ASCII
-    # 7), a comma (',' which is used as a list item separator by
-    # the protocol).  Also, a colon (':') is used as a delimiter
-    # for the channel mask.  The exact syntax of a channel name is
-    # defined in "IRC Server Protocol" [IRC-SERVER].
-    #
-    # so we use white space as separator character of channel name
-    # and command argument.
-
-    my $channel = uri_unescape($uri);
+    my ($c, $recent_mode, $channel) = @_;
 
     my $out = render(
         $c,
         'show_channel' => {
-            docroot        => $c->{config}->{httpd}->{root},
-            channel_name   => $c->{channel_name},
             canon_channel  => canon_name($channel),
             channel        => $channel,
-            channel_buffer => $c->{channel_buffer},
-            render_list    => sub { render_list( $c, @_ ) },
-            channel_recent => $c->{channel_recent},
-            user_agent     => $c->{user_agent},
-            title          => $c->{config}->{httpd}->{title},
             subtitle       => compact_channel_name($channel),
+            recent_mode    => $recent_mode,
         }
     );
 
@@ -304,10 +254,10 @@ sub dispatch_show_channel {
         my $canon_channel = canon_name($channel);
 
         # clear unread counter
-        $c->{unread_lines}->{$canon_channel} = 0;
+        $c->{irc_heap}->{unread_lines}->{$canon_channel} = 0;
 
         # clear recent messages buffer
-        $c->{channel_recent}->{$canon_channel} = '';
+        $c->{irc_heap}->{channel_recent}->{$canon_channel} = '';
     }
 
     return $out;
@@ -317,6 +267,20 @@ sub render {
     my ( $c, $name, $args ) = @_;
 
     croak "invalid args : $args" unless ref $args eq 'HASH';
+
+    # set default vars
+    $args = {
+        compact_channel_name => \&compact_channel_name,
+        docroot              => $c->{config}->{httpd}->{root},
+        render_list          => sub { render_list( $c, @_ ) },
+        user_agent           => $c->{user_agent},
+        title                => $c->{config}->{httpd}->{title},
+        version              => $VERSION,
+
+        %{ $c->{irc_heap} },
+
+        %$args,
+    };
 
     my $tt = Template->new(
         ABSOLUTE => 1,
@@ -332,7 +296,19 @@ sub render {
         \my $out
     ) or die $tt->error;
 
-    return decode( 'utf8', $out );
+    my $content = decode( 'utf8', $out );
+    $content = encode($c->{config}->{httpd}->{charset}, $content);
+
+    my $response = HTTP::Response->new(200);
+    $response->push_header( 'Content-type', 'text/html; charset=Shift_JIS' ); # TODO: should be configurable
+    $response->push_header('Content-Length' => length($content) );
+
+    if ( $c->{config}->{httpd}->{use_cookie} ) {
+        set_cookie( $c, $response );
+    }
+
+    $response->content( $content );
+    return $response;
 }
 
 sub set_cookie {

@@ -7,15 +7,16 @@
 
     [%- IF accesskey < 10 %][%# > %]
     [%- accesskey %]
-    <a accesskey="[% accesskey %]" href="[% docroot %][% channel | uri %]">
+    <a accesskey="[% accesskey %]" href="[% docroot %]channels/[% channel | uri %]">
     [%- ELSE %]
-    <a href="[% docroot %][% channel | uri %]">
+    <a href="[% docroot %]channels/[% channel | uri %]">
     [%- END -%]
         [% compact_channel_name(channel) %]
     </a>
 
+    &nbsp;
     [% IF unread_lines.item(canon_channel) %]
-        <a href="[% docroot %][% channel | uri %]?mode=recent">[% unread_lines.item(canon_channel) %]</a>
+        <a href="[% docroot %]channels-recent/[% channel | uri %]">[% unread_lines.item(canon_channel) %]</a>
     [% END %]
 
     <br />
