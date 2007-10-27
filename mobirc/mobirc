@@ -37,6 +37,7 @@ $config->{irc}->{reconnect_delay} ||= 10;
 $config->{irc}->{incode} ||= 'utf8';
 $config->{httpd}->{charset} ||= 'cp932';
 $config->{httpd}->{root} ||= '/';
+$config->{global}->{assets_dir} ||= File::Spec->catfile($FindBin::Bin, 'assets');
 
 # daemonize
 if ( $config->{global}->{daemonize} ) {

@@ -1,0 +1,14 @@
+[% FOR canon_channel IN channel_name.keys.sort %]
+    [% IF channel_name.item(canon_channel) and channel_recent.item(canon_channel) %]
+        <div class="ChannelHeader">
+            <b class="ChannelName">[% channel_name.item(canon_channel) | html %]</b>
+            <a href="[% docroot %][% channel_name.item(canon_channel) | uri%]">more..</a><br />
+        </div>
+
+        [% render_list( channel_recent.item(canon_channel) ) %]
+
+        <hr />
+    [% END %]
+[% END %]
+<br />
+<a accesskey="8" href="[% docroot %]">ch list[8]</a>

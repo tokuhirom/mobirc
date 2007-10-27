@@ -12,6 +12,7 @@ use Carp;
 use CGI;
 use Encode;
 use Template;
+use File::Spec;
 use URI::Find;
 use URI::Escape;
 use HTTP::Response;
@@ -219,7 +220,6 @@ sub dispatch_index {
 
         $accesskey++;
 
-        # 譛ｪ隱ｭ陦梧焚
         if ( $c->{unread_lines}->{$canon_channel} ) {
             $buf .= sprintf( ' <a href="%s%s,recent">%s</a>',
                 $docroot, uri_escape($channel),
@@ -244,34 +244,15 @@ sub dispatch_index {
 sub dispatch_recent {
     my $c = shift;
 
-    my $TMPL = <<'...';
-[% FOR canon_channel IN channel_name.keys.sort %]
-    [% IF channel_name.item(canon_channel) and channel_recent.item(canon_channel) %]
-        <div class="ChannelHeader">
-            <b class="ChannelName">[% channel_name.item(canon_channel) | html %]</b>
-            <a href="[% docroot %][% channel_name.item(canon_channel) | uri%]">more..</a><br />
-        </div>
-
-        [% render_list( channel_recent.item(canon_channel) ) %]
-
-        <hr />
-    [% END %]
-[% END %]
-<br />
-<a accesskey="8" href="[% docroot %]">ch list[8]</a>
-...
-
-    my $tt = Template->new;
-    $tt->process(
-        \$TMPL,
-        {
+    my $out = render(
+        $c,
+        'recent' => {
             docroot        => $c->{config}->{httpd}->{root},
             channel_name   => $c->{channel_name},
             render_list    => sub { render_list( $c, @_ ) },
             channel_recent => $c->{channel_recent},
         },
-        \my $out
-    ) or die $tt->error;
+    );
 
     # reset counter.
     for my $canon_channel ( sort keys %{ $c->{channel_name} } ) {
@@ -279,34 +260,21 @@ sub dispatch_recent {
         $c->{channel_recent}->{$canon_channel} = '';
     }
 
-    return decode( 'utf8', $out );
+    return $out;
 }
 
 # topic on every channel
 sub dispatch_topics {
     my $c = shift;
 
-    my $TMPL = <<'...';
-[% FOR canon_channel IN channel_name.keys.sort %]
-    <a href="[% docroot %][% channel_name.item(canon_channel) | uri %]">[% channel_name.item(canon_channel) | html %]</a><br />
-    [% topic.item(canon_channel) %]<br />
-[% END %]
-<br />
-<a accesskey="8" href="[% docroot %]">ch list[8]</a>
-...
-
-    my $tt = Template->new;
-    $tt->process(
-        \$TMPL,
-        {
+    return render(
+        $c,
+        'topics' => {
             docroot      => $c->{config}->{httpd}->{root},
             channel_name => $c->{channel_name},
             topic        => $c->{channel_topics},
         },
-        \my $out
-    ) or die $tt->error;
-
-    return decode( 'utf8', $out );
+    );
 }
 
 sub dispatch_show_channel {
@@ -334,48 +302,20 @@ sub dispatch_show_channel {
 
     my $channel = uri_unescape($uri);
 
+    {
+        my $canon_channel = canon_name($channel);
+        # clear unread counter
+        $c->{unread_lines}->{$canon_channel} = 0;
+        # clear recent messages buffer
+        $c->{channel_recent}->{$canon_channel} = '';
+    }
+
     my $header =
       render_header( $c, $user_agent, compact_channel_name($channel) );
 
-    my $TMPL = <<'...';
-[%- header %]
-
-<a name="1"></a>
-<a accesskey="7" href="#1"></a>
-
-<form action="[% docroot %][% channel | uri %]" method="post">
-[% IF user_agent.match('(iPod|iPhone)') %]
-    <input type="text" name="m">
-[% ELSE %]
-    <input type="text" name="m" size="10">
-[% END %]
-<input type="submit" accesskey="1" value="OK[1]">
-<a accesskey="8" href="[% docroot %]">ch list[8]</a><br />
-</form>
-
-[% IF channel_name.item(canon_channel) %]
-    [% IF channel_buffer.item(canon_channel) %]
-        <a accesskey="9" href="#2"></a>
-        [%- IF recent_mode %]
-            [% render_list( channel_recent.item(canon_channel) ) %]
-            <a accesskey="5" href="[% docroot %][% channel | uri %]">more[5]</a>',
-        [% ELSE %]
-            [% render_list( channel_buffer.item(canon_channel) ) %]
-        [% END %]
-        <a accesskey="9" href="#2"></a>
-        <a name="2"></a>
-    [% ELSE %]
-        no message here yet
-    [% END %]
-[% ELSE %]
-    no such channel.
-[% END %]
-...
-
-    my $tt = Template->new;
-    $tt->process(
-        \$TMPL,
-        {
+    return render(
+        $c,
+        'show_channel' => {
             docroot        => $c->{config}->{httpd}->{root},
             channel_name   => $c->{channel_name},
             canon_channel  => canon_name($channel),
@@ -384,19 +324,8 @@ sub dispatch_show_channel {
             render_list    => sub { render_list( $c, @_ ) },
             header         => $header,
             channel_recent => $c->{channel_recent},
-        },
-        \my $out
-    ) or die $tt->error;
-
-    my $canon_channel = canon_name($channel);
-
-    # clear unread counter
-    $c->{unread_lines}->{$canon_channel} = 0;
-
-    # clear recent messages buffer
-    $c->{channel_recent}->{$canon_channel} = '';
-
-    return decode( 'utf8', $out );
+        }
+    );
 }
 
 sub render_header {
@@ -406,35 +335,33 @@ sub render_header {
 
     DEBUG "RENDER HEADER";
 
-    my $TMPL = <<'...';
-<?xml version="1.0" encoding="utf-8"?>
-<html lang="ja" xml:lang="ja" xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=Shift_JIS" />
-<meta http-equiv="Cache-Control" content="max-age=0" />
-
-[% IF $user_agent.match('(iPod|iPhone)') %]
-<meta name="viewport" content="width=device-width">
-<meta name="viewport" content="initial-scale=1.0, user-scalable=yes">
-[% END %]
-
-<title>[% IF subtitle %][% subtitle | html %] - [% END %][% title | html %]</title>
-</head>
-<body>
-...
-
-    my $tt = Template->new;
-    $tt->process(
-        \$TMPL,
-        {
+    return render(
+        $c,
+        'header' => {
             user_agent => $user_agent,
             subtitle   => $subtitle,
             title      => $c->{config}->{httpd}->{title},
-        },
-        \my $out
+        }
+    );
+}
+
+sub render {
+    my ($c, $name, $args) = @_;
+
+    croak "invalid args : $args" unless ref $args eq 'HASH';
+
+    my $tt = Template->new(
+        ABSOLUTE     => 1,
+        INCLUDE_PATH => File::Spec->catfile(
+            $c->{config}->{global}->{assets_dir},
+            'tmpl', 'include'
+        )
+    );
+    $tt->process(
+        File::Spec->catfile($c->{config}->{global}->{assets_dir}, 'tmpl', "$name.html"), $args, \my $out
     ) or die $tt->error;
 
-    return $out;
+    return decode('utf8', $out);
 }
 
 sub render_footer {

@@ -1,0 +1,32 @@
+[%- header %]
+
+<a name="1"></a>
+<a accesskey="7" href="#1"></a>
+
+<form action="[% docroot %][% channel | uri %]" method="post">
+[% IF user_agent.match('(iPod|iPhone)') %]
+    <input type="text" name="m">
+[% ELSE %]
+    <input type="text" name="m" size="10">
+[% END %]
+<input type="submit" accesskey="1" value="OK[1]">
+<a accesskey="8" href="[% docroot %]">ch list[8]</a><br />
+</form>
+
+[% IF channel_name.item(canon_channel) %]
+    [% IF channel_buffer.item(canon_channel) %]
+        <a accesskey="9" href="#2"></a>
+        [%- IF recent_mode %]
+            [% render_list( channel_recent.item(canon_channel) ) %]
+            <a accesskey="5" href="[% docroot %][% channel | uri %]">more[5]</a>',
+        [% ELSE %]
+            [% render_list( channel_buffer.item(canon_channel) ) %]
+        [% END %]
+        <a accesskey="9" href="#2"></a>
+        <a name="2"></a>
+    [% ELSE %]
+        no message here yet
+    [% END %]
+[% ELSE %]
+    no such channel.
+[% END %]
