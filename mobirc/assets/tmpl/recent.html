@@ -1,3 +1,5 @@
+[% INCLUDE 'include/header.html' %]
+
 [% FOR canon_channel IN channel_name.keys.sort %]
     [% IF channel_name.item(canon_channel) and channel_recent.item(canon_channel) %]
         <div class="ChannelHeader">
@@ -12,3 +14,5 @@
 [% END %]
 <br />
 <a accesskey="8" href="[% docroot %]">ch list[8]</a>
+
+[% INCLUDE 'include/footer.html' %]

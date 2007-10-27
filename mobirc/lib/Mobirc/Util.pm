@@ -4,7 +4,7 @@ use warnings;
 use base 'Exporter';
 use Carp;
 
-our @EXPORT = qw/DEBUG compact_channel_name canon_name label add_message daemonize/;
+our @EXPORT = qw/DEBUG compact_channel_name canon_name add_message daemonize/;
 
 sub DEBUG($) { ## no critic.
     my $txt = shift;
@@ -34,19 +34,6 @@ sub canon_name {
     local ($_) = shift;
     tr/A-Z[\\]^/a-z{|}~/;
     $_;
-}
-
-# -------------------------------------------------------------------------
-
-sub label {
-    my $accesskey = shift;
-
-    if ( $accesskey < 10 ) {
-        sprintf( '%d ', $accesskey );
-    }
-    else {
-        '  ';
-    }
 }
 
 # -------------------------------------------------------------------------

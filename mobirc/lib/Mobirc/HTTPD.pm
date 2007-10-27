@@ -82,11 +82,13 @@ sub on_web_request {
     unless ($cookie_authorized) {
         unless ( defined( $config->{httpd}->{au_subscriber_id} )
             && $request->header('x-up-subno')
-            && $request->header('x-up-subno') eq $config->{httpd}->{au_subscriber_id} )
+            && $request->header('x-up-subno') eq
+            $config->{httpd}->{au_subscriber_id} )
         {
             if ( defined( $config->{httpd}->{username} ) ) {
                 unless ( $request->headers->authorization_basic eq
-                    $config->{httpd}->{username} . ':' . $config->{httpd}->{password} )
+                      $config->{httpd}->{username} . ':'
+                    . $config->{httpd}->{password} )
                 {
                     my $response = HTTP::Response->new(401);
                     $response->push_header(
@@ -99,22 +101,11 @@ sub on_web_request {
         }
     }
 
-    my $uri = $request->uri;
-
-    # store and remove attached options from uri
-    my %option;
-    {
-        my @opts = split( ',', $uri );
-        shift @opts;
-        grep( $option{$_} = $_, @opts );
-        $uri =~ s/,.*//;
-    }
-
-    my $content;
     my $ctx = {
-        config => $config,
-        poe    => $poe,
-        req    => $request,
+        config     => $config,
+        poe        => $poe,
+        req        => $request,
+        user_agent => $user_agent,
         channel_topics =>
           $poe->kernel->alias_resolve('irc_session')->get_heap->{channel_topic},
         channel_name =>
@@ -134,40 +125,52 @@ sub on_web_request {
         post_dispatch($ctx);
     }
 
-    if ( $uri eq '/' ) {
-        $content = render_header( $ctx, $user_agent );
+    my $uri = $request->uri;
+    my $response = process_request($ctx, $uri);
 
-        if ( $option{recent} ) {
-            DEBUG "RECENT";
-            $content .= dispatch_recent($ctx);
-        }
-        elsif ( $option{topics} ) {
-            DEBUG "TOPICS";
-            $content .= dispatch_topics($ctx);
-        }
-        else {
-            DEBUG "CHANNEL LIST";
-            $content .= dispatch_index($ctx);
-        }
-    }
-    else {
-        DEBUG "CHANNEL DETAIL";
-        $content =
-          dispatch_show_channel( $ctx, $uri, $user_agent, \%option );
-    }
-
-    $content .= render_footer();
-
-    my $response = HTTP::Response->new(200);
-
-    if ( $config->{httpd}->{use_cookie} ) {
-        set_cookie( $ctx, $response );
-    }
-
-    $response->push_header( 'Content-type', 'text/html; charset=Shift_JIS' ); # TODO: should be configurable
-    $response->content( encode( $config->{httpd}->{charset}, $content ) );
     $heap->{client}->put($response);
     $kernel->yield('shutdown');
+}
+
+sub process_request {
+    my ($c, $uri) = @_;
+    croak 'uri missing' unless $uri;
+
+    my $meth = route($c, $uri);
+    my $content;
+    {
+        no strict 'refs'; ## no critic.
+        $content = &{__PACKAGE__ . "::$meth"}($c);
+    }
+    $content = encode($c->{config}->{httpd}->{charset}, $content);
+
+    my $response = HTTP::Response->new(200);
+    $response->push_header( 'Content-type', 'text/html; charset=Shift_JIS' ); # TODO: should be configurable
+
+    if ( $c->{config}->{httpd}->{use_cookie} ) {
+        set_cookie( $c, $response );
+    }
+
+    $response->content( $content );
+    return $response;
+}
+
+sub route {
+    my ($c, $uri) = @_;
+    croak 'uri missing' unless $uri;
+
+    if ( $uri eq '/' ) {
+        return 'dispatch_index';
+    }
+    elsif ( $uri eq '/topics' ) {
+        return 'dispatch_topics';
+    }
+    elsif ( $uri eq '/recent' ) {
+        return 'dispatch_recent';
+    }
+    else {
+        return 'dispatch_show_channel';
+    }
 }
 
 sub post_dispatch {
@@ -181,7 +184,8 @@ sub post_dispatch {
         my $uri = $c->{req}->uri;
         $uri =~ s|^/||;
         my $channel = uri_unescape($uri);
-        $c->{poe}->kernel->post( 'keitairc_irc', privmsg => $channel => $message );
+        $c->{poe}
+          ->kernel->post( 'keitairc_irc', privmsg => $channel => $message );
         add_message(
             $c->{poe},
             decode( $c->{config}->{irc}->{incode}, $channel ),
@@ -192,52 +196,29 @@ sub post_dispatch {
 
 sub dispatch_index {
     my $c = shift;
-    my $buf;
-    my $accesskey = 1;
-    my $channel;
 
-    my %channel_name = %{ $c->{channel_name} };
-    my $docroot      = $c->{config}->{httpd}->{root};
-
-    for my $canon_channel (
-        sort { $c->{channel_mtime}->{$b} <=> $c->{channel_mtime}->{$a}; }
-        ( keys(%channel_name) ) )
-    {
-        $channel = $channel_name{$canon_channel};
-
-        $buf .= label($accesskey);
-
-        if ( $accesskey < 10 ) {
-            $buf .= sprintf( '<a accesskey="%1d" href="%s%s">%s</a>',
-                $accesskey, $docroot, uri_escape($channel),
-                compact_channel_name($channel) );
+    return render(
+        $c,
+        'index' => {
+            channel_name          => $c->{channel_name},
+            version               => $VERSION,
+            compact_channel_name  => \&compact_channel_name,
+            docroot               => $c->{config}->{httpd}->{root},
+            unread_lines          => $c->{unread_lines},
+            exists_recent_entries => (
+                grep( $c->{unread_lines}->{$_}, keys %{ $c->{unread_lines} } )
+                ? true
+                : false
+            ),
+            canon_channels => [
+                reverse
+                  sort {
+                    $c->{channel_mtime}->{$a} <=> $c->{channel_mtime}->{$b}
+                  }
+                  keys %{ $c->{channel_name} }
+            ],
         }
-        else {
-            $buf .= sprintf( '<a href="%s%s">%s</a>',
-                $docroot, uri_escape($channel),
-                compact_channel_name($channel) );
-        }
-
-        $accesskey++;
-
-        if ( $c->{unread_lines}->{$canon_channel} ) {
-            $buf .= sprintf( ' <a href="%s%s,recent">%s</a>',
-                $docroot, uri_escape($channel),
-                $c->{unread_lines}->{$canon_channel} );
-        }
-        $buf .= '<br>';
-    }
-
-    $buf .= qq(0 <a href="$docroot" accesskey="0">refresh list</a><br>);
-
-    if ( grep( $c->{unread_lines}->{$_}, keys %{ $c->{unread_lines} } ) ) {
-        $buf .= qq(* <a href="$docroot,recent" accesskey="*">recent</a><br>);
-    }
-
-    $buf .= qq(# <a href="$docroot,topics" accesskey="#">topics</a><br>);
-
-    $buf .= qq( - keitairc $VERSION);
-    $buf;
+    );
 }
 
 # recent messages on every channel
@@ -251,6 +232,8 @@ sub dispatch_recent {
             channel_name   => $c->{channel_name},
             render_list    => sub { render_list( $c, @_ ) },
             channel_recent => $c->{channel_recent},
+            user_agent     => $c->{user_agent},
+            title          => $c->{config}->{httpd}->{title},
         },
     );
 
@@ -273,18 +256,17 @@ sub dispatch_topics {
             docroot      => $c->{config}->{httpd}->{root},
             channel_name => $c->{channel_name},
             topic        => $c->{channel_topics},
+            user_agent   => $c->{user_agent},
+            title        => $c->{config}->{httpd}->{title},
         },
     );
 }
 
 sub dispatch_show_channel {
-    my $c          = shift;
-    my $uri        = shift;
-    my $user_agent = shift;
-    my $option     = shift;
-    my %option     = %$option;
+    my $c = shift;
 
     # channel conversation
+    my $uri = $c->{req}->uri;
     $uri =~ s|^/||;
 
     # RFC 2811:
@@ -302,18 +284,7 @@ sub dispatch_show_channel {
 
     my $channel = uri_unescape($uri);
 
-    {
-        my $canon_channel = canon_name($channel);
-        # clear unread counter
-        $c->{unread_lines}->{$canon_channel} = 0;
-        # clear recent messages buffer
-        $c->{channel_recent}->{$canon_channel} = '';
-    }
-
-    my $header =
-      render_header( $c, $user_agent, compact_channel_name($channel) );
-
-    return render(
+    my $out = render(
         $c,
         'show_channel' => {
             docroot        => $c->{config}->{httpd}->{root},
@@ -322,50 +293,46 @@ sub dispatch_show_channel {
             channel        => $channel,
             channel_buffer => $c->{channel_buffer},
             render_list    => sub { render_list( $c, @_ ) },
-            header         => $header,
             channel_recent => $c->{channel_recent},
+            user_agent     => $c->{user_agent},
+            title          => $c->{config}->{httpd}->{title},
+            subtitle       => compact_channel_name($channel),
         }
     );
-}
 
-sub render_header {
-    my $c          = shift;
-    my $user_agent = shift;
-    my $subtitle   = shift;
+    {
+        my $canon_channel = canon_name($channel);
 
-    DEBUG "RENDER HEADER";
+        # clear unread counter
+        $c->{unread_lines}->{$canon_channel} = 0;
 
-    return render(
-        $c,
-        'header' => {
-            user_agent => $user_agent,
-            subtitle   => $subtitle,
-            title      => $c->{config}->{httpd}->{title},
-        }
-    );
+        # clear recent messages buffer
+        $c->{channel_recent}->{$canon_channel} = '';
+    }
+
+    return $out;
 }
 
 sub render {
-    my ($c, $name, $args) = @_;
+    my ( $c, $name, $args ) = @_;
 
     croak "invalid args : $args" unless ref $args eq 'HASH';
 
     my $tt = Template->new(
-        ABSOLUTE     => 1,
-        INCLUDE_PATH => File::Spec->catfile(
-            $c->{config}->{global}->{assets_dir},
-            'tmpl', 'include'
-        )
+        ABSOLUTE => 1,
+        INCLUDE_PATH =>
+          File::Spec->catfile( $c->{config}->{global}->{assets_dir}, 'tmpl', )
     );
     $tt->process(
-        File::Spec->catfile($c->{config}->{global}->{assets_dir}, 'tmpl', "$name.html"), $args, \my $out
+        File::Spec->catfile(
+            $c->{config}->{global}->{assets_dir},
+            'tmpl', "$name.html"
+        ),
+        $args,
+        \my $out
     ) or die $tt->error;
 
-    return decode('utf8', $out);
-}
-
-sub render_footer {
-    return '</body></html>';
+    return decode( 'utf8', $out );
 }
 
 sub set_cookie {
