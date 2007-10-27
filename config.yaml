@@ -1,0 +1,17 @@
+---
+irc:
+  server: 127.0.0.1
+  port: 252322
+  nick: netwatcher
+  desc: Net Watcher
+  username: netwatcher
+  # password: netwatch
+
+httpd:
+  port: 5785
+  title: mobirc
+  lines: 40
+  username: netwatcher
+  password: 3223
+  au_subscriber_id: 25253301_oe.ezweb.ne.jp
+
