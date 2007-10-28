@@ -18,6 +18,7 @@ requires 'POE::Component::IRC';
 requires 'POE::Component::Server::TCP';
 requires 'POE::Filter::HTTPD';
 requires 'POE::Sugar::Args';
+requires 'Proc::Daemon';
 requires 'Scalar::Util';
 requires 'List::Util';
 requires 'Template';
