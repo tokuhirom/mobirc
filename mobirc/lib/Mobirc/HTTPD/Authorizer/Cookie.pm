@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use boolean ':all';
 use Carp;
+use CGI::Cookie;
 
 sub authorize {
     my ( $class, $c, $conf ) = @_;
@@ -11,15 +12,10 @@ sub authorize {
         croak "$class needs enable config->httpd->use_cookie flag";
     }
 
-    my %cookie;
-    for ( split( /; */, $c->{req}->header('Cookie') ) ) {
-        my ( $name, $value ) = split(/=/);
-        $value =~ s/%([0-9A-Fa-f][0-9A-Fa-f])/pack('C', hex($1))/eg;
-        $cookie{$name} = $value;
-    }
+    my %cookie = CGI::Cookie->parse($c->{req}->header('Cookie'));
 
-    if (   $cookie{username} eq $conf->{username}
-        && $cookie{passwd} eq $conf->{password} )
+    if (   $cookie{username}->value eq $conf->{username}
+        && $cookie{passwd}->value eq $conf->{password} )
     {
         return true;
     }

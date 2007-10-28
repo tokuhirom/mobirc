@@ -3,6 +3,7 @@ name 'mobirc';
 all_from 'lib/Mobirc.pm';
 
 requires 'CGI';
+requires 'CGI::Cookie';
 requires 'Carp';
 requires 'Encode';
 requires 'Exporter';

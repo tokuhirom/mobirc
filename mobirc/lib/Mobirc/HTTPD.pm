@@ -22,6 +22,7 @@ use UNIVERSAL::require;
 
 use Mobirc::Util;
 use Mobirc::HTTPD::Controller;
+use Mobirc::HTTPD::Router;
 
 our $GLOBAL_CONFIG;                      # TODO: should use HEAP.
 
@@ -98,7 +99,7 @@ sub process_request {
     my ($c, $uri) = @_;
     croak 'uri missing' unless $uri;
 
-    my ($meth, @args) = route($c, $uri);
+    my ($meth, @args) = Mobirc::HTTPD::Router->route($c, $uri);
 
     if (blessed $meth && $meth->isa('HTTP::Response')) {
         return $meth;
@@ -108,31 +109,6 @@ sub process_request {
         return Mobirc::HTTPD::Controller->call("post_dispatch_$meth", $c, @args);
     } else {
         return Mobirc::HTTPD::Controller->call("dispatch_$meth", $c, @args);
-    }
-}
-
-sub route {
-    my ($c, $uri) = @_;
-    croak 'uri missing' unless $uri;
-
-    if ( $uri eq '/' ) {
-        return 'index';
-    }
-    elsif ( $uri eq '/topics' ) {
-        return 'topics';
-    }
-    elsif ( $uri eq '/recent' ) {
-        return 'recent';
-    }
-    elsif ($uri =~ m{^/channels(-recent)?/([^?]+)(?:\?time=\d+)?$}) {
-        my $recent_mode = $1 ? true : false;
-        my $channel_name = $2;
-        return 'show_channel', $recent_mode, uri_unescape($channel_name);
-    } else {
-        warn "dan the 404 not found: $uri";
-        my $response = HTTP::Response->new(404);
-        $response->content("Dan the 404 not found: $uri");
-        return $response;
     }
 }
 

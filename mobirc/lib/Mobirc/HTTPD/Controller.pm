@@ -14,6 +14,7 @@ use HTTP::Response;
 use HTML::Entities;
 use Scalar::Util qw/blessed/;
 use List::Util qw/first/;
+use CGI::Cookie;
 
 use Mobirc;
 use Mobirc::Util;
@@ -87,7 +88,7 @@ sub post_dispatch_show_channel {
     DEBUG "POST MESSAGE $message";
 
     if ($message) {
-        $c->{poe}->kernel->post( 'keitairc_irc', privmsg => $channel => $message );
+        $c->{poe}->kernel->post( 'mobirc_irc', privmsg => $channel => $message );
 
         add_message(
             $c->{poe},
@@ -165,7 +166,7 @@ sub render {
     $content = encode($c->{config}->{httpd}->{charset}, $content);
 
     my $response = HTTP::Response->new(200);
-    $response->push_header( 'Content-type', 'text/html; charset=Shift_JIS' ); # TODO: should be configurable
+    $response->push_header( 'Content-type' => $c->{config}->{httpd}->{content_type} );
     $response->push_header('Content-Length' => length($content) );
 
     if ( $c->{config}->{httpd}->{use_cookie} ) {
@@ -180,37 +181,24 @@ sub set_cookie {
     my $c        = shift;
     my $response = shift;
 
-    my ( $sec, $min, $hour, $mday, $mon, $year, $wday ) =
-      localtime( time + $c->{httpd}->{cookie_ttl} );
-
     my ( $user_info, ) =
       map { $_->{config} }
       first { $_->{module} =~ /Cookie$/ }
     @{ $c->{config}->{httpd}->{authorizer} };
     croak "Can't get user_info" unless $user_info;
 
-    my $expiration = sprintf(
-        '%.3s, %.2d-%.3s-%.4s %.2d:%.2d:%.2d',
-        qw(Sun Mon Tue Wed Thu Fri Sat) [$wday],
-        $mday,
-        qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec) [$mon],
-        $year + 1900,
-        $hour,
-        $min,
-        $sec
-    );
     $response->push_header(
-        'Set-Cookie',
-        sprintf(
-            "username=%s; expires=%s; \n",
-            $user_info->{username}, $expiration
+        'Set-Cookie' => CGI::Cookie->new(
+            -name    => 'username',
+            -value   => $user_info->{username},
+            -expires => $c->{config}->{httpd}->{cookie_expires}
         )
     );
     $response->push_header(
-        'Set-Cookie',
-        sprintf(
-            "passwd=%s; expires=%s; \n",
-            $user_info->{password}, $expiration
+        'Set-Cookie' => CGI::Cookie->new(
+            -name    => 'passwd',
+            -value   => $user_info->{username},
+            -expires => $c->{config}->{httpd}->{cookie_expires}
         )
     );
 }

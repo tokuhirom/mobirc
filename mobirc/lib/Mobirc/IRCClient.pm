@@ -17,7 +17,7 @@ sub init {
 
     # irc component
     POE::Component::IRC->spawn(
-        Alias    => 'keitairc_irc',
+        Alias    => 'mobirc_irc',
         Nick     => $config->{irc}->{nick},
         Username => $config->{irc}->{username},
         Ircname  => $config->{irc}->{desc},
@@ -66,7 +66,7 @@ sub on_irc_start {
 
     $poe->kernel->alias_set('irc_session');
 
-    my $irc = $poe->kernel->alias_resolve('keitairc_irc');
+    my $irc = $poe->kernel->alias_resolve('mobirc_irc');
     $poe->kernel->post( $irc, register => 'all' );
     $poe->kernel->post( $irc, connect  => {} );
 }
@@ -207,13 +207,13 @@ sub on_irc_ctcp_action {
 sub do_connect {
     my $poe = sweet_args;
 
-    $poe->kernel->post( keitairc_irc => connect => {} );
+    $poe->kernel->post( mobirc_irc => connect => {} );
 }
 
 sub do_autoping {
     my $poe = sweet_args;
 
-    $poe->kernel->post( keitairc_irc => time ) unless $poe->heap->{seen_traffic};
+    $poe->kernel->post( mobirc_irc => time ) unless $poe->heap->{seen_traffic};
     $poe->heap->{seen_traffic} = false;
     $poe->kernel->delay( autoping => $poe->heap->{config}->{ping_delay} );
 }

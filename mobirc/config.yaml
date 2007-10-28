@@ -14,6 +14,7 @@ httpd:
   port: 5785
   title: mobirc
   lines: 40
+  cookie_expires: +3d
   authorizer:
     - module: Mobirc::HTTPD::Authorizer::Cookie
       config:
