@@ -9,6 +9,7 @@ use File::Spec;
 use FindBin;
 use Carp;
 use YAML::Syck;
+use Getopt::Long;
 
 use lib File::Spec->catfile( $FindBin::Bin, 'lib');
 
@@ -19,12 +20,21 @@ use Mobirc::IRCClient;
 
 $SIG{INT} = sub { die "SIGINT!\n" };
 
-DEBUG "NOW LOADING";
+my $daemonize_fg = false;
+my $conffname = File::Spec->catfile($FindBin::Bin, 'config.yaml');
+my $version = false;
+GetOptions(
+    'daemonize' => \$daemonize_fg,
+    'config=s'  => \$conffname,
+    'version'   => \$version,
+) or die "Usage: $0 -c config.yaml";
+Getopt::Long::Configure("bundling"); # allows -c -v
 
-my $conffname = File::Spec->catfile($FindBin::Bin, 'config.ini');
-if ($ARGV[0]) {
-    $conffname = $ARGV[0];
+if ($version) {
+    print "Mobirc/$Mobirc::VERSION\n";
+    exit;
 }
+
 die "file does not exist: $conffname" unless -f $conffname;
 
 DEBUG "load config: $conffname";
@@ -37,10 +47,11 @@ $config->{irc}->{incode} ||= 'utf8';
 $config->{httpd}->{charset} ||= 'cp932';
 $config->{httpd}->{root} ||= '/';
 $config->{global}->{assets_dir} ||= File::Spec->catfile($FindBin::Bin, 'assets');
-$config->{httpd}->{cookie_ttl} ||= 86400 * 3;    # 3 days
+$config->{httpd}->{cookie_expires} ||= '+3d';
+$config->{httpd}->{content_type} ||= 'text/html; charset=Shift_JIS';
 
 # daemonize
-if ( $config->{global}->{daemonize} ) {
+if ( $daemonize_fg ) {
     daemonize($config->{global}->{pid_fname});
 }
 
@@ -75,16 +86,16 @@ easy hack, easy maintenance, modern style, easy to use for perl hackers.
     new name.
     use YAML instead of AppConfig
     dispatcher likes Sledge(HTTPD)
+    TT should in the assets dir?
+    cool uri
+    use TT at dispatch_index
+    templates should be configurable
+    use poe's heap instead of global variables ;-(
+    Makefile.PL
 
 =head1 TODO
 
     avoid warnings.
-    use poe's heap instead of global variables ;-(
-    templates should configurable
-    use TT at dispatch_index
-    TT should in the assets dir?
-    cool uri
-    Makefile.PL
 
 =head1 supported phones
 
