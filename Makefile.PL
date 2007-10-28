@@ -2,6 +2,8 @@ use inc::Module::Install;
 name 'mobirc';
 all_from 'lib/Mobirc.pm';
 
+license  'gpl';
+
 requires 'CGI';
 requires 'CGI::Cookie';
 requires 'Carp';
