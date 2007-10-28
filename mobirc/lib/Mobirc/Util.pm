@@ -39,7 +39,8 @@ sub canon_name {
 # -------------------------------------------------------------------------
 
 sub add_message {
-    my ( $poe, $channel, $who, $msg ) = @_;
+    my ( $poe, $channel, $who, $msg, $class ) = @_;
+    carp "hmmm... class missing?" unless $class;
 
     DEBUG "ADD MESSAGE TO $channel";
 
@@ -57,10 +58,10 @@ sub add_message {
 
     my $message;
     if ( $who ) {
-        $message = sprintf( '%s %s> %s', _now(), $who, $msg );
+        $message = sprintf( '*%s*%s %s> %s', $class, _now(), $who, $msg );
     }
     else {
-        $message = sprintf( '%s %s', _now(), $msg );
+        $message = sprintf( '*%s*%s %s', $class, _now(), $msg );
     }
 
     my $canon_channel = canon_name($channel);

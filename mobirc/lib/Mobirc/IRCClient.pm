@@ -79,7 +79,7 @@ sub on_irc_001 {
     for my $channel ( sort keys %{ $poe->heap->{channel_name} } ) {
         add_message( $poe,
             decode( $poe->heap->{config}->{irc}->{incode}, $channel ),
-            undef, 'Connected to irc server!' );
+            undef, 'Connected to irc server!', 'connect' );
     }
     $poe->heap->{disconnect_msg} = true;
     $poe->heap->{channel_name} = {};
@@ -103,7 +103,8 @@ sub on_irc_join {
             $poe,
             decode( $poe->heap->{config}->{irc}->{incode}, $channel ),
             undef,
-            decode( $poe->heap->{config}->{irc}->{incode}, "$who joined" )
+            decode( $poe->heap->{config}->{irc}->{incode}, "$who joined" ),
+            'join',
         );
     }
     $poe->heap->{seen_traffic}   = true;
@@ -129,7 +130,8 @@ sub on_irc_part {
             $poe,
             decode( $poe->heap->{config}->{irc}->{incode}, $channel ),
             undef,
-            decode( $poe->heap->{config}->{irc}->{incode}, "$who leaves" )
+            decode( $poe->heap->{config}->{irc}->{incode}, "$who leaves" ),
+            'leave',
         );
     }
     $poe->heap->{seen_traffic}   = true;
@@ -149,7 +151,8 @@ sub on_irc_public {
 
     add_message(
         $poe, decode( $poe->heap->{config}->{irc}->{incode}, $channel ),
-        $who, decode( $poe->heap->{config}->{irc}->{incode}, $msg )
+        $who, decode( $poe->heap->{config}->{irc}->{incode}, $msg ),
+        'public',
     );
 
     $poe->heap->{seen_traffic}   = true;
@@ -170,7 +173,8 @@ sub on_irc_notice {
 
     add_message(
         $poe, decode( $poe->heap->{config}->{irc}->{incode}, $channel ),
-        $who, decode( $poe->heap->{config}->{irc}->{incode}, $msg )
+        $who, decode( $poe->heap->{config}->{irc}->{incode}, $msg ),
+        'notice',
     );
     $poe->heap->{seen_traffic}   = true;
     $poe->heap->{disconnect_msg} = true;
@@ -190,7 +194,9 @@ sub on_irc_topic {
     $topic = decode($poe->heap->{config}->{irc}->{incode}, $topic);
     add_message( $poe,
         decode( $poe->heap->{config}->{irc}->{incode}, $channel ),
-        undef, "$who set topic: $topic" );
+        undef, "$who set topic: $topic",
+        'topic',
+        );
 
     $poe->heap->{channel_topic}->{canon_name($channel)} = $topic;
 
@@ -219,7 +225,7 @@ sub on_irc_ctcp_action {
     $who =~ s/!.*//;
     $channel = $channel->[0];
     $msg = sprintf( '* %s %s', $who, decode( $poe->heap->{config}->{irc}->{incode}, $msg) );
-    add_message( $poe, decode($poe->heap->{config}->{irc}->{incode}, $channel), '', $msg );
+    add_message( $poe, decode($poe->heap->{config}->{irc}->{incode}, $channel), '', $msg, 'ctcp_action', );
     $poe->heap->{seen_traffic}   = true;
     $poe->heap->{disconnect_msg} = true;
 }
@@ -247,7 +253,8 @@ sub on_irc_reconnect {
                 $poe,
                 decode( $poe->heap->{config}->{irc}->{incode}, $channel ),
                 undef,
-                'Disconnected from irc server, trying to reconnect...'
+                'Disconnected from irc server, trying to reconnect...',
+                'reconnect',
             );
         }
     }
