@@ -12,7 +12,12 @@ sub authorize {
         croak "$class needs enable config->httpd->use_cookie flag";
     }
 
-    my %cookie = CGI::Cookie->parse($c->{req}->header('Cookie'));
+    my $cookie_str = $c->{req}->header('Cookie');
+    unless ($cookie_str) {
+        return false;
+    }
+
+    my %cookie = CGI::Cookie->parse($cookie_str);
 
     if (   $cookie{username}
         && $cookie{passwd}

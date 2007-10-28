@@ -93,7 +93,8 @@ sub post_dispatch_show_channel {
         add_message(
             $c->{poe},
             decode( $c->{config}->{irc}->{incode}, $channel ),
-            $c->{config}->{irc}->{nick}, $message
+            $c->{config}->{irc}->{nick}, $message,
+            'mobirc_public',
         );
     }
 
@@ -237,7 +238,7 @@ s!\b(0\d{1,3})([-(]?)(\d{2,4})([-)]?)(\d{4})\b!<a href="tel:$1$3$5">$1$2$3$4$5</
     $src =~
       s!\b(\w[\w.+=-]+\@[\w.-]+[\w]\.[\w]{2,4})\b!<a href="mailto:$1">$1</a>!g;
 
-    $src =~ s!\n!<br />\n!g;
+    $src =~ s!^\*([a-z]+)\*([^\n]+)(?:\n|$)!<span class="$1">$2</span><br />\n!gm;
 
     return $src;
 }
