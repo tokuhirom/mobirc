@@ -1,4 +1,7 @@
 ---
+#global:
+#  assets_dir: /usr/local/share/mobirc/assets
+
 irc:
   server: 127.0.0.1
   port: 252322
@@ -20,6 +23,8 @@ httpd:
       config:
         username: netwatcher
         password: 0721
+  use_cookie: 1
+#  cookie_ttl: 86400
 #   - module: Mobirc::HTTPD::Authorizer::EZSubscriberID
 #     config:
 #       au_subscriber_id: 25253252_oe.ezweb.ne.jp
