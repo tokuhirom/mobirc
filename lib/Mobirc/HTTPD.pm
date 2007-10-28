@@ -34,6 +34,10 @@ sub init {
         Port         => $config->{httpd}->{port},
         ClientFilter => 'POE::Filter::HTTPD',
         ClientInput  => \&on_web_request,
+        Error        => sub {
+            die( "$$: " . 'Server ',
+                $_[SESSION]->ID, " got $_[ARG0] error $_[ARG1] ($_[ARG2])\n" );
+        }
     );
 
     $GLOBAL_CONFIG = $config;
