@@ -14,8 +14,10 @@ sub authorize {
 
     my %cookie = CGI::Cookie->parse($c->{req}->header('Cookie'));
 
-    if (   $cookie{username}->value eq $conf->{username}
-        && $cookie{passwd}->value eq $conf->{password} )
+    if (   $cookie{username}
+        && $cookie{passwd}
+        && $cookie{username}->value eq $conf->{username}
+        && $cookie{passwd}->value   eq $conf->{password} )
     {
         return true;
     }
