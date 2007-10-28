@@ -30,9 +30,9 @@ sub init {
         heap => {
             seen_traffic   => false,
             disconnect_msg => true,
-            channel_topic => {},
-            channel_mtime => {},
-            config => $config,
+            channel_topic  => {},
+            channel_mtime  => {},
+            config         => $config,
         },
         inline_states => {
             _start           => \&on_irc_start,
@@ -77,7 +77,9 @@ sub on_irc_001 {
     DEBUG "CONNECTED";
 
     for my $channel ( sort keys %{ $poe->heap->{channel_name} } ) {
-        &add_message( $poe, decode( $poe->heap->{config}->{irc}->{incode}, $channel), undef, 'Connected to irc server!' );
+        add_message( $poe,
+            decode( $poe->heap->{config}->{irc}->{incode}, $channel ),
+            undef, 'Connected to irc server!' );
     }
     $poe->heap->{disconnect_msg} = true;
     $poe->heap->{channel_name} = {};
@@ -97,7 +99,12 @@ sub on_irc_join {
 
     $poe->heap->{channel_name}->{$canon_channel} = $channel;
     unless ( $who eq $poe->heap->{config}->{irc}->{nick} ) {
-        add_message( $poe, decode($poe->heap->{config}->{irc}->{incode}, $channel), undef, decode($poe->heap->{config}->{irc}->{incode}, "$who joined") );
+        add_message(
+            $poe,
+            decode( $poe->heap->{config}->{irc}->{incode}, $channel ),
+            undef,
+            decode( $poe->heap->{config}->{irc}->{incode}, "$who joined" )
+        );
     }
     $poe->heap->{seen_traffic}   = true;
     $poe->heap->{disconnect_msg} = true;
@@ -118,7 +125,12 @@ sub on_irc_part {
         delete $poe->heap->{channel_name}->{$canon_channel};
     }
     else {
-        add_message( $poe, decode($poe->heap->{config}->{irc}->{incode}, $channel), undef, decode($poe->heap->{config}->{irc}->{incode}, "$who leaves") );
+        add_message(
+            $poe,
+            decode( $poe->heap->{config}->{irc}->{incode}, $channel ),
+            undef,
+            decode( $poe->heap->{config}->{irc}->{incode}, "$who leaves" )
+        );
     }
     $poe->heap->{seen_traffic}   = true;
     $poe->heap->{disconnect_msg} = true;
@@ -135,7 +147,10 @@ sub on_irc_public {
 
     my $msg = $poe->args->[2];
 
-    add_message( $poe, decode($poe->heap->{config}->{irc}->{incode}, $channel), $who, decode($poe->heap->{config}->{irc}->{incode}, $msg) );
+    add_message(
+        $poe, decode( $poe->heap->{config}->{irc}->{incode}, $channel ),
+        $who, decode( $poe->heap->{config}->{irc}->{incode}, $msg )
+    );
 
     $poe->heap->{seen_traffic}   = true;
     $poe->heap->{disconnect_msg} = true;
@@ -153,7 +168,10 @@ sub on_irc_notice {
     $who =~ s/!.*//;
     $channel = $channel->[0];
 
-    add_message( $poe, decode($poe->heap->{config}->{irc}->{incode}, $channel), $who, decode($poe->heap->{config}->{irc}->{incode}, $msg) );
+    add_message(
+        $poe, decode( $poe->heap->{config}->{irc}->{incode}, $channel ),
+        $who, decode( $poe->heap->{config}->{irc}->{incode}, $msg )
+    );
     $poe->heap->{seen_traffic}   = true;
     $poe->heap->{disconnect_msg} = true;
 }
@@ -170,7 +188,9 @@ sub on_irc_topic {
     DEBUG "SET TOPIC";
 
     $topic = decode($poe->heap->{config}->{irc}->{incode}, $topic);
-    add_message( $poe, decode($poe->heap->{config}->{irc}->{incode}, $channel), undef, "$who set topic: $topic" );
+    add_message( $poe,
+        decode( $poe->heap->{config}->{irc}->{incode}, $channel ),
+        undef, "$who set topic: $topic" );
 
     $poe->heap->{channel_topic}->{canon_name($channel)} = $topic;
 
@@ -223,8 +243,12 @@ sub on_irc_reconnect {
 
     if ( $poe->heap->{disconnect_msg} ) {
         for my $channel ( sort keys %{ $poe->heap->{channel_name} } ) {
-            add_message( $poe, decode($poe->heap->{config}->{irc}->{incode}, $channel), undef,
-                'Disconnected from irc server, trying to reconnect...' );
+            add_message(
+                $poe,
+                decode( $poe->heap->{config}->{irc}->{incode}, $channel ),
+                undef,
+                'Disconnected from irc server, trying to reconnect...'
+            );
         }
     }
     $poe->heap->{disconnect_msg} = false;
