@@ -28,6 +28,8 @@ requires 'YAML::Syck';
 requires 'boolean';
 requires 'utf8';
 requires 'UNIVERSAL::require';
+requires 'Kwalify';
+requires 'Storable';
 
 build_requires 'Test::More';
 use_test_base;

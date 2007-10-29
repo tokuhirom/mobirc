@@ -1,7 +1,7 @@
 ---
-#global:
-#  assets_dir: /usr/local/share/mobirc/assets
-#  pid_fname: /vat/run/mobirc-sample.pid
+# global:
+#   assets_dir: /usr/local/share/mobirc/assets
+#   pid_fname: /vat/run/mobirc-sample.pid
 
 irc:
   server: 127.0.0.1

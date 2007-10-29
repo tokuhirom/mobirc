@@ -1,9 +1,10 @@
 use strict;
 use warnings;
-use Test::More tests => 9;
+use Test::More tests => 10;
 
 use_ok 'Mobirc';
 use_ok 'Mobirc::Util';
+use_ok 'Mobirc::ConfigLoader';
 use_ok 'Mobirc::IRCClient';
 use_ok 'Mobirc::HTTPD';
 use_ok 'Mobirc::HTTPD::Authorizer::BasicAuth';

@@ -8,7 +8,6 @@ use Encode;
 use File::Spec;
 use FindBin;
 use Carp;
-use YAML::Syck;
 use Getopt::Long;
 
 use lib File::Spec->catfile( $FindBin::Bin, 'lib');
@@ -17,6 +16,7 @@ use Mobirc;
 use Mobirc::Util;
 use Mobirc::HTTPD;
 use Mobirc::IRCClient;
+use Mobirc::ConfigLoader;
 
 $SIG{INT} = sub { die "SIGINT!\n" };
 
@@ -38,7 +38,7 @@ if ($version) {
 die "file does not exist: $conffname" unless -f $conffname;
 
 DEBUG "load config: $conffname";
-my $config = YAML::Syck::LoadFile($conffname);
+my $config = Mobirc::ConfigLoader->load($conffname);
 
 # set default vars.
 $config->{irc}->{ping_delay} ||= 30;
