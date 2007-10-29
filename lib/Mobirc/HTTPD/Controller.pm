@@ -239,7 +239,7 @@ sub render_list {
 
     $src = join "\n", reverse split /\n/, $src;
 
-    $src = encode_entities($src);
+    $src = encode_entities($src, q(<>&"'));
 
     URI::Find->new(
         sub {
