@@ -56,26 +56,26 @@ sub add_message {
 
     my $config = $heap->{config} or die "missing config in heap";
 
-    my $message;
-    if ( $who ) {
-        $message = sprintf( '*%s*%s %s> %s', $class, _now(), $who, $msg );
-    }
-    else {
-        $message = sprintf( '*%s*%s %s', $class, _now(), $msg );
-    }
+    my $row = {
+        channel => $channel,
+        who     => $who,
+        msg     => $msg,
+        class   => $class,
+        time    => time(),
+    };
 
     my $canon_channel = canon_name($channel);
 
     # update message log
     $heap->{channel_buffer}->{$canon_channel} ||= [];
-    push @{ $heap->{channel_buffer}->{$canon_channel} }, $message;
+    push @{ $heap->{channel_buffer}->{$canon_channel} }, $row;
     if ( @{ $heap->{channel_buffer}->{$canon_channel} } > $config->{httpd}->{lines} ) {
         shift @{$heap->{channel_buffer}->{$canon_channel}}; # trash old one.
     }
 
     # update recent messages buffer
     $heap->{channel_recent}->{$canon_channel} ||= [];
-    push @{$heap->{channel_recent}->{$canon_channel}}, $message;
+    push @{$heap->{channel_recent}->{$canon_channel}}, $row;
     if ( @{$heap->{channel_recent}->{$canon_channel}} > $config->{httpd}->{lines}) {
         shift @{$heap->{channel_recent}->{$canon_channel}}; # trash old one.
     }
@@ -88,11 +88,6 @@ sub add_message {
     if ( $heap->{unread_lines}->{$canon_channel} > $config->{httpd}->{lines} ) {
         $heap->{unread_lines}->{$canon_channel} = $config->{httpd}->{lines};
     }
-}
-
-sub _now {
-    my ( $sec, $min, $hour ) = localtime(time);
-    sprintf( '%02d:%02d', $hour, $min );
 }
 
 # -------------------------------------------------------------------------

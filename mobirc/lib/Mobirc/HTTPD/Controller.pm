@@ -232,12 +232,30 @@ sub set_cookie {
 
 sub render_line {
     my $c   = shift;
-    my $src = shift;
+    my $row = shift;
 
-    return "" unless $src;
-    croak "must be flagged utf8: $src" unless Encode::is_utf8($src);
+    return "" unless $row;
+    croak "must be hashref: $row" unless ref $row eq 'HASH';
 
-    $src = encode_entities($src, q(<>&"'));
+    my ( $sec, $min, $hour ) = localtime($row->{time});
+    my $ret = sprintf(qq!<span class="time"><span class="hour">%02d</span><span class="colon">:</span><span class="minute">%02d</span></span> !, $hour, $min);
+    if ($row->{who}) {
+        my $who_class = ($row->{who} eq $c->{irc_heap}->{irc}->nick_name)  ? 'nick_myself' : 'nick_normal';
+        my $who = encode_entities($row->{who});
+        $ret .= "<span class='$who_class'>($who)</span> ";
+    }
+    my $body = _process_body($c, $row->{msg});
+    my $class = encode_entities($row->{class});
+    $ret .= qq!<span class="$class">$body</span>!;
+
+    return $ret;
+}
+
+sub _process_body {
+    my ($c, $body) = @_;
+    croak "message body should be flagged utf8: $body" unless Encode::is_utf8($body);
+
+    $body = encode_entities($body, q(<>&"'));
 
     URI::Find->new(
         sub {
@@ -255,29 +273,16 @@ sub render_line {
                 uri_escape($uri) );
             return $out;
         }
-    )->find( \$src );
+    )->find( \$body );
 
-    $src =~
+    $body =~
 s!\b(0\d{1,3})([-(]?)(\d{2,4})([-)]?)(\d{4})\b!<a href="tel:$1$3$5">$1$2$3$4$5</a>!g;
-    $src =~
+    $body =~
       s!\b(\w[\w.+=-]+\@[\w.-]+[\w]\.[\w]{2,4})\b!<a href="mailto:$1">$1</a>!g;
 
-    $src = decorate_irc_color($src);
+    $body = decorate_irc_color($body);
 
-    $src =~ s{^\*([a-z_]+)\*(\d+):(\d+)\s*(.+)$}{
-        my ($class, $hour, $minute, $body) = ($1, $2, $3, $4);
-
-        if ($class eq 'notice' || $class eq 'public') {
-            $body =~ s!^([^&]+)&gt; (.+)$!sprintf "<span class='%s'>$1</span>&gt; $2", ($1 eq $c->{irc_heap}->{irc}->nick_name) ? 'nick_myself' : 'nick_normal'!e;
-        }
-
-        my $res = qq!<span class="time"><span class="hour">$hour</span><span class="colon">:</span><span class="minute">$minute</span></span>!;
-           $res .= " ";
-           $res .= qq!<span class="$class">$body</span>!;
-           $res;
-    }e;
-
-    return $src;
+    return $body;
 }
 
 1;

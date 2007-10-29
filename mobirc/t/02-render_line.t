@@ -18,22 +18,38 @@ sub render_line {
 }
 
 filters {
-    input => 'render_line',
+    input => ['yaml', 'render_line'],
 };
 
 run_is input => 'expected';
 
+# TODO: XSS check.
+
 __END__
 
 === basic
---- input: *public*02:12 Y*ppo__> uh*aww
---- expected: <span class="time"><span class="hour">02</span><span class="colon">:</span><span class="minute">12</span></span> <span class="public"><span class='nick_normal'>Y*ppo__</span>&gt; uh*aww</span>
+--- input
+channel: #mobirc
+class: public
+time: 212
+who: Y*ppo__
+msg: uh*aww
+--- expected: <span class="time"><span class="hour">09</span><span class="colon">:</span><span class="minute">03</span></span> <span class='nick_normal'>(Y*ppo__)</span> <span class="public">uh*aww</span>
 
 === mine
---- input: *public*02:12 tokuhirom> uh*aww
---- expected: <span class="time"><span class="hour">02</span><span class="colon">:</span><span class="minute">12</span></span> <span class="public"><span class='nick_myself'>tokuhirom</span>&gt; uh*aww</span>
+--- input
+channel: #mobirc
+class: public
+time: 212
+who: tokuhirom
+msg: uh*aww
+--- expected: <span class="time"><span class="hour">09</span><span class="colon">:</span><span class="minute">03</span></span> <span class='nick_myself'>(tokuhirom)</span> <span class="public">uh*aww</span>
 
-=== under score
---- input: *ctcp_action*02:12 Y*ppo__> uh*aww
---- expected: <span class="time"><span class="hour">02</span><span class="colon">:</span><span class="minute">12</span></span> <span class="ctcp_action">Y*ppo__&gt; uh*aww</span>
-
+=== XSS check
+--- input
+channel: #mobirc
+class: public<
+time: 212
+who: tokuhirom<
+msg: uh*aww<
+--- expected: <span class="time"><span class="hour">09</span><span class="colon">:</span><span class="minute">03</span></span> <span class='nick_normal'>(tokuhirom&lt;)</span> <span class="public&lt;">uh*aww&lt;</span>
