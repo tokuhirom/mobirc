@@ -213,7 +213,9 @@ sub on_irc_topic {
 sub on_irc_topicraw {
     my $poe = sweet_args;
 
-    my $raw = $poe->args->[1];
+    DEBUG "SET TOPIC RAW";
+
+    my $raw = decode( $poe->heap->{config}->{irc}->{incode}, $poe->args->[1] );
     my ( $channel, $topic ) = split( / :/, $raw, 2 );
 
     $poe->heap->{channel_topic}->{ canon_name($channel) } = $topic;
