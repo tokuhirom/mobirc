@@ -10,7 +10,7 @@ irc:
   desc: Net Watcher
   username: netwatcher
   # password: netwatch
-  # incode: utf-8
+  incode: utf-8
 
 httpd:
   port: 5785

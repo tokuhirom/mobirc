@@ -18,7 +18,10 @@ my $schema = {
                     type     => 'str',
                     required => 1,
                 },
-                incode => { type => 'str', },
+                incode => {
+                    type     => 'str',
+                    required => 1,
+                },
                 nick   => {
                     type     => 'str',
                     required => 1,
