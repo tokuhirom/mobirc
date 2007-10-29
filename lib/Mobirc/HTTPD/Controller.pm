@@ -81,6 +81,8 @@ sub dispatch_topics {
 sub post_dispatch_show_channel {
     my ( $class, $c, $recent_mode, $channel) = @_;
 
+    $channel = decode('utf8', $channel); # maybe $channel is not flagged utf8.
+
     my $r       = CGI->new( $c->{req}->content );
     my $message = $r->param('msg');
     $message = decode( $c->{config}->{httpd}->{charset}, $message );
@@ -88,11 +90,14 @@ sub post_dispatch_show_channel {
     DEBUG "POST MESSAGE $message";
 
     if ($message) {
-        $c->{poe}->kernel->post( 'mobirc_irc', privmsg => $channel => $message );
+        $c->{poe}->kernel->post( 'mobirc_irc',
+            privmsg => encode( $c->{config}->{irc}->{incode}, $channel ) =>
+              encode( $c->{config}->{irc}->{incode}, $message ) );
 
+        DEBUG "Sending message $message";
         add_message(
             $c->{poe},
-            decode( $c->{config}->{irc}->{incode}, $channel ),
+            $channel,
             $c->{irc_heap}->{irc}->nick_name,
             $message,
             'publicfromhttpd',
@@ -107,6 +112,9 @@ sub post_dispatch_show_channel {
 
 sub dispatch_show_channel {
     my ($class, $c, $recent_mode, $channel) = @_;
+
+    DEBUG "show channel page: $channel";
+    $channel = decode('utf8', $channel); # maybe $channel is not flagged utf8.
 
     my $out = render(
         $c,
@@ -136,6 +144,8 @@ sub render {
 
     croak "invalid args : $args" unless ref $args eq 'HASH';
 
+    DEBUG "rendering template";
+
     # set default vars
     $args = {
         compact_channel_name => \&compact_channel_name,
@@ -164,7 +174,9 @@ sub render {
         \my $out
     ) or die $tt->error;
 
-    my $content = decode( 'utf8', $out );
+    DEBUG "rendering done";
+
+    my $content = Encode::is_utf8($out) ? $out : decode( 'utf8', $out );
     $content = encode($c->{config}->{httpd}->{charset}, $content);
 
     my $response = HTTP::Response->new(200);
