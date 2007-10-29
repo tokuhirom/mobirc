@@ -264,7 +264,18 @@ s!\b(0\d{1,3})([-(]?)(\d{2,4})([-)]?)(\d{4})\b!<a href="tel:$1$3$5">$1$2$3$4$5</
 
     $src = decorate_irc_color($src);
 
-    $src =~ s!^\*([a-z_]+)\*(\d+):(\d+)\s*(.+)$!<span class="time"><span class="hour">$2</span><span class="colon">:</span><span class="minute">$3</span></span> <span class="$1">$4</span>!;
+    $src =~ s{^\*([a-z_]+)\*(\d+):(\d+)\s*(.+)$}{
+        my ($class, $hour, $minute, $body) = ($1, $2, $3, $4);
+
+        if ($class eq 'notice' || $class eq 'public') {
+            $body =~ s!^([^&]+)&gt; (.+)$!sprintf "<span class='%s'>$1</span>&gt; $2", ($1 eq $c->{irc_heap}->{irc}->nick_name) ? 'nick_myself' : 'nick_normal'!e;
+        }
+
+        my $res = qq!<span class="time"><span class="hour">$hour</span><span class="colon">:</span><span class="minute">$minute</span></span>!;
+           $res .= " ";
+           $res .= qq!<span class="$class">$body</span>!;
+           $res;
+    }e;
 
     return $src;
 }
