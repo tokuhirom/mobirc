@@ -163,7 +163,7 @@ sub render {
     $args = {
         compact_channel_name => \&compact_channel_name,
         docroot              => $c->{config}->{httpd}->{root},
-        render_list          => sub { render_list( $c, @_ ) },
+        render_line          => sub { render_line( $c, @_ ) },
         user_agent           => $c->{user_agent},
         title                => $c->{config}->{httpd}->{title},
         version              => $Mobirc::VERSION,
@@ -230,14 +230,12 @@ sub set_cookie {
     );
 }
 
-sub render_list {
+sub render_line {
     my $c   = shift;
     my $src = shift;
 
     return "" unless $src;
     croak "must be flagged utf8: $src" unless Encode::is_utf8($src);
-
-    $src = join "\n", reverse split /\n/, $src;
 
     $src = encode_entities($src, q(<>&"'));
 
@@ -264,9 +262,9 @@ s!\b(0\d{1,3})([-(]?)(\d{2,4})([-)]?)(\d{4})\b!<a href="tel:$1$3$5">$1$2$3$4$5</
     $src =~
       s!\b(\w[\w.+=-]+\@[\w.-]+[\w]\.[\w]{2,4})\b!<a href="mailto:$1">$1</a>!g;
 
-    $src =~ s!^\*([a-z_]+)\*([^\n]+)(?:\n|$)!<span class="$1">$2</span><br />\n!gm;
-
     $src = decorate_irc_color($src);
+
+    $src =~ s!^\*([a-z_]+)\*(\d+):(\d+)\s*(.+)$!<span class="time"><span class="hour">$2</span><span class="colon">:</span><span class="minute">$3</span></span> <span class="$1">$4</span>!;
 
     return $src;
 }

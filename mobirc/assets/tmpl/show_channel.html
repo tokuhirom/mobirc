@@ -17,11 +17,15 @@
     [% IF channel_buffer.item(canon_channel) and channel_buffer.item(canon_channel).size %]
         <a accesskey="9" href="#2"></a>
         [%- IF recent_mode %]
-            [% render_list( channel_recent.item(canon_channel).join("\n") ) %]
+            [% FOR line IN channel_recent.item(canon_channel).reverse() %]
+                [% render_line( line ) %]<br />
+            [% END %]
             <hr />
             <a accesskey="5" href="[% docroot %]channels/[% channel | uri %]">more[5]</a><br />
         [% ELSE %]
-            [% render_list( channel_buffer.item(canon_channel).join("\n") ) %]
+            [% FOR line IN channel_buffer.item(canon_channel).reverse() %]
+                [% render_line( line ) %]<br />
+            [% END %]
         [% END %]
         <a accesskey="9" href="#2"></a>
         <a name="2"></a>
