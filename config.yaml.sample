@@ -17,6 +17,7 @@ httpd:
   title: mobirc
   lines: 40
   cookie_expires: +3d
+  use_cookie: 1
   authorizer:
     - module: Mobirc::HTTPD::Authorizer::Cookie
       config:
@@ -26,9 +27,10 @@ httpd:
       config:
         username: netwatcher
         password: 0721
-  use_cookie: 1
-#  cookie_ttl: 86400
-#   - module: Mobirc::HTTPD::Authorizer::EZSubscriberID
-#     config:
-#       au_subscriber_id: 25253252_oe.ezweb.ne.jp
+    # - module: Mobirc::HTTPD::Authorizer::EZSubscriberID
+    #   config:
+    #     au_subscriber_id: 25253252_oe.ezweb.ne.jp
+  # charset: cp932
+  # root: /
+  # content_type: text/html; charset=Shift_JIS
 
