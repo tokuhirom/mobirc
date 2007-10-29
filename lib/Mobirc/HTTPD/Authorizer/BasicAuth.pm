@@ -12,7 +12,8 @@ sub authorize {
 
     my $cred = $conf->{username} . ':' . $conf->{password};
 
-    if ( $c->{req}->headers->authorization_basic eq $cred ) {
+    my $sent_cred = $c->{req}->headers->authorization_basic;
+    if ( defined($sent_cred) && $sent_cred eq $cred ) {
         return true;
     }
     else {
