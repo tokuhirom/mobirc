@@ -1,7 +1,7 @@
 package Mobirc::HTTPD::Authorizer::Cookie;
 use strict;
 use warnings;
-use boolean ':all';
+use Mobirc::Util;
 use Carp;
 use CGI::Cookie;
 

@@ -1,10 +1,10 @@
 package Mobirc::HTTPD::Router;
 use strict;
 use warnings;
-use boolean ':all';
 use Carp;
 use HTTP::Response;
 use URI::Escape;
+use Mobirc::Util;
 
 sub route {
     my ($class, $c, $uri) = @_;

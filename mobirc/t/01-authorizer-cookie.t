@@ -1,10 +1,10 @@
 use strict;
 use warnings;
-use boolean ':all';
 use Test::More tests => 3;
 use Mobirc::HTTPD::Authorizer::Cookie;
 use HTTP::Request;
 use CGI::Cookie;
+use Mobirc::Util;
 
 my $c = {
     config => {

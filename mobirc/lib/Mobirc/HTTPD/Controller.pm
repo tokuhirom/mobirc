@@ -1,7 +1,6 @@
 package Mobirc::HTTPD::Controller;
 use strict;
 use warnings;
-use boolean ':all';
 
 use Carp;
 use CGI;
