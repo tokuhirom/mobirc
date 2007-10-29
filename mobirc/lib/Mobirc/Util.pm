@@ -127,7 +127,7 @@ sub decorate_irc_color {
                        $style .= "font-weight:bold;";
                    }
                    if ($stash{underline}) {
-                       $style .= "text-decoration:none;";
+                       $style .= "text-decoration:underline;";
                    }
                    if ($stash{inverse}) {
                        # xxx not sure this is correct
