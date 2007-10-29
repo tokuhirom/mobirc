@@ -33,6 +33,12 @@ hohoge
 
 ===
 --- input
+*ctcp_action*02:12 Y*ppo__> uh*aww
+--- expected
+<span class="ctcp_action">02:12 Y*ppo__&gt; uh*aww</span><br />
+
+===
+--- input
 *public*02:12 Y*ppo__> uh*aww
 *notice*02:14 hir*se31> w
 --- expected
