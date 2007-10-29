@@ -38,6 +38,7 @@ sub init {
         inline_states => {
             _start           => \&on_irc_start,
             _default         => \&on_irc_default,
+
             irc_001          => \&on_irc_001,
             irc_join         => \&on_irc_join,
             irc_part         => \&on_irc_part,
@@ -46,8 +47,11 @@ sub init {
             irc_topic        => \&on_irc_topic,
             irc_332          => \&on_irc_topicraw,
             irc_ctcp_action  => \&on_irc_ctcp_action,
+            irc_kick         => \&on_irc_kick,
+
             autoping         => \&do_autoping,
             connect          => \&do_connect,
+
             irc_disconnected => \&on_irc_reconnect,
             irc_error        => \&on_irc_reconnect,
             irc_socketerr    => \&on_irc_reconnect,
@@ -236,6 +240,21 @@ sub on_irc_ctcp_action {
     $channel = $channel->[0];
     $msg = sprintf( '* %s %s', $who, decode( $poe->heap->{config}->{irc}->{incode}, $msg) );
     add_message( $poe, decode($poe->heap->{config}->{irc}->{incode}, $channel), '', $msg, 'ctcp_action', );
+    $poe->heap->{seen_traffic}   = true;
+    $poe->heap->{disconnect_msg} = true;
+}
+
+sub on_irc_kick {
+    my $poe = sweet_args;
+
+    DEBUG "DNBKICK";
+
+    my ($kicker, $channel, $kickee, $msg) = map { decode($poe->heap->{config}->{irc}->{incode}, $_) } @{ $poe->args };
+    $msg ||= 'Flooder';
+
+    add_message(
+        $poe, $channel, '', "$kicker has kicked $kickee($msg)", 'kick'
+    );
     $poe->heap->{seen_traffic}   = true;
     $poe->heap->{disconnect_msg} = true;
 }
