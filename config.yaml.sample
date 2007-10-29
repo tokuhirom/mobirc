@@ -33,4 +33,5 @@ httpd:
   # charset: cp932
   # root: /
   # content_type: text/html; charset=Shift_JIS
+  # au_pcsv: 1
 
