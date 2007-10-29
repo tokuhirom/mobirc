@@ -30,6 +30,15 @@ sub call {
 sub dispatch_index {
     my ($class, $c) = @_;
 
+    my $canon_channels = [
+        reverse
+        sort {
+            ( $c->{irc_heap}->{channel_buffer}->{$a}->[-1]->{time} || 0 )
+            <=> ( $c->{irc_heap}->{channel_buffer}->{$b}->[-1]->{time} || 0 )
+        }
+        keys %{ $c->{irc_heap}->{channel_name} }
+    ];
+
     return render(
         $c,
         'index' => {
@@ -38,13 +47,7 @@ sub dispatch_index {
                 ? true
                 : false
             ),
-            canon_channels => [
-                reverse
-                  sort {
-                    $c->{irc_heap}->{channel_mtime}->{$a} <=> $c->{irc_heap}->{channel_mtime}->{$b}
-                  }
-                  keys %{ $c->{irc_heap}->{channel_name} }
-            ],
+            canon_channels => $canon_channels,
         }
     );
 }

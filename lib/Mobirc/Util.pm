@@ -80,9 +80,6 @@ sub add_message {
         shift @{$heap->{channel_recent}->{$canon_channel}}; # trash old one.
     }
 
-    # update mtime
-    $heap->{channel_mtime}->{$canon_channel} = time;
-
     # update unread lines
     $heap->{unread_lines}->{$canon_channel} = scalar @{ $heap->{channel_recent}->{$canon_channel} };
     if ( $heap->{unread_lines}->{$canon_channel} > $config->{httpd}->{lines} ) {

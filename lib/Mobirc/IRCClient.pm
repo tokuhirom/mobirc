@@ -31,7 +31,6 @@ sub init {
             seen_traffic   => false,
             disconnect_msg => true,
             channel_topic  => {},
-            channel_mtime  => {},
             config         => $config,
             irc            => $irc,
         },
