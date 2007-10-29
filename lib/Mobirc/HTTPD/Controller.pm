@@ -93,8 +93,9 @@ sub post_dispatch_show_channel {
         add_message(
             $c->{poe},
             decode( $c->{config}->{irc}->{incode}, $channel ),
-            $c->{config}->{irc}->{nick}, $message,
-            'mobirc_public',
+            $c->{irc_heap}->{irc}->nick_name,
+            $message,
+            'publicfromhttpd',
         );
     }
 

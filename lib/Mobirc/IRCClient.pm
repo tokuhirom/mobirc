@@ -16,7 +16,7 @@ sub init {
     my ($class, $config) = @_;
 
     # irc component
-    POE::Component::IRC->spawn(
+    my $irc = POE::Component::IRC->spawn(
         Alias    => 'mobirc_irc',
         Nick     => $config->{irc}->{nick},
         Username => $config->{irc}->{username},
@@ -33,6 +33,7 @@ sub init {
             channel_topic  => {},
             channel_mtime  => {},
             config         => $config,
+            irc            => $irc,
         },
         inline_states => {
             _start           => \&on_irc_start,
@@ -66,9 +67,8 @@ sub on_irc_start {
 
     $poe->kernel->alias_set('irc_session');
 
-    my $irc = $poe->kernel->alias_resolve('mobirc_irc');
-    $poe->kernel->post( $irc, register => 'all' );
-    $poe->kernel->post( $irc, connect  => {} );
+    $poe->heap->{irc}->yield( register => 'all' );
+    $poe->heap->{irc}->yield( connect  => {} );
 }
 
 sub on_irc_001 {
@@ -98,7 +98,8 @@ sub on_irc_join {
     my $canon_channel = canon_name($channel);
 
     $poe->heap->{channel_name}->{$canon_channel} = $channel;
-    unless ( $who eq $poe->heap->{config}->{irc}->{nick} ) {
+    my $irc = $poe->heap->{irc};
+    unless ( $who eq $irc->nick_name ) {
         add_message(
             $poe,
             decode( $poe->heap->{config}->{irc}->{incode}, $channel ),
@@ -122,7 +123,8 @@ sub on_irc_part {
     $channel =~ s/ .*//;
     my $canon_channel = canon_name($channel);
 
-    if ( $who eq $poe->heap->{config}->{irc}->{nick} ) {
+    my $irc = $poe->heap->{irc};
+    if ( $who eq $irc->nick_name ) {
         delete $poe->heap->{channel_name}->{$canon_channel};
     }
     else {
@@ -233,7 +235,7 @@ sub on_irc_ctcp_action {
 sub do_connect {
     my $poe = sweet_args;
 
-    $poe->kernel->post( mobirc_irc => connect => {} );
+    $poe->heap->{irc}->yield( connect => {} );
 }
 
 sub do_autoping {
