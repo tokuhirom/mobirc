@@ -1,7 +1,6 @@
 package Mobirc::IRCClient;
 use strict;
 use warnings;
-use boolean ':all';
 
 use POE;
 use POE::Sugar::Args;

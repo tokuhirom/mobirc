@@ -25,7 +25,6 @@ requires 'Template';
 requires 'URI::Escape';
 requires 'URI::Find';
 requires 'YAML::Syck';
-requires 'boolean';
 requires 'utf8';
 requires 'UNIVERSAL::require';
 requires 'Kwalify';

@@ -1,8 +1,8 @@
 package Mobirc::HTTPD::Authorizer::BasicAuth;
 use strict;
 use warnings;
-use boolean ':all';
 use Carp;
+use Mobirc::Util;
 
 sub authorize {
     my ( $class, $c, $conf ) = @_;

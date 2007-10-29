@@ -4,7 +4,10 @@ use warnings;
 use base 'Exporter';
 use Carp;
 
-our @EXPORT = qw/DEBUG compact_channel_name canon_name add_message daemonize decorate_irc_color/;
+our @EXPORT = qw/true false DEBUG compact_channel_name canon_name add_message daemonize decorate_irc_color/;
+
+sub true  () { 1 } ## no critic.
+sub false () { 0 } ## no critic.
 
 sub DEBUG($) { ## no critic.
     my $txt = shift;
