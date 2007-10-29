@@ -1,6 +1,7 @@
 ---
 #global:
 #  assets_dir: /usr/local/share/mobirc/assets
+#  pid_fname: /vat/run/mobirc-sample.pid
 
 irc:
   server: 127.0.0.1
@@ -9,6 +10,7 @@ irc:
   desc: Net Watcher
   username: netwatcher
   # password: netwatch
+  # incode: utf-8
 
 httpd:
   port: 5785
