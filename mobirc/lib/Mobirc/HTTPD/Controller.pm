@@ -266,6 +266,8 @@ s!\b(0\d{1,3})([-(]?)(\d{2,4})([-)]?)(\d{4})\b!<a href="tel:$1$3$5">$1$2$3$4$5</
 
     $src =~ s!^\*([a-z_]+)\*([^\n]+)(?:\n|$)!<span class="$1">$2</span><br />\n!gm;
 
+    $src = decorate_irc_color($src);
+
     return $src;
 }
 
