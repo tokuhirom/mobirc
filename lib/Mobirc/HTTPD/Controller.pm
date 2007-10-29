@@ -90,18 +90,31 @@ sub post_dispatch_show_channel {
     DEBUG "POST MESSAGE $message";
 
     if ($message) {
-        $c->{poe}->kernel->post( 'mobirc_irc',
-            privmsg => encode( $c->{config}->{irc}->{incode}, $channel ) =>
-              encode( $c->{config}->{irc}->{incode}, $message ) );
+        if ($message =~ m{^/}) {
+            DEBUG "SENDING COMMAND";
+            $message =~ s!^/!!g;
 
-        DEBUG "Sending message $message";
-        add_message(
-            $c->{poe},
-            $channel,
-            $c->{irc_heap}->{irc}->nick_name,
-            $message,
-            'publicfromhttpd',
-        );
+            my @args =
+              map { encode( $c->{config}->{irc}->{incode}, $_ ) } split /\s+/,
+              $message;
+
+            $c->{poe}->kernel->post('mobirc_irc', @args);
+        } else {
+            DEBUG "NORMAL PRIVMSG";
+
+            $c->{poe}->kernel->post( 'mobirc_irc',
+                privmsg => encode( $c->{config}->{irc}->{incode}, $channel ) =>
+                encode( $c->{config}->{irc}->{incode}, $message ) );
+
+            DEBUG "Sending message $message";
+            add_message(
+                $c->{poe},
+                $channel,
+                $c->{irc_heap}->{irc}->nick_name,
+                $message,
+                'publicfromhttpd',
+            );
+        }
     }
 
     my $response = HTTP::Response->new(302);
