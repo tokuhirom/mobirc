@@ -190,16 +190,18 @@ sub on_irc_topic {
     my $poe = sweet_args;
 
     my $who = $poe->args->[0];
-    my $channel = $poe->args->[1];
-    my $topic = $poe->args->[2];
-
     $who =~ s/!.*//;
+
+    my $channel = $poe->args->[1];
+    $channel = decode($poe->heap->{config}->{irc}->{incode}, $channel);
+
+    my $topic = $poe->args->[2];
+    $topic = decode($poe->heap->{config}->{irc}->{incode}, $topic);
 
     DEBUG "SET TOPIC";
 
-    $topic = decode($poe->heap->{config}->{irc}->{incode}, $topic);
     add_message( $poe,
-        decode( $poe->heap->{config}->{irc}->{incode}, $channel ),
+        $channel,
         undef, "$who set topic: $topic",
         'topic',
         );
