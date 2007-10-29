@@ -7,7 +7,9 @@
             <a href="[% docroot %]channels/[% channel_name.item(canon_channel) | uri%]">more..</a><br />
         </div>
 
-        [% render_list( channel_recent.item(canon_channel).join("\n") ) %]
+        [% FOR line IN channel_recent.item(canon_channel) %]
+            [% render_line( line ) %]<br />
+        [% END %]
 
         <hr />
     [% END %]
