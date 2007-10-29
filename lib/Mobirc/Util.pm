@@ -4,7 +4,7 @@ use warnings;
 use base 'Exporter';
 use Carp;
 
-our @EXPORT = qw/DEBUG compact_channel_name canon_name add_message daemonize/;
+our @EXPORT = qw/DEBUG compact_channel_name canon_name add_message daemonize decorate_irc_color/;
 
 sub DEBUG($) { ## no critic.
     my $txt = shift;
@@ -107,6 +107,74 @@ sub daemonize {
         $pid->print("$$\n");
         close $pid;
     }
+}
+
+my %stash; # (?{ code }) makes storange scope ;-( see perldoc perlre.
+sub decorate_irc_color {
+    my $src = shift;
+
+    $src =~ s{(?:
+               \x02(?{ $stash{bold} = 1 })|
+               \x1f(?{ $stash{underline} = 1 })|
+               \x16(?{ $stash{inverse} = 1 })|
+               \x03(?:(\d+)(?:,(\d+))?)
+                (?{ $stash{color} = $1; $stash{bgcolor} = $2 })
+              )+
+               ([^\x0f]*)(?{ $stash{msg} = $3 })
+               \x0f}{
+                   my $style = '';
+                   if ($stash{bold}) {
+                       $style .= "font-weight:bold;";
+                   }
+                   if ($stash{underline}) {
+                       $style .= "text-decoration:none;";
+                   }
+                   if ($stash{inverse}) {
+                       # xxx not sure this is correct
+                       @stash{qw(color bgcolor)} = @stash{qw( bgcolor color)};
+                   }
+                   if ($stash{color}) {
+                       if (my $color = irc_color($stash{color})) {
+                           $style .= "font-color:$color;";
+                       }
+                   }
+                   if ($stash{bgcolor}) {
+                       if (my $color = irc_color($stash{bgcolor})) {
+                           $style .= "background-color:$color;";
+                       }
+                   }
+                   my $msg = $stash{msg};
+                   %stash = (); # reset
+                   qq{<span style="$style">$msg</span>};
+               }egx;
+
+    return $src;
+}
+
+my %color_table;
+BEGIN { %color_table = (
+    0  => [qw(white)],
+    1  => [qw(black)],
+    2  => [qw(blue         navy)],
+    3  => [qw(green)],
+    4  => [qw(red)],
+    5  => [qw(brown        maroon)],
+    6  => [qw(purple)],
+    7  => [qw(orange       olive)],
+    8  => [qw(yellow)],
+    9  => [qw(lightt_green lime)],
+    10 => [qw(teal)],
+    11 => [qw(light_cyan   cyan aqua)],
+    12 => [qw(light_blue   royal)],
+    13 => [qw(pink         light_purple  fuchsia)],
+    14 => [qw(grey)],
+    15 => [qw(light_grey   silver)],
+   );
+}
+
+sub irc_color {
+    my $num = shift;
+    $color_table{$num}->[0];
 }
 
 1;
