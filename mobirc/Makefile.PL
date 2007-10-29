@@ -21,7 +21,7 @@ requires 'POE::Sugar::Args';
 requires 'Proc::Daemon';
 requires 'Scalar::Util';
 requires 'List::Util';
-requires 'Template';
+requires 'Template' => 2.16; # new 'uri' is supported from 2.16
 requires 'URI::Escape';
 requires 'URI::Find';
 requires 'YAML::Syck';
