@@ -42,7 +42,7 @@ sub add_message {
     my ( $poe, $channel, $who, $msg, $class ) = @_;
     carp "hmmm... class missing?" unless $class;
 
-    DEBUG "ADD MESSAGE TO $channel";
+    DEBUG "ADD MESSAGE TO $channel($class)";
 
     # validation
     unless (Encode::is_utf8($msg)) {
