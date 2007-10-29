@@ -67,6 +67,8 @@ sub on_irc_start {
 
     $poe->kernel->alias_set('irc_session');
 
+    DEBUG "input charset is: " . $poe->heap->{config}->{irc}->{incode};
+
     $poe->heap->{irc}->yield( register => 'all' );
     $poe->heap->{irc}->yield( connect  => {} );
 }
@@ -79,7 +81,7 @@ sub on_irc_001 {
     for my $channel ( sort keys %{ $poe->heap->{channel_name} } ) {
         add_message( $poe,
             decode( $poe->heap->{config}->{irc}->{incode}, $channel ),
-            undef, 'Connected to irc server!', 'connect' );
+            undef, decode('utf8', 'Connected to irc server!'), 'connect' );
     }
     $poe->heap->{disconnect_msg} = true;
     $poe->heap->{channel_name} = {};
@@ -89,11 +91,13 @@ sub on_irc_001 {
 sub on_irc_join {
     my $poe = sweet_args;
 
+    DEBUG "JOIN";
+
     my $who = $poe->args->[0];
     $who =~ s/!.*//;
 
     # chop off after the gap (bug workaround of madoka)
-    my $channel = $poe->args->[1];
+    my $channel = decode($poe->heap->{config}->{irc}->{incode}, $poe->args->[1]);
     $channel =~ s/ .*//;
     my $canon_channel = canon_name($channel);
 
@@ -102,7 +106,7 @@ sub on_irc_join {
     unless ( $who eq $irc->nick_name ) {
         add_message(
             $poe,
-            decode( $poe->heap->{config}->{irc}->{incode}, $channel ),
+            $channel,
             undef,
             decode( $poe->heap->{config}->{irc}->{incode}, "$who joined" ),
             'join',
@@ -255,7 +259,7 @@ sub on_irc_reconnect {
                 $poe,
                 decode( $poe->heap->{config}->{irc}->{incode}, $channel ),
                 undef,
-                'Disconnected from irc server, trying to reconnect...',
+                decode( 'utf8', 'Disconnected from irc server, trying to reconnect...'),
                 'reconnect',
             );
         }
