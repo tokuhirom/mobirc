@@ -17,9 +17,9 @@ __END__
 
 ===
 --- input: String::IRC->new('world')->yellow('green')
---- expected: <span style="font-color:yellow;background-color:green;">world</span>
+--- expected: <span style="color:yellow;background-color:green;">world</span>
 
 ===
 --- input: String::IRC->new('world')->red('green')
---- expected: <span style="font-color:red;background-color:green;">world</span>
+--- expected: <span style="color:red;background-color:green;">world</span>
 
