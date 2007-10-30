@@ -93,7 +93,7 @@ sub add_message {
 
     # update keyword buffer.
     if ($row->{class} eq 'public') {
-        if (any { index($row->{msg}, $_) != -1 } @{$config->{global}->{keywords} || []}) {
+        if (any { $row->{msg} =~ /$_/i } @{$config->{global}->{keywords} || []}) {
             push @{$heap->{keyword_buffer}}, $row;
             if ( @{$heap->{keyword_buffer}} > $config->{httpd}->{lines}) {
                 shift @{ $heap->{keyword_buffer} }; # trash old one.
