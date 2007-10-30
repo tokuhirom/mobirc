@@ -53,6 +53,9 @@ sub add_message {
     unless (Encode::is_utf8($msg)) {
         croak "msg shuld be flagged utf8";
     }
+    if ($who && !Encode::is_utf8($who)) {
+        croak "who shuld be flagged utf8 : $who";
+    }
     unless (Encode::is_utf8($channel)) {
         croak "channel shuld be flagged utf8";
     }
@@ -90,8 +93,7 @@ sub add_message {
 
     # update keyword buffer.
     if ($row->{class} eq 'notice' || $row->{class} eq 'public') {
-        # FIXME: shoud use local $YAML::Syck::ImplicitUnicode = 1;
-        if (any { index($row->{msg}, $_) != -1 } map { decode('utf8', $_) } @{$config->{global}->{keywords} || []}) {
+        if (any { index($row->{msg}, $_) != -1 } @{$config->{global}->{keywords} || []}) {
             push @{$heap->{keyword_buffer}}, $row;
             if ( @{$heap->{keyword_buffer}} > $config->{httpd}->{lines}) {
                 shift @{ $heap->{keyword_buffer} }; # trash old one.
