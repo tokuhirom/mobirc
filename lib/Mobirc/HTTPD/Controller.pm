@@ -126,6 +126,20 @@ sub post_dispatch_show_channel {
     return $response;
 }
 
+sub dispatch_keyword {
+    my ($class, $c, $recent_mode) = @_;
+
+    my $out = render(
+        $c,
+        'keyword' => {
+            rows => ($recent_mode ? $c->{irc_heap}->{keyword_recent} : $c->{irc_heap}->{keyword_buffer}),
+        },
+    );
+
+    $c->{irc_heap}->{keyword_recent} = [];
+
+    return $out;
+}
 
 sub dispatch_show_channel {
     my ($class, $c, $recent_mode, $channel) = @_;

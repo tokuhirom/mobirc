@@ -29,6 +29,7 @@ requires 'utf8';
 requires 'UNIVERSAL::require';
 requires 'Kwalify';
 requires 'Storable';
+requires 'List::MoreUtils';
 
 build_requires 'Test::More';
 use_test_base;

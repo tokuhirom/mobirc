@@ -11,6 +11,8 @@ filters {
     input => ['eval', 'decorate_irc_color'],
 };
 
+run_is input => 'expected';
+
 __END__
 
 ===
