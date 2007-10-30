@@ -196,6 +196,7 @@ sub render {
         docroot              => $c->{config}->{httpd}->{root},
         render_line          => sub { render_line( $c, @_ ) },
         user_agent           => $c->{user_agent},
+        mobile_agent         => $c->{mobile_agent},
         title                => $c->{config}->{httpd}->{title},
         version              => $Mobirc::VERSION,
 
@@ -314,9 +315,7 @@ sub _get_charset {
     }
 
     if ($charset eq 'shift_jis-mobile-auto') {
-        require HTTP::MobileAgent;
-
-        my $agent = HTTP::MobileAgent->new($c->{user_agent});
+        my $agent = $c->{mobile_agent};
         if ($agent->is_non_mobile) {
             $charset = 'cp932';
         } else {

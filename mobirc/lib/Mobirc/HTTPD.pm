@@ -18,6 +18,7 @@ use HTTP::Response;
 use HTML::Entities;
 use Scalar::Util qw/blessed/;
 use UNIVERSAL::require;
+use HTTP::MobileAgent;
 
 use Mobirc::Util;
 use Mobirc::HTTPD::Controller;
@@ -45,7 +46,6 @@ sub init {
 sub on_web_request {
     my $poe        = sweet_args;
     my $request    = $poe->args->[0];
-    my $user_agent = $request->{_headers}->{'user-agent'};
 
     my $config = $GLOBAL_CONFIG or die "config missing";
 
@@ -64,11 +64,13 @@ sub on_web_request {
         return;
     }
 
+    my $user_agent = $request->{_headers}->{'user-agent'};
     my $c = {
         config     => $config,
         poe        => $poe,
         req        => $request,
         user_agent => $user_agent,
+        mobile_agent => HTTP::MobileAgent->new($user_agent),
         irc_heap   => $poe->kernel->alias_resolve('irc_session')->get_heap,
     };
 
