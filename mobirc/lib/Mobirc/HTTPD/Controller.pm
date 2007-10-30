@@ -31,11 +31,20 @@ sub dispatch_index {
 
     my $canon_channels = [
         reverse
-        sort {
-            ( $c->{irc_heap}->{channel_buffer}->{$a}->[-1]->{time} || 0 )
-            <=> ( $c->{irc_heap}->{channel_buffer}->{$b}->[-1]->{time} || 0 )
-        }
-        keys %{ $c->{irc_heap}->{channel_name} }
+          sort {
+            (
+                (
+                    ( $c->{irc_heap}->{channel_buffer}->{$a} || [] )->[-1] || {}
+                )->{time}
+                  || 0
+              ) <=> (
+                (
+                    ( $c->{irc_heap}->{channel_buffer}->{$b} || [] )->[-1] || {}
+                )->{time}
+                  || 0
+              )
+          }
+          keys %{ $c->{irc_heap}->{channel_name} }
     ];
 
     return render(
