@@ -10,7 +10,6 @@
     <input type="text" name="msg" size="10">
 [% END %]
 <input type="submit" accesskey="1" value="OK[1]">
-<a accesskey="8" href="[% docroot %]">ch list[8]</a><br />
 </form>
 
 [% IF channel_name.item(canon_channel) %]
@@ -35,5 +34,8 @@
 [% ELSE %]
     no such channel.
 [% END %]
+
+<hr />
+<a accesskey="8" href="[% docroot %]">top[8]</a><br />
 
 [% INCLUDE 'include/footer.html' %]

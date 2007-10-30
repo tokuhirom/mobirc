@@ -30,6 +30,7 @@ sub init {
             seen_traffic   => false,
             disconnect_msg => true,
             channel_topic  => {},
+            channel_name   => {},
             config         => $config,
             irc            => $irc,
         },
@@ -46,6 +47,7 @@ sub init {
             irc_332          => \&on_irc_topicraw,
             irc_ctcp_action  => \&on_irc_ctcp_action,
             irc_kick         => \&on_irc_kick,
+            irc_snotice      => \&on_irc_snotice,
 
             autoping         => \&do_autoping,
             connect          => \&do_connect,
@@ -80,13 +82,12 @@ sub on_irc_001 {
 
     DEBUG "CONNECTED";
 
-    for my $channel ( sort keys %{ $poe->heap->{channel_name} } ) {
-        add_message( $poe,
-            decode( $poe->heap->{config}->{irc}->{incode}, $channel ),
-            undef, decode('utf8', 'Connected to irc server!'), 'connect' );
-    }
+    add_message( $poe,
+        decode( 'utf8', '*server*' ),
+        undef, decode('utf8', 'Connected to irc server!'), 'connect' );
+
     $poe->heap->{disconnect_msg} = true;
-    $poe->heap->{channel_name} = {};
+    $poe->heap->{channel_name} = {'*server*' => '*server*'};
     $poe->kernel->delay( autoping => $poe->heap->{config}->{ping_delay} );
 }
 
@@ -271,22 +272,42 @@ sub do_autoping {
     $poe->kernel->delay( autoping => $poe->heap->{config}->{ping_delay} );
 }
 
+sub on_irc_snotice {
+    my $poe = sweet_args;
+
+    my ($message, ) = _get_args($poe);
+
+    DEBUG "getting snotice : $message";
+
+    add_message(
+        $poe,
+        decode( 'utf8', '*server*' ),
+        undef,
+        decode( 'utf8', $message),
+        'snotice',
+    );
+}
+
 sub on_irc_reconnect {
     my $poe = sweet_args;
 
     if ( $poe->heap->{disconnect_msg} ) {
-        for my $channel ( sort keys %{ $poe->heap->{channel_name} } ) {
-            add_message(
-                $poe,
-                decode( $poe->heap->{config}->{irc}->{incode}, $channel ),
-                undef,
-                decode( 'utf8', 'Disconnected from irc server, trying to reconnect...'),
-                'reconnect',
-            );
-        }
+        add_message(
+            $poe,
+            decode( 'utf8', '*server*' ),
+            undef,
+            decode( 'utf8', 'Disconnected from irc server, trying to reconnect...'),
+            'reconnect',
+        );
     }
     $poe->heap->{disconnect_msg} = false;
     $poe->kernel->delay( connect => $poe->heap->{config}->{reconnect_delay} );
+}
+
+sub _get_args {
+    my $poe = shift;
+
+    return map { decode($poe->heap->{config}->{irc}->{incode}, $_) } @{ $poe->args };
 }
 
 1;
