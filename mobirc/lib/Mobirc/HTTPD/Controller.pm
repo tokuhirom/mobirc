@@ -163,7 +163,7 @@ sub dispatch_show_channel {
     my $out = render(
         $c,
         'show_channel' => {
-            canon_channel  => canon_name($channel),
+            canon_channel  => normalize_channel_name($channel),
             channel        => $channel,
             subtitle       => compact_channel_name($channel),
             recent_mode    => $recent_mode,
@@ -171,7 +171,7 @@ sub dispatch_show_channel {
     );
 
     {
-        my $canon_channel = canon_name($channel);
+        my $canon_channel = normalize_channel_name($channel);
 
         # clear unread counter
         $c->{irc_heap}->{unread_lines}->{$canon_channel} = 0;

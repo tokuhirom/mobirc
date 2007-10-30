@@ -103,7 +103,7 @@ sub on_irc_join {
     # chop off after the gap (bug workaround of madoka)
     $channel =~ s/ .*//;
 
-    my $canon_channel = canon_name($channel);
+    my $canon_channel = normalize_channel_name($channel);
 
     $poe->heap->{channel_name}->{$canon_channel} = $channel;
     my $irc = $poe->heap->{irc};
@@ -130,7 +130,7 @@ sub on_irc_part {
     # chop off after the gap (bug workaround of POE::Filter::IRC)
     $channel =~ s/ .*//;
 
-    my $canon_channel = canon_name($channel);
+    my $canon_channel = normalize_channel_name($channel);
 
     my $irc = $poe->heap->{irc};
     if ( $who eq $irc->nick_name ) {
@@ -209,7 +209,7 @@ sub on_irc_topic {
         'topic',
         );
 
-    $poe->heap->{channel_topic}->{canon_name($channel)} = $topic;
+    $poe->heap->{channel_topic}->{normalize_channel_name($channel)} = $topic;
 
     $poe->heap->{seen_traffic}                  = true;
     $poe->heap->{disconnect_msg}                = true;
@@ -224,7 +224,7 @@ sub on_irc_topicraw {
 
     my ( $channel, $topic ) = split( / :/, $raw, 2 );
 
-    $poe->heap->{channel_topic}->{ canon_name($channel) } = $topic;
+    $poe->heap->{channel_topic}->{ normalize_channel_name($channel) } = $topic;
     $poe->heap->{seen_traffic}                  = true;
     $poe->heap->{disconnect_msg}                = true;
 }

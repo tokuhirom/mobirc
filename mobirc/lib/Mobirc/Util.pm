@@ -6,7 +6,7 @@ use Carp;
 use List::MoreUtils qw/any/;
 use Encode;
 
-our @EXPORT = qw/true false DEBUG compact_channel_name canon_name add_message daemonize decorate_irc_color/;
+our @EXPORT = qw/true false DEBUG compact_channel_name normalize_channel_name add_message daemonize decorate_irc_color/;
 
 sub true  () { 1 } ## no critic.
 sub false () { 0 } ## no critic.
@@ -35,7 +35,7 @@ sub compact_channel_name {
 
 # -------------------------------------------------------------------------
 
-sub canon_name {
+sub normalize_channel_name {
     local ($_) = shift;
     tr/A-Z[\\]^/a-z{|}~/;
     $_;
@@ -72,7 +72,7 @@ sub add_message {
         time    => time(),
     };
 
-    my $canon_channel = canon_name($channel);
+    my $canon_channel = normalize_channel_name($channel);
 
     # update message log
     $heap->{channel_buffer}->{$canon_channel} ||= [];
