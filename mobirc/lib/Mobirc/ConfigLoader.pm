@@ -56,6 +56,7 @@ my $schema = {
                 content_type   => { type => 'str', },
                 charset        => { type => 'str', },
                 root           => { type => 'str', },
+                echo           => { type => 'bool', },
                 au_pcsv        => { type => 'bool', },
                 authorizer => {
                     type     => 'seq',
