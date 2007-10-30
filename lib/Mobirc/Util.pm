@@ -119,46 +119,88 @@ sub daemonize {
     }
 }
 
-my %stash; # (?{ code }) makes storange scope ;-( see perldoc perlre.
 sub decorate_irc_color {
     my $src = shift;
 
-    $src =~ s{(?:
-               \x02(?{ $stash{bold} = 1 })|
-               \x1f(?{ $stash{underline} = 1 })|
-               \x16(?{ $stash{inverse} = 1 })|
-               \x03(?:(\d+)(?:,(\d+))?)
-                (?{ $stash{color} = $1; $stash{bgcolor} = $2 })
-              )+
-               ([^\x0f]*)(?{ $stash{msg} = $3 })
-               \x0f}{
-                   my $style = '';
-                   if ($stash{bold}) {
-                       $style .= "font-weight:bold;";
-                   }
-                   if ($stash{underline}) {
-                       $style .= "text-decoration:underline;";
-                   }
-                   if ($stash{inverse}) {
-                       # xxx not sure this is correct
-                       @stash{qw(color bgcolor)} = @stash{qw( bgcolor color)};
-                   }
-                   if ($stash{color}) {
-                       if (my $color = irc_color($stash{color})) {
-                           $style .= "font-color:$color;";
-                       }
-                   }
-                   if ($stash{bgcolor}) {
-                       if (my $color = irc_color($stash{bgcolor})) {
-                           $style .= "background-color:$color;";
-                       }
-                   }
-                   my $msg = $stash{msg};
-                   %stash = (); # reset
-                   qq{<span style="$style">$msg</span>};
-               }egx;
+    if ($src !~ /[\x02\x03\x0f\x16\x1f]/) {
+	# skip without colorcode
+	return $src
+    }
 
-    return $src;
+    my $colorized = '';
+    my %default_state = (
+	bold => 0,
+	inverse => 0,
+	underline => 0,
+       );
+    my %state = (%default_state);
+    my $oldstyle = '';
+    my $output_span = sub {
+	my $style = '';
+	if ($state{bold}) {
+	    $style .= "font-weight:bold;";
+	}
+	if ($state{underline}) {
+	    $style .= "text-decoration:underline;";
+	}
+	if ($state{inverse}) {
+	    # xxx not sure this is correct
+	    @state{qw(color bgcolor)} = @state{qw(bgcolor color)};
+	    # XXX too bad
+	    delete $state{inverse};
+	}
+	if ($state{color}) {
+	    if (my $color = irc_color($state{color})) {
+		$style .= "color:$color;";
+	    }
+	}
+	if ($state{bgcolor}) {
+	    if (my $color = irc_color($state{bgcolor})) {
+		$style .= "background-color:$color;";
+	    }
+	}
+	my $output = '';
+	if ($oldstyle ne $style) {
+	    if ($oldstyle) {
+		$output .= '</span>';
+	    }
+	    if ($style) {
+		$output .= qq{<span style="$style">}
+	    }
+	}
+	$oldstyle = $style;
+	$output;
+    };
+
+    while ($src) {
+	if ($src =~ s/^\x02//) {
+	    $state{bold} = !$state{bold};
+	} elsif ($src =~ s/^\x03(?:(\d{1,2})(?:,(\d{1,2}))?)?//) {
+	    # if it has bad color specifiers, just ignore it.
+	    $state{color} = int($1) if $1;
+	    $state{bgcolor} = int($2) if $2;
+	} elsif ($src =~ s/^\x0f//) {
+	    %state = (%default_state);
+	} elsif ($src =~ s/^\x16//) {
+	    $state{inverse} = !$state{inverse};
+	} elsif ($src =~ s/^\x1f//) {
+	    $state{underline} = !$state{underline};
+	} elsif ($src =~ s/^([^\x02\x03\x16\x1f\x0f]+)//) {
+	    $colorized .= $output_span->() . $1;
+	} else {
+	    if ($src =~ s/^(.*)$//) {
+		# garbase
+		use Data::Dumper;
+		DEBUG "garbage: ".Dumper($1);
+		$colorized .= $output_span->() . $1;
+	    }
+	    last;
+	}
+    }
+    %state = (%default_state);
+    $colorized .= $output_span->();
+
+    return $colorized;
 }
 
 my %color_table;
@@ -172,13 +214,13 @@ BEGIN { %color_table = (
     6  => [qw(purple)],
     7  => [qw(orange       olive)],
     8  => [qw(yellow)],
-    9  => [qw(lightt_green lime)],
+    9  => [qw(lightgreen   lime)],
     10 => [qw(teal)],
-    11 => [qw(light_cyan   cyan aqua)],
-    12 => [qw(light_blue   royal)],
-    13 => [qw(pink         light_purple  fuchsia)],
+    11 => [qw(lightcyan    cyan aqua)],
+    12 => [qw(lightblue    royal)],
+    13 => [qw(pink         lightpurple  fuchsia)],
     14 => [qw(grey)],
-    15 => [qw(light_grey   silver)],
+    15 => [qw(lightgrey    silver)],
    );
 }
 
