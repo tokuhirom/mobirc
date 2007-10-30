@@ -92,7 +92,7 @@ sub add_message {
     $heap->{unread_lines}->{$canon_channel} = scalar @{ $heap->{channel_recent}->{$canon_channel} };
 
     # update keyword buffer.
-    if ($row->{class} eq 'notice' || $row->{class} eq 'public') {
+    if ($row->{class} eq 'public') {
         if (any { index($row->{msg}, $_) != -1 } @{$config->{global}->{keywords} || []}) {
             push @{$heap->{keyword_buffer}}, $row;
             if ( @{$heap->{keyword_buffer}} > $config->{httpd}->{lines}) {
