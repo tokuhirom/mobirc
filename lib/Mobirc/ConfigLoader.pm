@@ -59,7 +59,7 @@ my $schema = {
                 charset        => { type => 'str', },
                 root           => { type => 'str', },
                 echo           => { type => 'bool', },
-                au_pcsv        => { type => 'bool', },
+                recent_log_per_page => { type => 'int', },
                 filter => {
                     type     => 'seq',
                     sequence => [
@@ -132,6 +132,7 @@ sub load {
     $config->{httpd}->{cookie_expires} ||= '+3d';
     $config->{httpd}->{content_type}   ||= 'text/html; charset=Shift_JIS';
     $config->{httpd}->{echo} = true unless exists $config->{httpd}->{echo};
+    $config->{httpd}->{recent_log_per_page} ||= 30;
     $config->{global}->{assets_dir}    ||= File::Spec->catfile( $FindBin::Bin, 'assets' );
 
     return $config;

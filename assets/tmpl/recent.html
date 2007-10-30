@@ -1,20 +1,25 @@
 [% INCLUDE 'include/header.html' %]
 
-[% FOR canon_channel IN channel_name.keys.sort %]
-    [% IF channel_name.item(canon_channel) and channel_recent.item(canon_channel) and channel_recent.item(canon_channel).size %]
-        <div class="ChannelHeader">
-            <b class="ChannelName">[% channel_name.item(canon_channel) | html %]</b>
-            <a href="[% docroot %]channels/[% channel_name.item(canon_channel) | uri%]">more..</a><br />
-        </div>
+[% FOR channel IN target_channels %]
+    <div class="ChannelHeader">
+        <b class="ChannelName">[% channel_name.item(channel) | html %]</b>
+        <a href="[% docroot %]channels/[% channel_name.item(channel) | uri%]">more..</a><br />
+    </div>
 
-        [% FOR line IN channel_recent.item(canon_channel) %]
-            [% render_line( line ) %]<br />
-        [% END %]
-
-        <hr />
+    [% FOR line IN channel_recent.item(channel) %]
+        [% render_line( line ) %]<br />
     [% END %]
+
+    <hr />
 [% END %]
 <br />
+
+[% IF has_next_page %]
+<a href="[% docroot %]recent?t=[% now %]">next</a>
+[% END %]
+
+<hr />
+
 <a accesskey="8" href="[% docroot %]">ch list[8]</a>
 
 [% INCLUDE 'include/footer.html' %]
