@@ -4,6 +4,8 @@ use warnings;
 use Kwalify    ();
 use YAML::Syck ();
 use Storable;
+use Mobirc::Util;
+use Encode;
 
 my $schema = {
     type    => 'map',
@@ -120,6 +122,23 @@ sub load {
     my $res = Kwalify::validate( $schema, $config );
     unless ( $res == 1 ) {
         die "config.yaml validation error : $res";
+    }
+
+    # set default vars.
+    $config->{irc}->{ping_delay}       ||= 30;
+    $config->{irc}->{reconnect_delay}  ||= 10;
+    $config->{httpd}->{charset}        ||= 'cp932';
+    $config->{httpd}->{root}           ||= decode( 'utf8', '/' );
+    $config->{httpd}->{cookie_expires} ||= '+3d';
+    $config->{httpd}->{content_type}   ||= 'text/html; charset=Shift_JIS';
+    $config->{httpd}->{echo} = true unless exists $config->{httpd}->{echo};
+    $config->{global}->{assets_dir}    ||= File::Spec->catfile( $FindBin::Bin, 'assets' );
+
+    # pictogram support
+    # FIXME: ad-hoc. this is temporary place.
+    if ($config->{httpd}->{charset} =~ /^shift_jis-[a-z]+/) {
+        DEBUG "use Encode::JP::Mobile;";
+        require Encode::JP::Mobile;
     }
 
     return $config;
