@@ -14,6 +14,7 @@ use HTML::Entities;
 use Scalar::Util qw/blessed/;
 use List::Util qw/first/;
 use CGI::Cookie;
+use Template::Provider::Encoding;
 
 use Mobirc;
 use Mobirc::Util;
@@ -113,7 +114,7 @@ sub post_dispatch_show_channel {
                 add_message(
                     $c->{poe},
                     $channel,
-                    $c->{irc_heap}->{irc}->nick_name,
+                    decode( $c->{config}->{irc}->{incode}, $c->{irc_heap}->{irc}->nick_name),
                     $message,
                     'publicfromhttpd',
                 );
@@ -196,9 +197,14 @@ sub render {
     };
 
     my $tt = Template->new(
-        ABSOLUTE => 1,
-        INCLUDE_PATH =>
-          File::Spec->catfile( $c->{config}->{global}->{assets_dir}, 'tmpl', )
+        LOAD_TEMPLATES => [
+            Template::Provider::Encoding->new(
+                ABSOLUTE => 1,
+                INCLUDE_PATH =>
+                  File::Spec->catfile( $c->{config}->{global}->{assets_dir},
+                    'tmpl', )
+            )
+        ],
     );
     $tt->process(
         File::Spec->catfile(
@@ -211,11 +217,10 @@ sub render {
 
     DEBUG "rendering done";
 
-    my $content = Encode::is_utf8($out) ? $out : decode( 'utf8', $out );
-    $content = encode($c->{config}->{httpd}->{charset}, $content);
+    my $content = encode($c->{config}->{httpd}->{charset}, $out);
 
     my $response = HTTP::Response->new(200);
-    $response->push_header( 'Content-type' => $c->{config}->{httpd}->{content_type} );
+    $response->push_header( 'Content-type' => encode('utf8', $c->{config}->{httpd}->{content_type}) );
     $response->push_header('Content-Length' => length($content) );
 
     if ( $c->{config}->{httpd}->{use_cookie} ) {
@@ -223,6 +228,7 @@ sub render {
     }
 
     $response->content( $content );
+
     return $response;
 }
 
