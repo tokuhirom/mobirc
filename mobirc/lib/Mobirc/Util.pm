@@ -49,10 +49,10 @@ sub add_message {
 
     # validation
     unless (Encode::is_utf8($msg)) {
-        croak "$msg shuld be flagged utf8";
+        croak "msg shuld be flagged utf8";
     }
     unless (Encode::is_utf8($channel)) {
-        croak "$channel shuld be flagged utf8";
+        croak "channel shuld be flagged utf8";
     }
 
     my $heap = $poe->kernel->alias_resolve('irc_session')->get_heap;
