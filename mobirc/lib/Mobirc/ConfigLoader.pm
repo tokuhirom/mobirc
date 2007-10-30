@@ -78,6 +78,14 @@ my $schema = {
             mapping => {
                 pid_fname  => { type => 'str', },
                 assets_dir => { type => 'str', },
+                keywords   => {
+                    type => 'seq',
+                    sequence => [
+                        {
+                            type => 'str'
+                        }
+                    ],
+                },
             }
         },
     },
@@ -92,6 +100,7 @@ sub load {
         $config = Storable::dclone($stuff);
     }
     else {
+        # TODO: local $YAML::Syck::ImplicitUnicode = 1;
         $config = YAML::Syck::LoadFile($stuff);
     }
 

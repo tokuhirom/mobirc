@@ -3,6 +3,8 @@ use strict;
 use warnings;
 use base 'Exporter';
 use Carp;
+use List::MoreUtils qw/any/;
+use Encode;
 
 our @EXPORT = qw/true false DEBUG compact_channel_name canon_name add_message daemonize decorate_irc_color/;
 
@@ -85,8 +87,21 @@ sub add_message {
 
     # update unread lines
     $heap->{unread_lines}->{$canon_channel} = scalar @{ $heap->{channel_recent}->{$canon_channel} };
-    if ( $heap->{unread_lines}->{$canon_channel} > $config->{httpd}->{lines} ) {
-        $heap->{unread_lines}->{$canon_channel} = $config->{httpd}->{lines};
+
+    # update keyword buffer.
+    if ($row->{class} eq 'notice' || $row->{class} eq 'public') {
+        # FIXME: shoud use local $YAML::Syck::ImplicitUnicode = 1;
+        if (any { index($row->{msg}, $_) != -1 } map { decode('utf8', $_) } @{$config->{global}->{keywords} || []}) {
+            push @{$heap->{keyword_buffer}}, $row;
+            if ( @{$heap->{keyword_buffer}} > $config->{httpd}->{lines}) {
+                shift @{ $heap->{keyword_buffer} }; # trash old one.
+            }
+
+            push @{$heap->{keyword_recent}}, $row;
+            if ( @{$heap->{keyword_recent}} > $config->{httpd}->{lines}) {
+                shift @{ $heap->{keyword_recent} }; # trash old one.
+            }
+        }
     }
 }
 

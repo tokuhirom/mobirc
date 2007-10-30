@@ -2,6 +2,9 @@
 # global:
 #   assets_dir: /usr/local/share/mobirc/assets
 #   pid_fname: /vat/run/mobirc-sample.pid
+#   keywords:
+#     - tokuhirom
+#     - mogera
 
 irc:
   server: 127.0.0.1

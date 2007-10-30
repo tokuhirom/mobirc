@@ -19,6 +19,9 @@ sub route {
     elsif ( $uri eq '/recent' ) {
         return 'recent';
     }
+    elsif ( $uri =~ m{^/keyword(-recent)?$} ) {
+        return 'keyword', $1 ? true : false;
+    }
     elsif ($uri =~ m{^/channels(-recent)?/([^?]+)(?:\?time=\d+)?$}) {
         my $recent_mode = $1 ? true : false;
         my $channel_name = $2;

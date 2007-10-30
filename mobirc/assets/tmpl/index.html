@@ -1,5 +1,10 @@
 [% INCLUDE 'include/header.html' %]
 
+[%# < %][% IF keyword_recent.size() > 0 %]
+<div class="keyword_recent_notice"><a href="/keyword-recent">Keyword([% keyword_recent.size() | html %])</a></div>
+[% END %]
+
+<!-- channel list -->
 [% accesskey = 1 %]
 
 [% FOR canon_channel IN canon_channels -%]
@@ -23,11 +28,16 @@
     [%- accesskey = accesskey + 1 %]
 [% END -%]
 
+<hr />
+
+<!-- main menu -->
+
 0 <a href="[% docroot %]" accesskey="0">refresh list</a><br>
 [%- IF exists_recent_entries %]
 * <a href="[% docroot %]recent" accesskey="*">recent</a><br>
 [%- END %]
 # <a href="[% docroot %]topics" accesskey="#">topics</a><br>
+<a href="/keyword">keyword</a><br />
 
 <hr />
 
