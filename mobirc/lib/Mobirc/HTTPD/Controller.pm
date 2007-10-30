@@ -124,7 +124,9 @@ sub post_dispatch_show_channel {
     my $response = HTTP::Response->new(302);
     my $root = $c->{config}->{httpd}->{root};
     $root =~ s!/$!!;
-    $response->push_header( 'Location' => $root . $c->{req}->uri . '?time=' . time); # TODO: must be absoulute url.
+    my $path = $c->{req}->uri;
+    $path =~ s/#/%23/;
+    $response->push_header( 'Location' => $root . $path . '?time=' . time); # TODO: must be absoulute url.
     return $response;
 }
 
