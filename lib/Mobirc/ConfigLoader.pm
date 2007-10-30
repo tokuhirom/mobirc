@@ -1,7 +1,7 @@
 package Mobirc::ConfigLoader;
 use strict;
 use warnings;
-use YAML::Syck ();
+use YAML ();
 use Storable;
 use Mobirc::Util;
 use Encode;
@@ -120,8 +120,9 @@ sub load {
         $config = Storable::dclone($stuff);
     }
     else {
-        local $YAML::Syck::ImplicitUnicode = 1;
-        $config = YAML::Syck::LoadFile($stuff);
+        open my $fh, '<:utf8', $stuff or die $!;
+        $config = YAML::LoadFile($fh);
+        close $fh;
     }
 
     if ($HasKwalify) {
