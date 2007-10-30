@@ -183,6 +183,46 @@ sub on_irc_notice {
 
     DEBUG "IRC NOTICE";
 
+    # Tiarra Log::Recent Parser
+    if ($who && $who eq "tiarra") {
+        # header: %H:%M:%S
+        # header: %H:%M
+        # の場合を想定。後者は Log::Recent のデフォルトだったはず
+        # kick とかに対応していない
+        my $class;
+        my $chann  = encode($poe->heap->{config}->{irc}->{incode}, $channel->[0]);
+        if ($msg =~ qr|^(\d\d:\d\d(?::\d\d)?) ! ([^\s]+?) \((.*)\)|) {
+            $class = "part";
+            $who   = $2;
+            $msg   = undef;
+            $chann = $chann;
+        } elsif ($msg =~ qr|^(\d\d:\d\d(?::\d\d)) \+ ([^\s]+?) \(([^\)]+)\) to ([^\s]+)|) {
+            $class = "join";
+            $who   = $2;
+            $msg   = decode("utf8", "$2 join");
+            $chann = $chann;
+        } elsif ($msg =~ qr|^(\d\d:\d\d(?::\d\d)) [<>()=-]([^>]+?)[<>()=-] (.*)|) {
+            # priv も notice もまとめて notice に
+            # keyword 反応を再度しないため
+            $class = "notice";
+            $who   = $2;
+            $msg   = $3;
+            $chann = [$chann];
+        }
+
+        if ($class) {
+            DEBUG "RE THROW Tiarra RECENT LOG->$class";
+            $poe->kernel->call(
+                $poe->session,
+                "irc_$class",
+                $who,
+                $chann,
+                encode($poe->heap->{config}->{irc}->{incode}, $msg)
+            );
+            return;
+        }
+    }
+
     $who =~ s/!.*//;
     $channel = $channel->[0];
 
