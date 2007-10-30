@@ -33,6 +33,7 @@ sub init {
             channel_name   => {},
             config         => $config,
             irc            => $irc,
+            keyword_recent => [],
         },
         inline_states => {
             _start           => \&on_irc_start,
