@@ -1,11 +1,16 @@
 package Mobirc::ConfigLoader;
 use strict;
 use warnings;
-use Kwalify    ();
 use YAML::Syck ();
 use Storable;
 use Mobirc::Util;
 use Encode;
+
+our $HasKwalify;
+eval {
+    require Kwalify;
+    $HasKwalify++;
+};
 
 my $schema = {
     type    => 'map',
@@ -119,9 +124,13 @@ sub load {
         $config = YAML::Syck::LoadFile($stuff);
     }
 
-    my $res = Kwalify::validate( $schema, $config );
-    unless ( $res == 1 ) {
-        die "config.yaml validation error : $res";
+    if ($HasKwalify) {
+        my $res = Kwalify::validate( $schema, $config );
+        unless ( $res == 1 ) {
+            die "config.yaml validation error : $res";
+        }
+    } else {
+        warn "Kwalify is not installed. Skipping the config validation." if $^W;
     }
 
     # set default vars.
