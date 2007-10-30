@@ -96,7 +96,7 @@ sub post_dispatch_show_channel {
 
     my $r       = CGI->new( $c->{req}->content );
     my $message = $r->param('msg');
-    $message = decode( $c->{config}->{httpd}->{charset}, $message );
+    $message = decode( _get_charset($c), $message );
 
     DEBUG "POST MESSAGE $message";
 
@@ -225,7 +225,7 @@ sub render {
 
     DEBUG "rendering done";
 
-    my $content = encode($c->{config}->{httpd}->{charset}, $out);
+    my $content = encode( _get_charset($c), $out);
 
     my $response = HTTP::Response->new(200);
     $response->push_header( 'Content-type' => encode('utf8', $c->{config}->{httpd}->{content_type}) );
@@ -302,6 +302,31 @@ sub _process_body {
     }
 
     return $body;
+}
+
+sub _get_charset {
+    my ($c, ) = @_;
+
+    my $charset = $c->{config}->{httpd}->{charset};
+
+    if ($charset =~ /^shift_jis-.+/) {
+        require Encode::JP::Mobile;
+    }
+
+    if ($charset eq 'shift_jis-mobile-auto') {
+        require HTTP::MobileAgent;
+
+        my $agent = HTTP::MobileAgent->new($c->{user_agent});
+        if ($agent->is_non_mobile) {
+            $charset = 'cp932';
+        } else {
+            $charset = 'shift_jis-' . lc $agent->carrier_longname;
+        }
+    }
+
+    DEBUG "use charset: $charset";
+
+    return $charset;
 }
 
 1;

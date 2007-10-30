@@ -134,13 +134,6 @@ sub load {
     $config->{httpd}->{echo} = true unless exists $config->{httpd}->{echo};
     $config->{global}->{assets_dir}    ||= File::Spec->catfile( $FindBin::Bin, 'assets' );
 
-    # pictogram support
-    # FIXME: ad-hoc. this is temporary place.
-    if ($config->{httpd}->{charset} =~ /^shift_jis-[a-z]+/) {
-        DEBUG "use Encode::JP::Mobile;";
-        require Encode::JP::Mobile;
-    }
-
     return $config;
 }
 
