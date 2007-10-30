@@ -11,9 +11,10 @@
     [% SET channel = channel_name.item( canon_channel ) %]
 
     [%- IF accesskey < 10 %][%# > %]
-    [%- accesskey %]
+    [%- IF mobile_agent.is_docomo or mobile_agent.is_ezweb %]&#x[% 59106 + accesskey - 1 | format("%X") %];[% ELSE %][% accesskey %][% END %]
     <a accesskey="[% accesskey %]" href="[% docroot %]channels/[% channel | uri %]">
     [%- ELSE %]
+    [% IF mobile_agent.is_docomo or mobile_agent.is_ezweb %]&#xE6F0;[% END %]
     <a href="[% docroot %]channels/[% channel | uri %]">
     [%- END -%]
         [% compact_channel_name(channel) %]
