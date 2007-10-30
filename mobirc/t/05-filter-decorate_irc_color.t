@@ -1,15 +1,20 @@
 use strict;
 use warnings;
 use Data::Dumper;
+use Mobirc::HTTPD::Filter::DecorateIRCColor;;
 
 use Test::Base;
 eval q{ use String::IRC };
 plan skip_all => "String::IRC is not installed." if $@;
-use Mobirc::Util;
 
 filters {
     input => ['eval', 'decorate_irc_color'],
 };
+
+sub decorate_irc_color {
+    my $x = shift;
+    Mobirc::HTTPD::Filter::DecorateIRCColor->process( $x, {} );
+}
 
 run_is input => 'expected';
 

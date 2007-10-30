@@ -7,7 +7,6 @@ use CGI;
 use Encode;
 use Template;
 use File::Spec;
-use URI::Find;
 use URI::Escape;
 use HTTP::Response;
 use HTML::Entities;
@@ -285,30 +284,13 @@ sub _process_body {
 
     $body = encode_entities($body, q(<>&"'));
 
-    URI::Find->new(
-        sub {
-            my ( $uri, $orig_uri ) = @_;
+    DEBUG "APPLY FILTERS";
+    for my $filter ( @{ $c->{config}->{httpd}->{filter} || [] } ) {
+        DEBUG "LOAD FILTER MODULE: $filter->{module}";
 
-            my $out = qq{<a href="$uri" rel="nofollow">$orig_uri</a>};
-            if ( $c->{config}->{httpd}->{au_pcsv} ) {
-                $out .=
-                  sprintf( '<a href="device:pcsiteviewer?url=%s">[PCSV]</a>',
-                    $uri );
-            }
-            $out .=
-              sprintf(
-'<a href="http://mgw.hatena.ne.jp/?url=%s&noimage=0&split=1">[ph]</a>',
-                uri_escape($uri) );
-            return $out;
-        }
-    )->find( \$body );
-
-    $body =~
-s!\b(0\d{1,3})([-(]?)(\d{2,4})([-)]?)(\d{4})\b!<a href="tel:$1$3$5">$1$2$3$4$5</a>!g;
-    $body =~
-      s!\b(\w[\w.+=-]+\@[\w.-]+[\w]\.[\w]{2,4})\b!<a href="mailto:$1">$1</a>!g;
-
-    $body = decorate_irc_color($body);
+        $filter->{module}->use or die $@;
+        $body = $filter->{module}->process($body, $filter->{config});
+    }
 
     return $body;
 }

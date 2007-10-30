@@ -58,6 +58,18 @@ my $schema = {
                 root           => { type => 'str', },
                 echo           => { type => 'bool', },
                 au_pcsv        => { type => 'bool', },
+                filter => {
+                    type     => 'seq',
+                    sequence => [
+                        {
+                            type    => 'map',
+                            mapping => {
+                                module => { type => 'str', required => 1, },
+                                config => { type => 'any', },
+                            },
+                        },
+                    ],
+                },
                 authorizer => {
                     type     => 'seq',
                     required => 1,

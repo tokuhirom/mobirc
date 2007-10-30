@@ -33,8 +33,15 @@ httpd:
     # - module: Mobirc::HTTPD::Authorizer::EZSubscriberID
     #   config:
     #     au_subscriber_id: 25253252_oe.ezweb.ne.jp
+  filter:
+    - module: Mobirc::HTTPD::Filter::URL
+      config:
+        au_pcsv: 1
+        pocket_hatena: 1
+    - module: Mobirc::HTTPD::Filter::TelephoneNumber
+    - module: Mobirc::HTTPD::Filter::MailAddress
+    - module: Mobirc::HTTPD::Filter::DecorateIRCColor
   # charset: cp932
   # root: /
   # content_type: text/html; charset=Shift_JIS
-  # au_pcsv: 1
 
