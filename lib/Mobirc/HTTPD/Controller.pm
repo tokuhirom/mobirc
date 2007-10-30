@@ -238,14 +238,8 @@ sub render {
             )
         ],
     );
-    $tt->process(
-        File::Spec->catfile(
-            $c->{config}->{global}->{assets_dir},
-            'tmpl', "$name.html"
-        ),
-        $args,
-        \my $out
-    ) or die $tt->error;
+    $tt->process("$name.html", $args, \my $out)
+        or die $tt->error;
 
     DEBUG "rendering done";
 
