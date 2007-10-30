@@ -96,12 +96,13 @@ sub on_irc_join {
 
     DEBUG "JOIN";
 
-    my $who = $poe->args->[0];
+    my ($who, $channel) = _get_args($poe);
+
     $who =~ s/!.*//;
 
     # chop off after the gap (bug workaround of madoka)
-    my $channel = decode($poe->heap->{config}->{irc}->{incode}, $poe->args->[1]);
     $channel =~ s/ .*//;
+
     my $canon_channel = canon_name($channel);
 
     $poe->heap->{channel_name}->{$canon_channel} = $channel;
@@ -111,7 +112,7 @@ sub on_irc_join {
             $poe,
             $channel,
             undef,
-            decode( $poe->heap->{config}->{irc}->{incode}, "$who joined" ),
+            "$who joined",
             'join',
         );
     }
@@ -122,12 +123,13 @@ sub on_irc_join {
 sub on_irc_part {
     my $poe = sweet_args;
 
-    my $who = $poe->args->[0];
+    my ($who, $channel, $msg) = _get_args($poe);
+
     $who =~ s/!.*//;
 
     # chop off after the gap (bug workaround of POE::Filter::IRC)
-    my $channel = $poe->args->[1];
     $channel =~ s/ .*//;
+
     my $canon_channel = canon_name($channel);
 
     my $irc = $poe->heap->{irc};
@@ -135,11 +137,16 @@ sub on_irc_part {
         delete $poe->heap->{channel_name}->{$canon_channel};
     }
     else {
+        my $message = "$who leaves";
+        if ($msg) {
+            $message .= "($msg)";
+        }
+
         add_message(
             $poe,
-            decode( $poe->heap->{config}->{irc}->{incode}, $channel ),
+            $channel,
             undef,
-            decode( $poe->heap->{config}->{irc}->{incode}, "$who leaves" ),
+            $message,
             'leave',
         );
     }
@@ -151,16 +158,16 @@ sub on_irc_public {
     my $poe = sweet_args;
 
     DEBUG "IRC PUBLIC";
-    my $who = $poe->args->[0];
+
+    my ($who, $channel, $msg) = _get_args($poe);
+
     $who =~ s/!.*//;
-    my $channel = $poe->args->[1];
+
     $channel = $channel->[0];
 
-    my $msg = $poe->args->[2];
-
     add_message(
-        $poe, decode( $poe->heap->{config}->{irc}->{incode}, $channel ),
-        $who, decode( $poe->heap->{config}->{irc}->{incode}, $msg ),
+        $poe, $channel,
+        $who, $msg,
         'public',
     );
 
@@ -171,9 +178,7 @@ sub on_irc_public {
 sub on_irc_notice {
     my $poe = sweet_args;
 
-    my $who = $poe->args->[0];
-    my $channel = $poe->args->[1];
-    my $msg = $poe->args->[2];
+    my ($who, $channel, $msg) = _get_args($poe);
 
     DEBUG "IRC NOTICE";
 
@@ -181,8 +186,8 @@ sub on_irc_notice {
     $channel = $channel->[0];
 
     add_message(
-        $poe, decode( $poe->heap->{config}->{irc}->{incode}, $channel ),
-        $who, decode( $poe->heap->{config}->{irc}->{incode}, $msg ),
+        $poe, $channel,
+        $who, $msg,
         'notice',
     );
     $poe->heap->{seen_traffic}   = true;
@@ -192,14 +197,9 @@ sub on_irc_notice {
 sub on_irc_topic {
     my $poe = sweet_args;
 
-    my $who = $poe->args->[0];
+    my ($who, $channel, $topic) = _get_args($poe);
+
     $who =~ s/!.*//;
-
-    my $channel = $poe->args->[1];
-    $channel = decode($poe->heap->{config}->{irc}->{incode}, $channel);
-
-    my $topic = $poe->args->[2];
-    $topic = decode($poe->heap->{config}->{irc}->{incode}, $topic);
 
     DEBUG "SET TOPIC";
 
@@ -220,7 +220,8 @@ sub on_irc_topicraw {
 
     DEBUG "SET TOPIC RAW";
 
-    my $raw = decode( $poe->heap->{config}->{irc}->{incode}, $poe->args->[1] );
+    my ($w, $raw) = _get_args($poe);
+
     my ( $channel, $topic ) = split( / :/, $raw, 2 );
 
     $poe->heap->{channel_topic}->{ canon_name($channel) } = $topic;
@@ -231,14 +232,14 @@ sub on_irc_topicraw {
 sub on_irc_ctcp_action {
     my $poe = sweet_args;
 
-    my $who = $poe->args->[0];
-    my $channel = $poe->args->[1];
-    my $msg = $poe->args->[2];
+    my ($who, $channel, $msg) = _get_args($poe);
 
     $who =~ s/!.*//;
     $channel = $channel->[0];
-    $msg = sprintf( '* %s %s', $who, decode( $poe->heap->{config}->{irc}->{incode}, $msg) );
-    add_message( $poe, decode($poe->heap->{config}->{irc}->{incode}, $channel), '', $msg, 'ctcp_action', );
+    $msg = sprintf( '* %s %s', $who, $msg );
+
+    add_message( $poe, $channel, '', $msg, 'ctcp_action', );
+
     $poe->heap->{seen_traffic}   = true;
     $poe->heap->{disconnect_msg} = true;
 }
@@ -248,8 +249,10 @@ sub on_irc_kick {
 
     DEBUG "DNBKICK";
 
-    my ($kicker, $channel, $kickee, $msg) = map { decode($poe->heap->{config}->{irc}->{incode}, $_) } @{ $poe->args };
+    my ($kicker, $channel, $kickee, $msg) = _get_args($poe);
     $msg ||= 'Flooder';
+
+    $kicker =~ s/!.*//;
 
     add_message(
         $poe, $channel, '', "$kicker has kicked $kickee($msg)", 'kick'
@@ -304,10 +307,19 @@ sub on_irc_reconnect {
     $poe->kernel->delay( connect => $poe->heap->{config}->{reconnect_delay} );
 }
 
+# FIXME: I want more cool implement
 sub _get_args {
     my $poe = shift;
 
-    return map { decode($poe->heap->{config}->{irc}->{incode}, $_) } @{ $poe->args };
+    my @ret;
+    for my $elem (@{$poe->args}) {
+        if ( ref $elem && ref $elem eq 'ARRAY') {
+            push @ret, [map { decode($poe->heap->{config}->{irc}->{incode}, $_) } @$elem];
+        } else {
+            push @ret, decode($poe->heap->{config}->{irc}->{incode}, $elem);
+        }
+    }
+    return @ret;
 }
 
 1;
