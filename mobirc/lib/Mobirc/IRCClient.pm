@@ -192,6 +192,7 @@ sub on_irc_notice {
         my $class;
         my $chann  = encode($poe->heap->{config}->{irc}->{incode}, $channel->[0]);
         if ($msg =~ qr|^(\d\d:\d\d(?::\d\d)?) ! ([^\s]+?) \((.*)\)|) {
+            # ほんとは quit
             $class = "part";
             $who   = $2;
             $msg   = undef;
@@ -200,6 +201,26 @@ sub on_irc_notice {
             $class = "join";
             $who   = $2;
             $msg   = decode("utf8", "$2 join");
+            $chann = $chann;
+        } elsif ($msg =~ qr|^(\d\d:\d\d(?::\d\d)) \- ([^\s]+?) from ([^\s]+)|) {
+            $class = "part";
+            $who   = $2;
+            $msg   = undef;
+            $chann = $chann;
+        } elsif ($msg =~ qr|^(\d\d:\d\d(?::\d\d)) Mode by ([^\s]+?): ([^\s]+) (.*)|) {
+            $class = undef; #"mode";
+            $who   = $2;
+            $msg   = undef;
+            $chann = $chann;
+        } elsif ($msg =~ qr|^(\d\d:\d\d(?::\d\d)) Topic of channel ([^\s]+?) by ([^\s]+): (.*)|) {
+            $class = "topic";
+            $who   = $3;
+            $msg   = $4;
+            $chann = $chann;
+        } elsif ($msg =~ qr|^(\d\d:\d\d(?::\d\d)) ([^\s]+?) -> ([^\s]+)|) {
+            $class = undef; #"nick";
+            $who   = $3;
+            $msg   = $4;
             $chann = $chann;
         } elsif ($msg =~ qr|^(\d\d:\d\d(?::\d\d)) [<>()=-]([^>]+?)[<>()=-] (.*)|) {
             # priv も notice もまとめて notice に
