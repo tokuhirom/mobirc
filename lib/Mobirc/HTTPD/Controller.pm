@@ -109,13 +109,15 @@ sub post_dispatch_show_channel {
                 encode( $c->{config}->{irc}->{incode}, $message ) );
 
             DEBUG "Sending message $message";
-            add_message(
-                $c->{poe},
-                $channel,
-                $c->{irc_heap}->{irc}->nick_name,
-                $message,
-                'publicfromhttpd',
-            );
+            if ($c->{config}->{httpd}->{echo} eq true) {
+                add_message(
+                    $c->{poe},
+                    $channel,
+                    $c->{irc_heap}->{irc}->nick_name,
+                    $message,
+                    'publicfromhttpd',
+                );
+            }
         }
     }
 
