@@ -64,14 +64,36 @@ sub dispatch_index {
 sub dispatch_recent {
     my ($class, $c) = @_;
 
+    my @target_channels;
+    my $log_counter = 0;
+    my $has_next_page = false;
+
+    my @unread_channels =
+      grep { @{ $c->{irc_heap}->{channel_recent}->{$_} || [] } }
+      keys %{ $c->{irc_heap}->{channel_recent} };
+
+    DEBUG "SCALAR " . scalar @unread_channels;
+
+    for my $channel (@unread_channels) {
+        push @target_channels, $channel;
+        $log_counter += scalar @{ $c->{irc_heap}->{channel_recent}->{$channel} };
+
+        if ($log_counter >= $c->{config}->{httpd}->{recent_log_per_page}) {
+            $has_next_page = true;
+            last;
+        }
+    }
+
     my $out = render(
         $c,
         'recent' => {
+            target_channels => \@target_channels,
+            has_next_page   => $has_next_page,
         },
     );
 
     # reset counter.
-    for my $canon_channel ( sort keys %{ $c->{irc_heap}->{channel_name} } ) {
+    for my $canon_channel ( @target_channels ) {
         $c->{irc_heap}->{unread_lines}->{$canon_channel}   = 0;
         $c->{irc_heap}->{channel_recent}->{$canon_channel} = [];
     }
@@ -199,6 +221,7 @@ sub render {
         mobile_agent         => $c->{mobile_agent},
         title                => $c->{config}->{httpd}->{title},
         version              => $Mobirc::VERSION,
+        now                  => time(),
 
         %{ $c->{irc_heap} },
 

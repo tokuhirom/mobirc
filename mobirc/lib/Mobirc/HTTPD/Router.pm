@@ -16,7 +16,7 @@ sub route {
     elsif ( $uri eq '/topics' ) {
         return 'topics';
     }
-    elsif ( $uri eq '/recent' ) {
+    elsif ( $uri =~ m{^/recent(?:\?t=\d+)?$} ) {
         return 'recent';
     }
     elsif ( $uri =~ m{^/keyword(-recent)?$} ) {

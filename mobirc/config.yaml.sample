@@ -21,6 +21,7 @@ httpd:
   lines: 40
   cookie_expires: +3d
   use_cookie: 1
+  # recent_log_per_page: 40
   authorizer:
     - module: Mobirc::HTTPD::Authorizer::Cookie
       config:
