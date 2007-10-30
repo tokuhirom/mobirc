@@ -1,0 +1,179 @@
+[% INCLUDE 'include/header.html' %]
+
+<h1><select id="channel" onchange="Mobirc.onChangeChannel();">
+[% FOR canon_channel IN canon_channels -%]
+[% SET channel = channel_name.item( canon_channel ) %]
+<option value="[% channel | uri %]">[% compact_channel_name(channel) %]</option>
+[% END %]
+</select></h1>
+
+<div id="channel-iframe-container" class="iframe-container"></div>
+
+<!-- Form -->
+<form onsubmit="return Mobirc.onSubmit()" method="post">
+[% IF user_agent.match('(iPod|iPhone)') %]
+<input type="text" id="msg" name="msg" />
+[% ELSE %]
+<input type="text" id="msg" name="msg" size="30" />
+[% END %]
+<input type="submit" accesskey="1" value="OK[1]" />
+<!-- /Form --></form>
+
+<div id="recentlog-iframe-container" class="iframe-container"></div>
+<div id="submit-iframe-container" style="display:none;"></div>
+
+<p style="border-top: 1px solid black"># <a href="[% docroot %]topics" accesskey="#">topics</a> | <a href="[% docroot %]keyword">keyword</a></p>
+
+<div class="VersionInfo">mobirc - <span class="version">[% version %]</span></div>
+
+<div id="jsonp-container"></div>
+
+<script type="text/javascript">
+var Mobirc = {
+    docroot : '[% docroot %]',
+    timerId : null,
+    interval : 15 * 1000,
+
+    setUp : function () {
+        this.channelIframe = this.createInheritedIframe('channel-iframe-container');
+        this.recentLogIframe = this.createInheritedIframe('recentlog-iframe-container');
+        this.submitIframe = this.createIframe('submit-iframe-container');
+        // nice tenuki.
+        setTimeout(function() {
+            Mobirc.initialize();
+            Mobirc.startInterval();
+        }, 5000);
+    }
+    , initialize : function () {
+        var channelDoc = this.channelIframe.contentWindow.document;
+        var recentDoc = this.recentLogIframe.contentWindow.document;
+        var submitDoc = this.submitIframe.contentWindow.document;
+        channelDoc.getElementById('lines').innerHTML = "";
+        recentDoc.getElementById('lines').innerHTML = "";
+        this.onChangeChannel();
+        this.requestJsonp('recent', true);
+    }
+    , createIframe : function (container) {
+        var styleSheet = document.getElementsByTagName("style")[0];
+        var iframe = document.createElement('iframe');
+        document.getElementById(container).appendChild(iframe);
+        iframe.contentWindow.document.charset = "Shift_JIS";
+        iframe.contentWindow.document.writeln("<body></body>");
+        return iframe;
+     }
+    , createInheritedIframe : function (container) {
+        var styleSheet = document.getElementsByTagName("style")[0];
+        var iframe = document.createElement('iframe');
+        document.getElementById(container).appendChild(iframe);
+        iframe.contentWindow.document.charset = "Shift_JIS";
+        iframe.contentWindow.document.writeln("<style type='text/css'>"+styleSheet.innerHTML+"</style><body><ul class='log' id='lines'><li>Loading</li></ul></body>");
+        return iframe;
+    }
+    , requestJsonp : function (path, recent)
+    {
+        var script = document.createElement('script');
+        script.setAttribute('type', 'text/javascript');
+        script.setAttribute('src', this.docroot + path + (recent ? '?t=' : '?time=')+(new Date()).valueOf());
+        //script.setAttribute('charset', 'UTF-8');
+        var scripts = document.getElementById('jsonp-container');
+        scripts.appendChild(script);
+    }
+    , startInterval : function () {
+        this.stopInterval();
+        this.timerId = setInterval(this._onTick, this.interval);
+    }
+    , stopInterval : function () {
+        if (this.timerId) {
+            clearInterval(this.timerId);
+            this.timerId = null;
+        }
+    }
+    , onChangeChannel : function () {
+        this.stopInterval();
+        this.channelIframe.contentWindow.document.getElementById('lines').innerHTML = "";
+        this.requestJsonp('channels/' + document.getElementById('channel').value);
+        this.startInterval();
+    }
+    , _onTick : function () { Mobirc.onTick(); }
+    , onTick : function () {
+        this.requestJsonp('channels-recent/' + document.getElementById('channel').value);
+        this.requestJsonp('recent', true);
+    }
+    , onSubmit : function () {
+        try {
+            var doc = this.submitIframe.contentWindow.document;
+            doc.body.innerHTML = "";
+            var form = doc.createElement('form');
+            form.acceptCharset = "Shift_JIS";
+            form.action = this.docroot + 'channels/' + document.getElementById('channel').value;
+            form.method = 'POST';
+            var msg = document.getElementById('msg');
+            var input = doc.createElement('input');
+            input.name = 'msg';
+            input.value = msg.value;
+            form.appendChild(input);
+            doc.body.appendChild(form);
+            form.submit();
+            msg.value = "";
+        } catch (e) { alert(e.description); }
+        setTimeout(this._onTick, 1000); // nice tenuki.
+        return false;
+    }
+    , callbackChannel : function (lines) {
+        if (lines != null && lines.length < 1)
+            return;
+
+        var doc = this.channelIframe.contentWindow.document;
+        var ul = doc.getElementById('lines');
+
+        for (var i = lines.length-1; i >= 0; i--) {
+            var li = doc.createElement('li');
+            li.innerHTML = lines[i];
+            ul.insertBefore(li, ul.firstChild);
+        }
+        if (ul.childNodes.length > 50) {
+            ul.removeChild(ul.lastChild);
+        }
+    }
+    , callbackRecent : function (recents) {
+        if (recents != null && recents.length < 1)
+            return;
+
+        try {
+        var doc = this.recentLogIframe.contentWindow.document;
+        var ul = doc.getElementById('lines');
+
+        for (var n = 0; n < recents.length; n++) {
+            var lines = recents[n].lines;
+            for (var i = lines.length-1; i >= 0; i--) {
+                var a = doc.createElement('a');
+                a.appendChild(doc.createTextNode(recents[n].channel));
+                a.title = recents[n].channel_enc;
+                a.href = "javascript:";
+                a.onclick = function () { Mobirc.selectChannel(a.title); return false; };
+
+                var li = doc.createElement('li');
+                li.innerHTML = "> " + lines[i];
+                li.insertBefore(a, li.firstChild);
+                ul.insertBefore(li, ul.firstChild);
+            }
+            if (ul.childNodes.length > 50) {
+                ul.removeChild(ul.lastChild);
+            }
+        }
+        } catch (e) { alert(e); }
+    }
+    , selectChannel : function (chanUriName) {
+        var select = document.getElementById('channel');
+        select.value = chanUriName;
+        for (var i = 0; i < select.options.length; i++) {
+            select.options[i].selected = (select.options[i].value == chanUriName);
+        }
+        this.onChangeChannel();
+    }
+};
+
+Mobirc.setUp();
+</script>
+
+[% INCLUDE 'include/footer.html' %]

@@ -1,0 +1,15 @@
+[% USE JavaScript %]
+Mobirc.callbackRecent([
+[% FOR canon_channel IN channel_name.keys.sort %]
+    { 
+        channel    : '[% channel_name.item(canon_channel) | js %]',
+        channel_enc: '[% channel_name.item(canon_channel) | uri%]',
+        lines      : [
+            [% FOR line IN channel_recent.item(canon_channel) %]
+            '[% render_line( line ) | js %]'[% UNLESS loop.last %],[% END %]
+            [% END %]
+        ]
+    }
+[% UNLESS loop.last %],[% END %]
+[% END %]
+]);
