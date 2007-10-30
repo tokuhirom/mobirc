@@ -4,7 +4,7 @@ use Test::More tests => 2;
 use Mobirc::ConfigLoader;
 use FindBin;
 use File::Spec;
-use YAML::Syck;
+use YAML;
 
 main();
 
@@ -36,6 +36,6 @@ sub main {
     # also tests comment.
     my $src = slurp($config_fname);
     $src =~ s/# //g;
-    check(YAML::Syck::Load($src));
+    check(YAML::Load($src));
 }
 
