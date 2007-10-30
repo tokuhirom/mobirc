@@ -208,7 +208,7 @@ sub on_irc_notice {
             $msg   = undef;
             $chann = $chann;
         } elsif ($msg =~ qr|^(\d\d:\d\d(?::\d\d)) Mode by ([^\s]+?): ([^\s]+) (.*)|) {
-            $class = undef; #"mode";
+            $class = "mode";
             $who   = $2;
             $msg   = undef;
             $chann = $chann;
@@ -218,7 +218,7 @@ sub on_irc_notice {
             $msg   = $4;
             $chann = $chann;
         } elsif ($msg =~ qr|^(\d\d:\d\d(?::\d\d)) ([^\s]+?) -> ([^\s]+)|) {
-            $class = undef; #"nick";
+            $class = "nick";
             $who   = $3;
             $msg   = $4;
             $chann = $chann;
