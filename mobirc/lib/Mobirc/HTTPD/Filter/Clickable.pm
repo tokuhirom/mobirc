@@ -1,4 +1,4 @@
-package Mobirc::HTTPD::Filter::URL;
+package Mobirc::HTTPD::Filter::Clickable;
 # vim:expandtab:
 use strict;
 use warnings;
@@ -9,11 +9,20 @@ use URI::Escape;
 sub process {
     my ( $class, $text, $conf ) = @_;
 
+    my $as = $conf->{accept_schemes};
+
+    if (!$as || grep { $_ eq "tel" } @$as) {
+        $text =~ s!\b(?:tel:)?(0\d{1,3})([-(]?)(\d{2,4})([-)]?)(\d{4})\b!tel:$1$3$5!g;
+    }
+    if (!$as || grep { $_ eq "mailto" } @$as) {
+        $text =~ s!(?:mailto:)?\b(\w[\w.+=-]+\@[\w.-]+[\w]\.[\w]{2,4})\b!mailto:$1!g;
+    }
+
     URI::Find->new(
         sub {
             my ( $uri, $orig_uri ) = @_;
             if ($conf->{accept_schemes} &&
-                !(grep { $_ eq $uri->scheme } @{ $conf->{accept_schemes} })) {
+                !(grep { $_ eq $uri->scheme } @$as)) {
                 return $orig_uri;
             }
             return (__PACKAGE__->can("process_" . $uri->scheme) ||
