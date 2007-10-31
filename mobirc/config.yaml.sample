@@ -39,6 +39,7 @@ httpd:
       config:
         au_pcsv: 0
         pocket_hatena: 1
+        # http_link_string: $host$path
         # accept_schemes: [mailto, tel]
         # redirector: http://www.google.com/url?sa=D&q=
     - module: Mobirc::HTTPD::Filter::IRCColor
