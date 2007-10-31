@@ -36,10 +36,19 @@ sub process {
 sub process_http {
     my ( $class, $conf, $uri, $orig_uri ) = @_;
     my $out = "";
+    my $link_string = $orig_uri;
+
+    if ( $conf->{http_link_string} ) {
+        $link_string =$conf->{http_link_string};
+        $link_string =~ s{\$(\w+)}{
+            $uri->$1;
+        }eg
+    }
+
     if ( $conf->{redirector} ) {
-        $out = sprintf('<a href="%s%s" rel="nofollow" class="url">%s</a>', $conf->{redirector}, $uri, $uri);
+        $out = sprintf('<a href="%s%s" rel="nofollow" class="url">%s</a>', $conf->{redirector}, $uri, $link_string);
     } else {
-        $out = qq{<a href="$uri" rel="nofollow" class="url">$orig_uri</a>};
+        $out = qq{<a href="$uri" rel="nofollow" class="url">$link_string</a>};
     }
     if ( $conf->{au_pcsv} ) {
         $out .=
