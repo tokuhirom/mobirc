@@ -13,7 +13,9 @@ use lib File::Spec->catfile( $FindBin::Bin, 'lib');
 use Mobirc;
 use Mobirc::Util;
 
-$SIG{__DIE__} = \&Carp::confess;
+if ($ENV{STACKTRACE}) {
+    $SIG{__DIE__} = \&Carp::confess;
+}
 $SIG{INT} = sub { die "SIGINT!\n" };
 
 my $daemonize_fg = false;

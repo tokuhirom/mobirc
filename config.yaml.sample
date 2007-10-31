@@ -6,6 +6,9 @@
 #     - tokuhirom
 #     - mogera
 
+plugin:
+  - module: Mobirc::Plugin::HTMLFilter::DoCoMoCSS
+
 irc:
   server: 127.0.0.1
   port: 252322
