@@ -352,7 +352,7 @@ sub on_irc_snotice {
         $poe,
         decode( 'utf8', '*server*' ),
         undef,
-        decode( 'utf8', $message),
+        $message,
         'snotice',
     );
 }
