@@ -31,6 +31,7 @@ requires 'Kwalify';
 requires 'Storable';
 requires 'List::MoreUtils';
 requires 'Template::Provider::Encoding';
+requires 'HTTP::MobileAgent';
 
 build_requires 'Test::More';
 use_test_base;

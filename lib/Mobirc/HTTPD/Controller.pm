@@ -243,7 +243,7 @@ sub render {
 
     DEBUG "rendering done";
 
-    my $content = encode($c->{config}->{httpd}->{charset}, $out);
+    my $content = encode( _get_charset($c), $out);
 
     # change content type for docomo
     local $c->{config}->{httpd}->{content_type} = 'application/xhtml+xml' if $c->{mobile_agent}->is_docomo;
@@ -373,6 +373,31 @@ sub _process_body {
     }
 
     return $body;
+}
+
+sub _get_charset {
+    my ($c, ) = @_;
+
+    my $charset = $c->{config}->{httpd}->{charset};
+
+    if ($charset =~ /^shift_jis-.+/) {
+        require Encode::JP::Mobile;
+    }
+
+    if ($charset eq 'shift_jis-mobile-auto') {
+        require HTTP::MobileAgent;
+
+        my $agent = HTTP::MobileAgent->new($c->{user_agent});
+        if ($agent->is_non_mobile) {
+            $charset = 'cp932';
+        } else {
+            $charset = 'shift_jis-' . lc $agent->carrier_longname;
+        }
+    }
+
+    DEBUG "use charset: $charset";
+
+    return $charset;
 }
 
 1;
