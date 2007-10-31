@@ -10,6 +10,10 @@ sub route {
     my ($class, $c, $uri) = @_;
     croak 'uri missing' unless $uri;
 
+    my $root = $c->{config}->{httpd}->{root};
+    $root =~ s!/$!!;
+    $uri =~ s!^$root!!;
+
     if ( $uri eq '/' ) {
         return 'index';
     }
