@@ -62,7 +62,7 @@ sub register_hook {
 sub get_hook_codes {
     my ($self, $hook_point) = @_;
     die "this is instance method" unless blessed $self;
-    return $self->{hooks}->{$hook_point};
+    return $self->{hooks}->{$hook_point} || [];
 }
 
 1;
