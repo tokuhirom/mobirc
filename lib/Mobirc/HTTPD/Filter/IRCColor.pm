@@ -1,15 +1,15 @@
-package Mobirc::HTTPD::Filter::DecorateIRCColor;
+package Mobirc::HTTPD::Filter::IRCColor;
 use strict;
 use warnings;
 
 sub process {
     my ( $class, $text, $conf ) = @_;
 
-    return _decorate_irc_color($text);
+    return _decorate_irc_color($text, $conf->{no_decorate} || 0);
 }
 
 sub _decorate_irc_color {
-    my $src = shift;
+    my ($src, $no_decorate) = @_;
 
     if ( $src !~ /[\x02\x03\x0f\x16\x1f]/ ) {
 
@@ -25,44 +25,47 @@ sub _decorate_irc_color {
     );
     my %state       = (%default_state);
     my $oldstyle    = '';
-    my $output_span = sub {
-        my $style = '';
-        if ( $state{bold} ) {
-            $style .= "font-weight:bold;";
-        }
-        if ( $state{underline} ) {
-            $style .= "text-decoration:underline;";
-        }
-        if ( $state{inverse} ) {
-
-            # xxx not sure this is correct
-            @state{qw(color bgcolor)} = @state{qw(bgcolor color)};
-
-            # XXX too bad
-            delete $state{inverse};
-        }
-        if ( $state{color} ) {
-            if ( my $color = _irc_color( $state{color} ) ) {
-                $style .= "color:$color;";
+    my $output_span = sub { ''; };
+    unless ( $no_decorate ) {
+        $output_span = sub {
+            my $style = '';
+            if ( $state{bold} ) {
+                $style .= "font-weight:bold;";
             }
-        }
-        if ( $state{bgcolor} ) {
-            if ( my $color = _irc_color( $state{bgcolor} ) ) {
-                $style .= "background-color:$color;";
+            if ( $state{underline} ) {
+                $style .= "text-decoration:underline;";
             }
-        }
-        my $output = '';
-        if ( $oldstyle ne $style ) {
-            if ($oldstyle) {
-                $output .= '</span>';
+            if ( $state{inverse} ) {
+    
+                # xxx not sure this is correct
+                @state{qw(color bgcolor)} = @state{qw(bgcolor color)};
+    
+                # XXX too bad
+                delete $state{inverse};
             }
-            if ($style) {
-                $output .= qq{<span style="$style">};
+            if ( $state{color} ) {
+                if ( my $color = _irc_color( $state{color} ) ) {
+                    $style .= "color:$color;";
+                }
             }
-        }
-        $oldstyle = $style;
-        $output;
-    };
+            if ( $state{bgcolor} ) {
+                if ( my $color = _irc_color( $state{bgcolor} ) ) {
+                    $style .= "background-color:$color;";
+                }
+            }
+            my $output = '';
+            if ( $oldstyle ne $style ) {
+                if ($oldstyle) {
+                    $output .= '</span>';
+                }
+                if ($style) {
+                    $output .= qq{<span style="$style">};
+                }
+            }
+            $oldstyle = $style;
+            $output;
+        };
+    }
 
     while ($src) {
         if ( $src =~ s/^\x02// ) {
