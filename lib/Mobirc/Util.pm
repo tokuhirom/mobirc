@@ -97,16 +97,36 @@ sub add_message {
     # update keyword buffer.
     if ($row->{class} eq 'public') {
         if (any { $row->{msg} =~ /$_/i } @{$config->{global}->{keywords} || []}) {
-            push @{$heap->{keyword_buffer}}, $row;
-            if ( @{$heap->{keyword_buffer}} > $config->{httpd}->{lines}) {
-                shift @{ $heap->{keyword_buffer} }; # trash old one.
-            }
-
-            push @{$heap->{keyword_recent}}, $row;
-            if ( @{$heap->{keyword_recent}} > $config->{httpd}->{lines}) {
-                shift @{ $heap->{keyword_recent} }; # trash old one.
-            }
+            update_keyword_buffer($poe, $channel, $who, $msg, $class);
         }
+    }
+}
+
+# -------------------------------------------------------------------------
+
+sub update_keyword_buffer {
+    my ($poe, $channel, $who, $msg, $class) = @_;
+
+    my $heap = $poe->kernel->alias_resolve('irc_session')->get_heap;
+
+    my $config = $heap->{config} or die "missing config in heap";
+
+    my $row = {
+        channel => $channel,
+        who     => $who,
+        msg     => $msg,
+        class   => $class,
+        time    => time(),
+    };
+
+    push @{$heap->{keyword_buffer}}, $row;
+    if ( @{$heap->{keyword_buffer}} > $config->{httpd}->{lines}) {
+        shift @{ $heap->{keyword_buffer} }; # trash old one.
+    }
+
+    push @{$heap->{keyword_recent}}, $row;
+    if ( @{$heap->{keyword_recent}} > $config->{httpd}->{lines}) {
+        shift @{ $heap->{keyword_recent} }; # trash old one.
     }
 }
 
