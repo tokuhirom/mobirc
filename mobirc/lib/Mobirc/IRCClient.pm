@@ -104,6 +104,8 @@ sub on_irc_join {
     # chop off after the gap (bug workaround of madoka)
     $channel =~ s/ .*//;
 
+    my $canon_channel = canon_name($channel);
+
     my $canon_channel = normalize_channel_name($channel);
 
     $poe->heap->{channel_name}->{$canon_channel} = $channel;
@@ -130,6 +132,8 @@ sub on_irc_part {
 
     # chop off after the gap (bug workaround of POE::Filter::IRC)
     $channel =~ s/ .*//;
+
+    my $canon_channel = canon_name($channel);
 
     my $canon_channel = normalize_channel_name($channel);
 
@@ -369,10 +373,19 @@ sub on_irc_reconnect {
     $poe->kernel->delay( connect => $poe->heap->{config}->{reconnect_delay} );
 }
 
+# FIXME: I want more cool implement
 sub _get_args {
     my $poe = shift;
 
-    return map { decode($poe->heap->{config}->{irc}->{incode}, $_) } @{ $poe->args };
+    my @ret;
+    for my $elem (@{$poe->args}) {
+        if ( ref $elem && ref $elem eq 'ARRAY') {
+            push @ret, [map { decode($poe->heap->{config}->{irc}->{incode}, $_) } @$elem];
+        } else {
+            push @ret, decode($poe->heap->{config}->{irc}->{incode}, $elem);
+        }
+    }
+    return @ret;
 }
 
 1;
