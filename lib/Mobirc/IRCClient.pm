@@ -106,8 +106,6 @@ sub on_irc_join {
 
     my $canon_channel = normalize_channel_name($channel);
 
-    my $canon_channel = normalize_channel_name($channel);
-
     $poe->heap->{channel_name}->{$canon_channel} = $channel;
     my $irc = $poe->heap->{irc};
     unless ( $who eq $irc->nick_name ) {
@@ -132,8 +130,6 @@ sub on_irc_part {
 
     # chop off after the gap (bug workaround of POE::Filter::IRC)
     $channel =~ s/ .*//;
-
-    my $canon_channel = normalize_channel_name($channel);
 
     my $canon_channel = normalize_channel_name($channel);
 

@@ -89,20 +89,15 @@ sub add_message {
     }
 
     # update unread lines
-    $heap->{unread_lines}->{$canon_channel} = scalar @{ $heap->{channel_recent}->{$canon_channel} };
+    $heap->{unread_lines}->{$canon_channel} = scalar grep {
+                                                  $_->{class} eq "public" ||
+                                                  $_->{class} eq "notice"
+                                              } @{ $heap->{channel_recent}->{$canon_channel} };
 
     # update keyword buffer.
     if ($row->{class} eq 'public') {
-        if (any { index($row->{msg}, $_) != -1 } @{$config->{global}->{keywords} || []}) {
-            push @{$heap->{keyword_buffer}}, $row;
-            if ( @{$heap->{keyword_buffer}} > $config->{httpd}->{lines}) {
-                shift @{ $heap->{keyword_buffer} }; # trash old one.
-            }
-
-            push @{$heap->{keyword_recent}}, $row;
-            if ( @{$heap->{keyword_recent}} > $config->{httpd}->{lines}) {
-                shift @{ $heap->{keyword_recent} }; # trash old one.
-            }
+        if (any { $row->{msg} =~ /$_/i } @{$config->{global}->{keywords} || []}) {
+            update_keyword_buffer($poe, $row);
         }
     }
 
