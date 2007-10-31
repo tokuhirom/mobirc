@@ -18,7 +18,8 @@ if ($pid == 0) {
 } elsif ($pid > 0) {
     # parent
     wait;
-    is slurp($tmpfh->filename), "$pid\n", 'pid file is exist';
+    sleep 3; # ad-hoc
+    like slurp($tmpfh->filename), qr{^\d+\n$}, 'pid file is exist';
     unlink $tmpfh->filename;
 } else {
     die "fork error";
