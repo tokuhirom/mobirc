@@ -6,7 +6,7 @@
 <div class="ttlLv1">keyword</div>
 
 [% FOR row IN rows %]
-    [% render_line(row) %](<a href="[% docroot %]channels/[% row.channel | uri%]">[% row.channel | html %]</a>)<br />
+    [% render_line(row) %]<br />
 [% END %]
 
 <hr />
