@@ -150,7 +150,7 @@ var Mobirc = {
 
         for (var n = 0; n < recents.length; n++) {
             var lines = recents[n].lines;
-            for (var i = lines.length-1; i >= 0; i--) {
+            for (var i = 0, j = lines.length; i < j; i++) {
                 var a = doc.createElement('a');
                 a.appendChild(doc.createTextNode(recents[n].channel));
                 a.title = recents[n].channel_enc;
