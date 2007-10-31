@@ -119,6 +119,11 @@ var Mobirc = {
         setTimeout(this._onTick, 1000); // nice tenuki.
         return false;
     }
+    , onClick : function (e) {
+        var a = (e.target || e.srcElement);
+        Mobirc.selectChannel(a.title);
+        return false;
+    }
     , callbackChannel : function (lines) {
         if (lines != null && lines.length < 1)
             return;
@@ -150,7 +155,11 @@ var Mobirc = {
                 a.appendChild(doc.createTextNode(recents[n].channel));
                 a.title = recents[n].channel_enc;
                 a.href = "javascript:";
-                a.onclick = function () { Mobirc.selectChannel(a.title); return false; };
+                if (a.addEventListener) {
+                    a.addEventListener('click', this.onClick, false);
+                } else if (a.attachEvent) {
+                    a.attachEvent('onclick', this.onClick);
+                }
 
                 var li = doc.createElement('li');
                 li.innerHTML = "> " + lines[i];
