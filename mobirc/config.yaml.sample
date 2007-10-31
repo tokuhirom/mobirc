@@ -41,7 +41,9 @@ httpd:
         pocket_hatena: 1
         # accept_schemes: [mailto, tel]
         # redirector: http://www.google.com/url?sa=D&q=
-    - module: Mobirc::HTTPD::Filter::DecorateIRCColor
+    - module: Mobirc::HTTPD::Filter::IRCColor
+      config:
+        # no_decorate: 0
   # charset: cp932
   # root: /
   # content_type: text/html; charset=Shift_JIS

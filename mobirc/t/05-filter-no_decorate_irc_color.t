@@ -13,7 +13,7 @@ filters {
 
 sub decorate_irc_color {
     my $x = shift;
-    Mobirc::HTTPD::Filter::IRCColor->process( $x, {} );
+    Mobirc::HTTPD::Filter::IRCColor->process( $x, {no_decorate => 1} );
 }
 
 run_is input => 'expected';
@@ -22,9 +22,9 @@ __END__
 
 ===
 --- input: String::IRC->new('world')->yellow('green')
---- expected: <span style="color:yellow;background-color:green;">world</span>
+--- expected: world
 
 ===
 --- input: String::IRC->new('world')->red('green')
---- expected: <span style="color:red;background-color:green;">world</span>
+--- expected: world
 
