@@ -12,7 +12,7 @@ use Carp;
 use Mobirc::Util;
 
 sub init {
-    my ($class, $config) = @_;
+    my ($class, $config, $global_context) = @_;
 
     # irc component
     my $irc = POE::Component::IRC->spawn(
@@ -34,6 +34,7 @@ sub init {
             config         => $config,
             irc            => $irc,
             keyword_recent => [],
+            global_context => $global_context,
         },
         inline_states => {
             _start           => \&on_irc_start,
@@ -183,65 +184,9 @@ sub on_irc_notice {
 
     DEBUG "IRC NOTICE";
 
-    # Tiarra Log::Recent Parser
-    if ($who && $who eq "tiarra") {
-        # header: %H:%M:%S
-        # header: %H:%M
-        # の場合を想定。後者は Log::Recent のデフォルトだったはず
-        # kick とかに対応していない
-        my $class;
-        my $chann  = encode($poe->heap->{config}->{irc}->{incode}, $channel->[0]);
-        if ($msg =~ qr|^(\d\d:\d\d(?::\d\d)?) ! ([^\s]+?) \((.*)\)|) {
-            # ほんとは quit
-            $class = "part";
-            $who   = $2;
-            $msg   = undef;
-            $chann = $chann;
-        } elsif ($msg =~ qr|^(\d\d:\d\d(?::\d\d)) \+ ([^\s]+?) \(([^\)]+)\) to ([^\s]+)|) {
-            $class = "join";
-            $who   = $2;
-            $msg   = decode("utf8", "$2 join");
-            $chann = $chann;
-        } elsif ($msg =~ qr|^(\d\d:\d\d(?::\d\d)) \- ([^\s]+?) from ([^\s]+)|) {
-            $class = "part";
-            $who   = $2;
-            $msg   = undef;
-            $chann = $chann;
-        } elsif ($msg =~ qr|^(\d\d:\d\d(?::\d\d)) Mode by ([^\s]+?): ([^\s]+) (.*)|) {
-            $class = "mode";
-            $who   = $2;
-            $msg   = undef;
-            $chann = $chann;
-        } elsif ($msg =~ qr|^(\d\d:\d\d(?::\d\d)) Topic of channel ([^\s]+?) by ([^\s]+): (.*)|) {
-            $class = "topic";
-            $who   = $3;
-            $msg   = $4;
-            $chann = $chann;
-        } elsif ($msg =~ qr|^(\d\d:\d\d(?::\d\d)) ([^\s]+?) -> ([^\s]+)|) {
-            $class = "nick";
-            $who   = $3;
-            $msg   = $4;
-            $chann = $chann;
-        } elsif ($msg =~ qr|^(\d\d:\d\d(?::\d\d)) [<>()=-]([^>]+?)[<>()=-] (.*)|) {
-            # priv も notice もまとめて notice に
-            # keyword 反応を再度しないため
-            $class = "notice";
-            $who   = $2;
-            $msg   = $3;
-            $chann = [$chann];
-        }
-
-        if ($class) {
-            DEBUG "RE THROW Tiarra RECENT LOG->$class";
-            $poe->kernel->call(
-                $poe->session,
-                "irc_$class",
-                $who,
-                $chann,
-                encode($poe->heap->{config}->{irc}->{incode}, $msg)
-            );
-            return;
-        }
+    for my $code (@{ $poe->heap->{global_context}->get_hook_codes('on_irc_notice') }) {
+        my $finished = $code->($poe, $who, $channel, $msg);
+        return if $finished;
     }
 
     $who =~ s/!.*//;

@@ -45,7 +45,7 @@ sub run {
     die "this is instance method" unless blessed $self;
 
     # TODO: pluggable?
-    Mobirc::IRCClient->init($self->config);
+    Mobirc::IRCClient->init($self->config, $self);
     Mobirc::HTTPD->init($self->config);
 
     $poe_kernel->run();
