@@ -8,6 +8,7 @@
 
 plugin:
   - module: Mobirc::Plugin::HTMLFilter::DoCoMoCSS
+  - module: Mobirc::Plugin::IRCCommand::TiarraLog
 
 irc:
   server: 127.0.0.1
