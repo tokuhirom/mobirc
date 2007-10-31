@@ -5,6 +5,9 @@
 #   keywords:
 #     - tokuhirom
 #     - mogera
+#   keywords:
+#     - tokuhirom
+#     - mogera
 
 irc:
   server: 127.0.0.1
