@@ -184,7 +184,7 @@ sub on_irc_notice {
 
     DEBUG "IRC NOTICE";
 
-    for my $code (@{ $poe->heap->{global_context}->get_hook_codes('on_irc_notice') }) {
+    for my $code (@{ $poe->heap->{global_context}->get_hook_codes('on_irc_notice') || [] }) {
         my $finished = $code->($poe, $who, $channel, $msg);
         return if $finished;
     }
