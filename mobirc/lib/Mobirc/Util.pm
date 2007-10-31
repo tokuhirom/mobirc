@@ -97,27 +97,20 @@ sub add_message {
     # update keyword buffer.
     if ($row->{class} eq 'public') {
         if (any { $row->{msg} =~ /$_/i } @{$config->{global}->{keywords} || []}) {
-            update_keyword_buffer($poe, $channel, $who, $msg, $class);
+            update_keyword_buffer($poe, $row);
         }
     }
+
+    $row;
 }
 
 # -------------------------------------------------------------------------
 
 sub update_keyword_buffer {
-    my ($poe, $channel, $who, $msg, $class) = @_;
+    my ($poe, $row) = @_;
 
-    my $heap = $poe->kernel->alias_resolve('irc_session')->get_heap;
-
+    my $heap   = $poe->kernel->alias_resolve('irc_session')->get_heap;
     my $config = $heap->{config} or die "missing config in heap";
-
-    my $row = {
-        channel => $channel,
-        who     => $who,
-        msg     => $msg,
-        class   => $class,
-        time    => time(),
-    };
 
     push @{$heap->{keyword_buffer}}, $row;
     if ( @{$heap->{keyword_buffer}} > $config->{httpd}->{lines}) {
