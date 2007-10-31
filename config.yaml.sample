@@ -1,7 +1,7 @@
 ---
 # global:
 #   assets_dir: /usr/local/share/mobirc/assets
-#   pid_fname: /vat/run/mobirc-sample.pid
+#   pid_fname: /var/run/mobirc-sample.pid
 #   keywords:
 #     - tokuhirom
 #     - mogera
@@ -35,12 +35,14 @@ httpd:
     #   config:
     #     au_subscriber_id: 25253252_oe.ezweb.ne.jp
   filter:
+    - module: Mobirc::HTTPD::Filter::TelephoneNumber
+    - module: Mobirc::HTTPD::Filter::MailAddress
     - module: Mobirc::HTTPD::Filter::URL
       config:
         au_pcsv: 1
         pocket_hatena: 1
-    - module: Mobirc::HTTPD::Filter::TelephoneNumber
-    - module: Mobirc::HTTPD::Filter::MailAddress
+        # accept_schemes: [http, mailto]
+        # redirector: http://www.google.com/url?sa=D&q=
     - module: Mobirc::HTTPD::Filter::DecorateIRCColor
   # charset: cp932
   # root: /
