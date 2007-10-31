@@ -93,8 +93,7 @@ sub add_message {
 
     # update keyword buffer.
     if ($row->{class} eq 'notice' || $row->{class} eq 'public') {
-        # FIXME: shoud use local $YAML::Syck::ImplicitUnicode = 1;
-        if (any { index($row->{msg}, $_) != -1 } map { decode('utf8', $_) } @{$config->{global}->{keywords} || []}) {
+        if (any { index($row->{msg}, $_) != -1 } @{$config->{global}->{keywords} || []}) {
             push @{$heap->{keyword_buffer}}, $row;
             if ( @{$heap->{keyword_buffer}} > $config->{httpd}->{lines}) {
                 shift @{ $heap->{keyword_buffer} }; # trash old one.

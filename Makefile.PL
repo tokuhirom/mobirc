@@ -30,6 +30,7 @@ requires 'UNIVERSAL::require';
 requires 'Kwalify';
 requires 'Storable';
 requires 'List::MoreUtils';
+requires 'Template::Provider::Encoding';
 
 build_requires 'Test::More';
 use_test_base;

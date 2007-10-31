@@ -248,8 +248,7 @@ sub render {
 
     DEBUG "rendering done";
 
-    my $content = encode( _get_charset($c), $out);
-    $content = _html_filter($c, $content);
+    my $content = encode($c->{config}->{httpd}->{charset}, $out);
 
     # change content type for docomo
     local $c->{config}->{httpd}->{content_type} = 'application/xhtml+xml' if $c->{mobile_agent}->is_docomo;

@@ -120,7 +120,7 @@ sub load {
         $config = Storable::dclone($stuff);
     }
     else {
-        # TODO: local $YAML::Syck::ImplicitUnicode = 1;
+        local $YAML::Syck::ImplicitUnicode = 1;
         $config = YAML::Syck::LoadFile($stuff);
     }
 
