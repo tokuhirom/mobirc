@@ -5,9 +5,6 @@
 #   keywords:
 #     - tokuhirom
 #     - mogera
-#   keywords:
-#     - tokuhirom
-#     - mogera
 
 irc:
   server: 127.0.0.1
@@ -38,13 +35,16 @@ httpd:
     #   config:
     #     au_subscriber_id: 25253252_oe.ezweb.ne.jp
   filter:
-    - module: Mobirc::HTTPD::Filter::URL
+    - module: Mobirc::HTTPD::Filter::Clickable
       config:
-        au_pcsv: 1
+        au_pcsv: 0
         pocket_hatena: 1
-    - module: Mobirc::HTTPD::Filter::TelephoneNumber
-    - module: Mobirc::HTTPD::Filter::MailAddress
-    - module: Mobirc::HTTPD::Filter::DecorateIRCColor
+        # http_link_string: $host$path
+        # accept_schemes: [mailto, tel]
+        # redirector: http://www.google.com/url?sa=D&q=
+    - module: Mobirc::HTTPD::Filter::IRCColor
+      config:
+        # no_decorate: 0
   # charset: cp932
   # root: /
   # content_type: text/html; charset=Shift_JIS

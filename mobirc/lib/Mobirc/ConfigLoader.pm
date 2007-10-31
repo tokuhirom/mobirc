@@ -77,18 +77,6 @@ my $schema = {
                         },
                     ],
                 },
-                filter => {
-                    type     => 'seq',
-                    sequence => [
-                        {
-                            type    => 'map',
-                            mapping => {
-                                module => { type => 'str', required => 1, },
-                                config => { type => 'any', },
-                            },
-                        },
-                    ],
-                },
                 authorizer => {
                     type     => 'seq',
                     required => 1,

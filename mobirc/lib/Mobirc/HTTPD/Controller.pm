@@ -31,18 +31,23 @@ sub dispatch_index {
 
     my $canon_channels = [
         reverse
+          map {
+              $_->[0];
+          }
           sort {
-            (
-                (
-                    ( $c->{irc_heap}->{channel_buffer}->{$a} || [] )->[-1] || {}
-                )->{time}
-                  || 0
-              ) <=> (
-                (
-                    ( $c->{irc_heap}->{channel_buffer}->{$b} || [] )->[-1] || {}
-                )->{time}
-                  || 0
-              )
+              $a->[1] <=> $b->[1] ||
+              $a->[2] <=> $b->[2]
+          }
+          map {
+              my $unl  = $c->{irc_heap}->{unread_lines}->{$_} ? 1 : 0;
+              my $buf  = $c->{irc_heap}->{channel_buffer}->{$_} || [];
+              my $last =
+                (grep {
+                    $_->{class} eq "public" ||
+                    $_->{class} eq "notice"
+                } @{ $buf })[-1] || {};
+              my $time = ($last->{time} || 0);
+              [$_, $unl, $time];
           }
           keys %{ $c->{irc_heap}->{channel_name} }
     ];
@@ -244,6 +249,7 @@ sub render {
     DEBUG "rendering done";
 
     my $content = encode( _get_charset($c), $out);
+    $content = _html_filter($c, $content);
 
     # change content type for docomo
     local $c->{config}->{httpd}->{content_type} = 'application/xhtml+xml' if $c->{mobile_agent}->is_docomo;
