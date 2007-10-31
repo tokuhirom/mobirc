@@ -271,7 +271,7 @@ sub _html_filter {
     my $c = shift;
     my $content = shift;
 
-    for my $code (@{$c->{global_context}->get_hook_codes('html_filter')}) {
+    for my $code (@{$c->{global_context}->get_hook_codes('html_filter') || []}) {
         $content = $code->($c, $content);
     }
 
