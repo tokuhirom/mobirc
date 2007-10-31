@@ -89,7 +89,10 @@ sub add_message {
     }
 
     # update unread lines
-    $heap->{unread_lines}->{$canon_channel} = scalar @{ $heap->{channel_recent}->{$canon_channel} };
+    $heap->{unread_lines}->{$canon_channel} = scalar grep {
+                                                  $_->{class} eq "public" ||
+                                                  $_->{class} eq "notice"
+                                              } @{ $heap->{channel_recent}->{$canon_channel} };
 
     # update keyword buffer.
     if ($row->{class} eq 'public') {
