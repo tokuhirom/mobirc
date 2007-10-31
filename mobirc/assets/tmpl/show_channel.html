@@ -5,11 +5,11 @@
 
 <form action="[% docroot %]channels/[% channel | uri %]" method="post">
 [% IF user_agent.match('(iPod|iPhone)') %]
-    <input type="text" name="msg">
+    <input type="text" name="msg" />
 [% ELSE %]
-    <input type="text" name="msg" size="10">
+    <input type="text" name="msg" size="10" />
 [% END %]
-<input type="submit" accesskey="1" value="OK[1]">
+<input type="submit" accesskey="1" value="OK[1]" />
 </form>
 
 [% IF channel_name.item(canon_channel) %]
