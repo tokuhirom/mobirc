@@ -348,7 +348,7 @@ sub on_irc_snotice {
         $poe,
         decode( 'utf8', '*server*' ),
         undef,
-        $message,
+        decode( 'utf8', $message),
         'snotice',
     );
 }
@@ -369,19 +369,10 @@ sub on_irc_reconnect {
     $poe->kernel->delay( connect => $poe->heap->{config}->{reconnect_delay} );
 }
 
-# FIXME: I want more cool implement
 sub _get_args {
     my $poe = shift;
 
-    my @ret;
-    for my $elem (@{$poe->args}) {
-        if ( ref $elem && ref $elem eq 'ARRAY') {
-            push @ret, [map { decode($poe->heap->{config}->{irc}->{incode}, $_) } @$elem];
-        } else {
-            push @ret, decode($poe->heap->{config}->{irc}->{incode}, $elem);
-        }
-    }
-    return @ret;
+    return map { decode($poe->heap->{config}->{irc}->{incode}, $_) } @{ $poe->args };
 }
 
 1;
