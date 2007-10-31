@@ -104,7 +104,7 @@ sub on_irc_join {
     # chop off after the gap (bug workaround of madoka)
     $channel =~ s/ .*//;
 
-    my $canon_channel = canon_name($channel);
+    my $canon_channel = normalize_channel_name($channel);
 
     my $canon_channel = normalize_channel_name($channel);
 
@@ -133,7 +133,7 @@ sub on_irc_part {
     # chop off after the gap (bug workaround of POE::Filter::IRC)
     $channel =~ s/ .*//;
 
-    my $canon_channel = canon_name($channel);
+    my $canon_channel = normalize_channel_name($channel);
 
     my $canon_channel = normalize_channel_name($channel);
 
