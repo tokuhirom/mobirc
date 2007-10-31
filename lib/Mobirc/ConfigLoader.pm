@@ -132,8 +132,9 @@ sub load {
         $config = Storable::dclone($stuff);
     }
     else {
-        local $YAML::Syck::ImplicitUnicode = 1;
-        $config = YAML::Syck::LoadFile($stuff);
+        open my $fh, '<:utf8', $stuff or die $!;
+        $config = YAML::LoadFile($fh);
+        close $fh;
     }
 
     if ($HasKwalify) {
