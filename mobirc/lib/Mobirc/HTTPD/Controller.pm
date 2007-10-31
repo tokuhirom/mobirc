@@ -298,7 +298,7 @@ sub set_cookie {
     $response->push_header(
         'Set-Cookie' => CGI::Cookie->new(
             -name    => 'passwd',
-            -value   => $user_info->{username},
+            -value   => $user_info->{password},
             -expires => $c->{config}->{httpd}->{cookie_expires}
         )
     );
