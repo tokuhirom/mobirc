@@ -249,6 +249,10 @@ sub render {
     DEBUG "rendering done";
 
     my $content = encode( _get_charset($c), $out);
+    $content = _html_filter($c, $content);
+
+    # change content type for docomo
+    local $c->{config}->{httpd}->{content_type} = 'application/xhtml+xml' if $c->{mobile_agent}->is_docomo;
 
     my $response = HTTP::Response->new(200);
     $response->push_header( 'Content-type' => encode('utf8', $c->{config}->{httpd}->{content_type}) );
@@ -261,6 +265,56 @@ sub render {
     $response->content( $content );
 
     return $response;
+}
+
+sub _html_filter {
+    my $c = shift;
+    my $content = shift;
+    if ($c->{mobile_agent}->is_docomo) {
+        $content = _html_filter_docomocss($c, $content);
+    }
+    $content;
+}
+
+# based from HTML::DoCoMoCSS
+sub _html_filter_docomocss {
+    my $c = shift;
+    my $content = shift;
+
+    eval {
+        require CSS::Tiny;
+        require XML::LibXML;
+        require HTML::Selector::XPath;
+    };
+    return $content if $@;
+
+    # escape Numeric character reference.
+    $content =~ s/&#(x[\dA-Fa-f]{4}|\d+);/HTMLCSSINLINERESCAPE$1::::::::/g;
+
+    $content =~ s{<style type="text/css">(.+)</style>}{}sm;
+    my $css_text = $1 || '';
+
+    my $css = CSS::Tiny->read_string($css_text);
+    my $doc = XML::LibXML->new->parse_string($content);
+
+    # apply inline css
+    while (my($selector, $style) = each %{ $css }) {
+        my $style_stringify = join ';', map { "$_:$style->{$_}" } keys %{ $style };
+        for my $element ( $doc->findnodes( HTML::Selector::XPath::selector_to_xpath($selector) ) ) {
+            my $style_attr = $element->getAttribute('style');
+            $style_attr = (!$style_attr) ? $style_stringify : (join ";", ($style_attr, $style_stringify));
+            $style_attr .= ';' unless $style_attr =~ /;$/;
+            $element->setAttribute('style', $style_attr);
+        }
+    }
+    $content = $doc->toString;
+
+    $content =~ s{(<a[^>]+)/>}{$1></a>}gi;
+
+    # unescape Numeric character reference.
+    $content =~ s/HTMLCSSINLINERESCAPE(x[\dA-Z-a-z]{4}|\d+)::::::::/&#$1;/g;
+
+    return $content;
 }
 
 sub set_cookie {
