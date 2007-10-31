@@ -128,14 +128,14 @@ sub update_keyword_buffer {
 sub daemonize {
     my $pid_fname = shift;
 
+    require Proc::Daemon;
+    Proc::Daemon::Init();
+
     if ( defined $pid_fname ) {
         open my $pid, '>', $pid_fname or die "cannot open pid file: $pid_fname";
         $pid->print("$$\n");
         close $pid;
     }
-
-    require Proc::Daemon;
-    Proc::Daemon::Init();
 }
 
 1;
