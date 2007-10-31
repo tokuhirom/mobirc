@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Data::Dumper;
-use Mobirc::HTTPD::Filter::IRCColor;
+use Mobirc::HTTPD::Filter::DecorateIRCColor;;
 
 use Test::Base;
 eval q{ use String::IRC };
@@ -13,7 +13,7 @@ filters {
 
 sub decorate_irc_color {
     my $x = shift;
-    Mobirc::HTTPD::Filter::IRCColor->process( $x, {} );
+    Mobirc::HTTPD::Filter::DecorateIRCColor->process( $x, {} );
 }
 
 run_is input => 'expected';

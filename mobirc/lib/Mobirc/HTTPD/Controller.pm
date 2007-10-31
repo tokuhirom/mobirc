@@ -380,27 +380,4 @@ sub _process_body {
     return $body;
 }
 
-sub _get_charset {
-    my ($c, ) = @_;
-
-    my $charset = $c->{config}->{httpd}->{charset};
-
-    if ($charset =~ /^shift_jis-.+/) {
-        require Encode::JP::Mobile;
-    }
-
-    if ($charset eq 'shift_jis-mobile-auto') {
-        my $agent = $c->{mobile_agent};
-        if ($agent->is_non_mobile) {
-            $charset = 'cp932';
-        } else {
-            $charset = 'shift_jis-' . lc $agent->carrier_longname;
-        }
-    }
-
-    DEBUG "use charset: $charset";
-
-    return $charset;
-}
-
 1;
