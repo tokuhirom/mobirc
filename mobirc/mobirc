@@ -2,7 +2,6 @@
 use strict;
 use warnings;
 use utf8;
-use POE;
 use Encode;
 use File::Spec;
 use FindBin;
@@ -13,9 +12,6 @@ use lib File::Spec->catfile( $FindBin::Bin, 'lib');
 
 use Mobirc;
 use Mobirc::Util;
-use Mobirc::HTTPD;
-use Mobirc::IRCClient;
-use Mobirc::ConfigLoader;
 
 $SIG{__DIE__} = \&Carp::confess;
 $SIG{INT} = sub { die "SIGINT!\n" };
@@ -38,16 +34,14 @@ if ($version) {
 die "file does not exist: $conffname" unless -f $conffname;
 
 DEBUG "load config: $conffname";
-my $config = Mobirc::ConfigLoader->load($conffname);
+my $context = Mobirc->new($conffname);
 
 # daemonize
 if ( $daemonize_fg ) {
-    daemonize($config->{global}->{pid_fname});
+    daemonize($context->config->{global}->{pid_fname});
 }
 
-Mobirc::IRCClient->init($config);
-Mobirc::HTTPD->init($config);
-$poe_kernel->run();
+$context->run;
 
 exit 0;
 
