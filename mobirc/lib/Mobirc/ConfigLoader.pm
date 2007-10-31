@@ -15,6 +15,18 @@ eval {
 my $schema = {
     type    => 'map',
     mapping => {
+        plugin => {
+            type     => 'seq',
+            sequence => [
+                {
+                    type    => 'map',
+                    mapping => {
+                        module => { type => 'str', required => 1, },
+                        config => { type => 'any', },
+                    },
+                },
+            ],
+        },
         irc => {
             name     => 'irc',
             desc     => 'settings for irc',

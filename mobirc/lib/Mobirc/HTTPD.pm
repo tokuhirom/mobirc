@@ -20,6 +20,7 @@ use Scalar::Util qw/blessed/;
 use UNIVERSAL::require;
 use HTTP::MobileAgent;
 
+use Mobirc;
 use Mobirc::Util;
 use Mobirc::HTTPD::Controller;
 use Mobirc::HTTPD::Router;
@@ -27,7 +28,7 @@ use Mobirc::HTTPD::Router;
 our $GLOBAL_CONFIG;                      # TODO: should use HEAP.
 
 sub init {
-    my ( $class, $config ) = @_;
+    my ( $class, $config, $global_context ) = @_;
 
     my $session_id = POE::Component::Server::TCP->new(
         Alias        => 'mobirc_httpd',
@@ -72,6 +73,7 @@ sub on_web_request {
         user_agent => $user_agent,
         mobile_agent => HTTP::MobileAgent->new($user_agent),
         irc_heap   => $poe->kernel->alias_resolve('irc_session')->get_heap,
+        global_context => Mobirc->context,
     };
 
     # authorization phase
