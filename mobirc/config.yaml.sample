@@ -9,6 +9,26 @@
 plugin:
   - module: Mobirc::Plugin::HTMLFilter::DoCoMoCSS
   - module: Mobirc::Plugin::IRCCommand::TiarraLog
+  - module: Mobirc::Plugin::Authorizer::Cookie
+    config:
+      password: 1152
+  - module: Mobirc::Plugin::Authorizer::BasicAuth
+    config:
+      username: netwatcher
+      password: 0721
+  # - module: Mobirc::Plugin::Authorizer::EZSubscriberID
+  #   config:
+  #     au_subscriber_id: 25253252_oe.ezweb.ne.jp
+  - module: Mobirc::Plugin::MessageBodyFiler::Clickable
+    config:
+      au_pcsv: 0
+      pocket_hatena: 1
+      # http_link_string: $host$path
+      # accept_schemes: [mailto, tel]
+      # redirector: http://www.google.com/url?sa=D&q=
+  - module: Mobirc::Plugin::MessageBodyFiler::IRCColor
+    config:
+      # no_decorate: 0
 
 irc:
   server: 127.0.0.1
@@ -23,32 +43,7 @@ httpd:
   port: 5785
   title: mobirc
   lines: 40
-  cookie_expires: +3d
-  use_cookie: 1
   # recent_log_per_page: 40
-  authorizer:
-    - module: Mobirc::HTTPD::Authorizer::Cookie
-      config:
-        username: netwatcher
-        password: 1152
-    - module: Mobirc::HTTPD::Authorizer::BasicAuth
-      config:
-        username: netwatcher
-        password: 0721
-    # - module: Mobirc::HTTPD::Authorizer::EZSubscriberID
-    #   config:
-    #     au_subscriber_id: 25253252_oe.ezweb.ne.jp
-  filter:
-    - module: Mobirc::HTTPD::Filter::Clickable
-      config:
-        au_pcsv: 0
-        pocket_hatena: 1
-        # http_link_string: $host$path
-        # accept_schemes: [mailto, tel]
-        # redirector: http://www.google.com/url?sa=D&q=
-    - module: Mobirc::HTTPD::Filter::IRCColor
-      config:
-        # no_decorate: 0
   # charset: cp932
   # root: /
   # content_type: text/html; charset=Shift_JIS

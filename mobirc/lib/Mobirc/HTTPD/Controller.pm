@@ -12,7 +12,6 @@ use HTTP::Response;
 use HTML::Entities;
 use Scalar::Util qw/blessed/;
 use List::Util qw/first/;
-use CGI::Cookie;
 use Template::Provider::Encoding;
 
 use Mobirc;
@@ -252,17 +251,18 @@ sub render {
     $content = _html_filter($c, $content);
 
     # change content type for docomo
-    local $c->{config}->{httpd}->{content_type} = 'application/xhtml+xml' if $c->{mobile_agent}->is_docomo;
+    # FIXME: hmm... should be in the plugin?
+    local $c->{config}->{httpd}->{content_type} = 'application/xhtml+xml' if $c->{mobile_agent}->is_docomo; ## no critic.
 
     my $response = HTTP::Response->new(200);
     $response->push_header( 'Content-type' => encode('utf8', $c->{config}->{httpd}->{content_type}) );
     $response->push_header('Content-Length' => length($content) );
 
-    if ( $c->{config}->{httpd}->{use_cookie} ) {
-        set_cookie( $c, $response );
-    }
-
     $response->content( $content );
+
+    for my $code (@{$c->{global_context}->get_hook_codes('response_filter')}) {
+        $code->($c, $response);
+    }
 
     return $response;
 }
@@ -276,32 +276,6 @@ sub _html_filter {
     }
 
     $content;
-}
-
-sub set_cookie {
-    my $c        = shift;
-    my $response = shift;
-
-    my ( $user_info, ) =
-      map { $_->{config} }
-      first { $_->{module} =~ /Cookie$/ }
-    @{ $c->{config}->{httpd}->{authorizer} };
-    croak "Can't get user_info" unless $user_info;
-
-    $response->push_header(
-        'Set-Cookie' => CGI::Cookie->new(
-            -name    => 'username',
-            -value   => $user_info->{username},
-            -expires => $c->{config}->{httpd}->{cookie_expires}
-        )
-    );
-    $response->push_header(
-        'Set-Cookie' => CGI::Cookie->new(
-            -name    => 'passwd',
-            -value   => $user_info->{password},
-            -expires => $c->{config}->{httpd}->{cookie_expires}
-        )
-    );
 }
 
 sub render_line {
@@ -332,11 +306,8 @@ sub _process_body {
     $body = encode_entities($body, q(<>&"'));
 
     DEBUG "APPLY FILTERS";
-    for my $filter ( @{ $c->{config}->{httpd}->{filter} || [] } ) {
-        DEBUG "LOAD FILTER MODULE: $filter->{module}";
-
-        $filter->{module}->use or die $@;
-        $body = $filter->{module}->process($body, $filter->{config});
+    for my $filter ( @{ $c->{global_context}->get_hook_codes('message_body_filter') || [] } ) {
+        $body = $filter->($body);
     }
 
     return $body;

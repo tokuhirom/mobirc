@@ -3,6 +3,7 @@ use warnings;
 use utf8;
 use Test::Base;
 use Mobirc::HTTPD::Controller;
+use Mobirc;
 
 plan tests => 1*blocks;
 
@@ -14,7 +15,20 @@ plan tests => 1*blocks;
 sub render_line {
     my $src = shift;
     my $irc = bless {}, 'PoCoIRCMock';
-    return Mobirc::HTTPD::Controller::render_line({irc_heap => {irc => $irc }}, $src);
+    my $global_context = Mobirc->new(
+        {
+            irc => {
+                nick     => 'foo',
+                port     => 52522,
+                incode   => 'utf8',
+                username => 'foo',
+                desc     => 'foo',
+                server   => 'bar'
+            },
+            httpd => { port => 80 }
+        }
+    );
+    return Mobirc::HTTPD::Controller::render_line({irc_heap => {irc => $irc }, global_context => $global_context}, $src);
 }
 
 filters {
@@ -22,8 +36,6 @@ filters {
 };
 
 run_is input => 'expected';
-
-# TODO: XSS check.
 
 __END__
 

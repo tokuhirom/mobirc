@@ -69,39 +69,12 @@ my $schema = {
             mapping  => {
                 lines          => { type => 'int', },
                 port           => { type => 'int', required => 1, },
-                use_cookie     => { type => 'bool', },
                 title          => { type => 'str', },
-                cookie_expires => { type => 'str', },
                 content_type   => { type => 'str', },
                 charset        => { type => 'str', },
                 root           => { type => 'str', },
                 echo           => { type => 'bool', },
                 recent_log_per_page => { type => 'int', },
-                filter => {
-                    type     => 'seq',
-                    sequence => [
-                        {
-                            type    => 'map',
-                            mapping => {
-                                module => { type => 'str', required => 1, },
-                                config => { type => 'any', },
-                            },
-                        },
-                    ],
-                },
-                authorizer => {
-                    type     => 'seq',
-                    required => 1,
-                    sequence => [
-                        {
-                            type    => 'map',
-                            mapping => {
-                                module => { type => 'str', required => 1, },
-                                config => { type => 'any', required => 1, },
-                            },
-                        },
-                    ],
-                },
             },
         },
         global => {
@@ -151,7 +124,6 @@ sub load {
     $config->{irc}->{reconnect_delay}  ||= 10;
     $config->{httpd}->{charset}        ||= 'cp932';
     $config->{httpd}->{root}           ||= decode( 'utf8', '/' );
-    $config->{httpd}->{cookie_expires} ||= '+3d';
     $config->{httpd}->{content_type}   ||= 'text/html; charset=Shift_JIS';
     $config->{httpd}->{echo} = true unless exists $config->{httpd}->{echo};
     $config->{httpd}->{recent_log_per_page} ||= 30;

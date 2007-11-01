@@ -34,7 +34,7 @@ sub load_plugins {
     for my $plugin (@{$self->config->{plugin}}) {
         DEBUG "LOAD PLUGIN: $plugin->{module}";
         $plugin->{module}->use or die $@;
-        $plugin->{module}->register( $self );
+        $plugin->{module}->register( $self, $plugin->{config} );
     }
 }
 
