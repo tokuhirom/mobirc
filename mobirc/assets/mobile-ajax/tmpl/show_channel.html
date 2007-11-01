@@ -3,14 +3,14 @@
 [% USE JavaScript %]
 Mobirc.callbackChannel([
 [% FOR line IN channel_recent.item(canon_channel).reverse() %]
-'[% render_line( line ) | js %]'[% UNLESS loop.last %],[% END %]
+'[% render_line( line ) | js | html %]'[% UNLESS loop.last %],[% END %]
 [% END %]
 ]);
 [% ELSE %]
 [% USE JavaScript %]
 Mobirc.callbackChannel([
 [% FOR line IN channel_buffer.item(canon_channel).reverse() %]
-'[% render_line( line ) | js %]'[% UNLESS loop.last %],[% END %]
+'[% render_line( line ) | js | html %]'[% UNLESS loop.last %],[% END %]
 [% END %]
 ]);
 [% END %]
