@@ -19,14 +19,14 @@ plugin:
   # - module: Mobirc::Plugin::Authorizer::EZSubscriberID
   #   config:
   #     au_subscriber_id: 25253252_oe.ezweb.ne.jp
-  - module: Mobirc::Plugin::MessageBodyFiler::Clickable
+  - module: Mobirc::Plugin::MessageBodyFilter::Clickable
     config:
       au_pcsv: 0
       pocket_hatena: 1
       # http_link_string: $host$path
       # accept_schemes: [mailto, tel]
       # redirector: http://www.google.com/url?sa=D&q=
-  - module: Mobirc::Plugin::MessageBodyFiler::IRCColor
+  - module: Mobirc::Plugin::MessageBodyFilter::IRCColor
     config:
       # no_decorate: 0
 
