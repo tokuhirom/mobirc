@@ -76,3 +76,10 @@ conf:
   au_pcsv: true
 --- expected: <a href="http://d.hatena.ne.jp/" rel="nofollow" class="url">http://d.hatena.ne.jp/</a><a href="device:pcsiteviewer?url=http://d.hatena.ne.jp/" rel="nofollow" class="au_pcsv">[PCSV]</a>
 
+=== google_gwt
+--- input
+text: http://d.hatena.ne.jp/
+conf:
+  google_gwt: true
+--- expected: <a href="http://d.hatena.ne.jp/" rel="nofollow" class="url">http://d.hatena.ne.jp/</a><a href="http://www.google.co.jp/gwt/n?u=http%3A%2F%2Fd.hatena.ne.jp%2F&_gwt_noimg=0" rel="nofollow" class="google_gwt">[gwt]</a>
+
