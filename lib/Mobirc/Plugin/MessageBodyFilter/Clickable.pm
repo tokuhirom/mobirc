@@ -1,4 +1,4 @@
-package Mobirc::HTTPD::Filter::Clickable;
+package Mobirc::Plugin::MessageBodyFilter::Clickable;
 # vim:expandtab:
 use strict;
 use warnings;
@@ -6,8 +6,16 @@ use URI::Find;
 use URI::Escape;
 @URI::tel::ISA = qw( URI );
 
+sub register {
+    my ($class, $global_context, $conf) = @_;
+
+    $global_context->register_hook(
+        'message_body_filter' => sub { my $body = shift;  process($body, $conf) },
+    );
+}
+
 sub process {
-    my ( $class, $text, $conf ) = @_;
+    my ( $text, $conf ) = @_;
 
     my $as = $conf->{accept_schemes};
 
@@ -26,7 +34,7 @@ sub process {
                 return $orig_uri;
             }
             return (__PACKAGE__->can("process_" . $uri->scheme) ||
-                    \&process_default)->($class, $conf, $uri, $orig_uri);
+                    \&process_default)->($conf, $uri, $orig_uri);
         }
     )->find( \$text );
 
@@ -34,7 +42,7 @@ sub process {
 }
 
 sub process_http {
-    my ( $class, $conf, $uri, $orig_uri ) = @_;
+    my ( $conf, $uri, $orig_uri ) = @_;
     my $out = "";
     my $link_string = $orig_uri;
 
@@ -71,7 +79,7 @@ sub process_http {
 }
 
 sub process_default {
-    my ( $class, $conf, $uri, $orig_uri ) = @_;
+    my ( $conf, $uri, $orig_uri ) = @_;
     my $out = qq{<a href="$uri" rel="nofollow" class="url">$orig_uri</a>};
     return $out;
 }

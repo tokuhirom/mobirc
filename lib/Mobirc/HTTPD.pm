@@ -78,10 +78,8 @@ sub on_web_request {
 
     # authorization phase
     my $authorized_fg = 0;
-    for my $authorizer ( @{ $c->{config}->{httpd}->{authorizer} } ) {
-        $authorizer->{module}->use or die $@;
-
-        if ($authorizer->{module}->authorize($c, $authorizer->{config})) {
+    for my $code (@{$c->{global_context}->get_hook_codes('authorize')}) {
+        if ($code->($c)) {
             $authorized_fg++;
             last; # authorization succeeded.
         }
