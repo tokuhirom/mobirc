@@ -13,7 +13,7 @@ use_ok 'Mobirc::HTTPD::Controller';
 use_ok 'Mobirc::Plugin::Authorizer::BasicAuth';
 use_ok 'Mobirc::Plugin::Authorizer::Cookie';
 use_ok 'Mobirc::Plugin::Authorizer::EZSubscriberID';
-use_ok 'Mobirc::Plugin::Authorizer::SoftbankID';
+use_ok 'Mobirc::Plugin::Authorizer::SoftBankID';
 
 use_ok 'Mobirc::Plugin::HTMLFilter::DoCoMoCSS';
 use_ok 'Mobirc::Plugin::HTMLFilter::CompressHTML';
