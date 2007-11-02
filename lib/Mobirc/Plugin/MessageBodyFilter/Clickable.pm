@@ -29,7 +29,7 @@ sub process {
         }eg;
     }
     if (!$as || grep { $_ eq "mailto" } @$as) {
-        $text =~ s{(?:mailto:)?\b(\w[\w.+=-]+\@[\w.-]+[\w]\.[\w]{2,4})\b}{
+        $text =~ s{\b(?:mailto:)?(\w[\w.+=-]+\@[\w.-]+[\w]\.[\w]{2,4})\b}{
             my $ret = "mailto:$1";
             $link_string_table->{$ret} = $&;
             $ret;
