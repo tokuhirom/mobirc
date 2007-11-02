@@ -19,11 +19,21 @@ sub process {
 
     my $as = $conf->{accept_schemes};
 
+    my $link_string_table = {};
+
     if (!$as || grep { $_ eq "tel" } @$as) {
-        $text =~ s!\b(?:tel:)?(0\d{1,3})([-(]?)(\d{2,4})([-)]?)(\d{4})\b!tel:$1$3$5!g;
+        $text =~ s{\b(?:tel:)?(0\d{1,3})([-(]?)(\d{2,4})([-)]?)(\d{4})\b}{
+            my $ret = "tel:$1$3$5";
+            $link_string_table->{$ret} = $&;
+            $ret;
+        }eg;
     }
     if (!$as || grep { $_ eq "mailto" } @$as) {
-        $text =~ s!(?:mailto:)?\b(\w[\w.+=-]+\@[\w.-]+[\w]\.[\w]{2,4})\b!mailto:$1!g;
+        $text =~ s{(?:mailto:)?\b(\w[\w.+=-]+\@[\w.-]+[\w]\.[\w]{2,4})\b}{
+            my $ret = "mailto:$1";
+            $link_string_table->{$ret} = $&;
+            $ret;
+        }eg;
     }
 
     URI::Find->new(
@@ -34,7 +44,7 @@ sub process {
                 return $orig_uri;
             }
             return (__PACKAGE__->can("process_" . $uri->scheme) ||
-                    \&process_default)->($conf, $uri, $orig_uri);
+                    \&process_default)->($conf, $uri, $orig_uri, $link_string_table);
         }
     )->find( \$text );
 
@@ -79,8 +89,13 @@ sub process_http {
 }
 
 sub process_default {
-    my ( $conf, $uri, $orig_uri ) = @_;
-    my $out = qq{<a href="$uri" rel="nofollow" class="url">$orig_uri</a>};
+    my ( $conf, $uri, $orig_uri, $link_string_table ) = @_;
+
+    my $link_string = $orig_uri;
+    if ( $link_string_table->{$orig_uri} ) {
+        $link_string = $link_string_table->{$orig_uri};
+    }
+    my $out = qq{<a href="$uri" rel="nofollow" class="url">$link_string</a>};
     return $out;
 }
 

@@ -42,19 +42,19 @@ conf:
 --- input
 text: 000-0000-0000
 conf: ~
---- expected: <a href="tel:00000000000" rel="nofollow" class="url">tel:00000000000</a>
+--- expected: <a href="tel:00000000000" rel="nofollow" class="url">000-0000-0000</a>
 
 === tel with scheme
 --- input
 text: tel:000-0000-0000
 conf: ~
---- expected: <a href="tel:00000000000" rel="nofollow" class="url">tel:00000000000</a>
+--- expected: <a href="tel:00000000000" rel="nofollow" class="url">tel:000-0000-0000</a>
 
 === mailto
 --- input
 text: aaa@example.com
 conf: ~
---- expected: <a href="mailto:aaa@example.com" rel="nofollow" class="url">mailto:aaa@example.com</a>
+--- expected: <a href="mailto:aaa@example.com" rel="nofollow" class="url">aaa@example.com</a>
 
 === mailto with scheme
 --- input
