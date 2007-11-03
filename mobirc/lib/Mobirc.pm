@@ -9,6 +9,8 @@ use Mobirc::HTTPD;
 use Mobirc::IRCClient;
 use UNIVERSAL::require;
 use Carp;
+use Mobirc::Channel;
+use Encode;
 
 our $VERSION = 0.01;
 
@@ -18,7 +20,7 @@ sub context { $context }
 sub new {
     my ($class, $config_stuff) = @_;
     my $config = Mobirc::ConfigLoader->load($config_stuff);
-    my $self = bless {config => $config}, $class;
+    my $self = bless {config => $config, channels => {}}, $class;
 
     $self->load_plugins;
 
@@ -63,6 +65,28 @@ sub get_hook_codes {
     my ($self, $hook_point) = @_;
     die "this is instance method" unless blessed $self;
     return $self->{hooks}->{$hook_point} || [];
+}
+
+# -------------------------------------------------------------------------
+
+sub add_channel {
+    my ($self, $channel) = @_;
+    croak "missing channel" unless $channel;
+
+    $self->{channels}->{$channel->name} = $channel;
+}
+
+sub channels {
+    my $self = shift;
+    my @channels = values %{ $self->{channels} };
+    return wantarray ? @channels : \@channels;
+}
+
+sub get_channel {
+    my ($self, $name) = @_;
+    croak "channel name is flagged utf8" unless Encode::is_utf8($name);
+    croak "invalid channel name : $name" if $name =~ / /;
+    return $self->{channels}->{$name} ||= Mobirc::Channel->new($self, $name);
 }
 
 1;

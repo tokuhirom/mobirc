@@ -32,6 +32,7 @@ requires 'Storable';
 requires 'List::MoreUtils';
 requires 'Template::Provider::Encoding';
 requires 'HTTP::MobileAgent';
+requires 'Class::Accessor';
 
 build_requires 'Test::More';
 use_test_base;
