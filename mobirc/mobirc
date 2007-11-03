@@ -61,28 +61,6 @@ This program is still ALPHA QUALITY. Don't use at production environment.
 
 easy hack, easy maintenance, modern style, easy to use for perl hackers.
 
-=head1 DONE
-
-    use Encode instead of Unicode::Japanese
-    rebirth channel list
-    internal string should be flagged utf8
-    Perl critic clean
-    show_channel should use TT.
-    split irc client feature to IRCClient.pm instead of keitaric.pl
-    new name.
-    use YAML instead of AppConfig
-    dispatcher likes Sledge(HTTPD)
-    TT should in the assets dir?
-    cool uri
-    use TT at dispatch_index
-    templates should be configurable
-    use poe's heap instead of global variables ;-(
-    Makefile.PL
-
-=head1 TODO
-
-    avoid warnings.
-
 =head1 supported phones
 
   au WIN
