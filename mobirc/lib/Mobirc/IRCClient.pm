@@ -89,7 +89,7 @@ sub on_irc_001 {
         undef, decode('utf8', 'Connected to irc server!'), 'connect' );
 
     $poe->heap->{disconnect_msg} = true;
-    $poe->heap->{channel_name} = {'*server*' => '*server*'};
+    $poe->heap->{channel_name} ||= {'*server*' => '*server*'};
     $poe->kernel->delay( autoping => $poe->heap->{config}->{ping_delay} );
 }
 
