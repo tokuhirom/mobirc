@@ -28,7 +28,7 @@ sub call {
 sub dispatch_index {
     my ($class, $c) = @_;
 
-    my $canon_channels = [
+    my $channels = [
         reverse
           map {
               $_->[0];
@@ -38,8 +38,8 @@ sub dispatch_index {
               $a->[2] <=> $b->[2]
           }
           map {
-              my $unl  = $c->{irc_heap}->{unread_lines}->{$_} ? 1 : 0;
-              my $buf  = $c->{irc_heap}->{channel_buffer}->{$_} || [];
+              my $unl  = $_->unread_lines ? 1 : 0;
+              my $buf  = $_->message_log || [];
               my $last =
                 (grep {
                     $_->{class} eq "public" ||
@@ -48,18 +48,21 @@ sub dispatch_index {
               my $time = ($last->{time} || 0);
               [$_, $unl, $time];
           }
-          keys %{ $c->{irc_heap}->{channel_name} }
+          $c->{global_context}->channels
     ];
+
+    my $keyword_recent_num = $c->{global_context}->get_channel(U '*keyword*')->unread_lines;
 
     return render(
         $c,
         'index' => {
             exists_recent_entries => (
-                grep( $c->{irc_heap}->{unread_lines}->{$_}, keys %{ $c->{irc_heap}->{unread_lines} } )
+                grep( $_->unread_lines, $c->{global_context}->channels )
                 ? true
                 : false
             ),
-            canon_channels => $canon_channels,
+            keyword_recent_num => $keyword_recent_num,
+            channels => $channels,
         }
     );
 }
@@ -73,17 +76,17 @@ sub dispatch_recent {
     my $has_next_page = false;
 
     my @unread_channels =
-      grep { @{ $c->{irc_heap}->{channel_recent}->{$_} || [] } }
-      keys %{ $c->{irc_heap}->{channel_recent} };
+      grep { $_->unread_lines }
+      $c->{global_context}->channels;
 
     DEBUG "SCALAR " . scalar @unread_channels;
 
     for my $channel (@unread_channels) {
         push @target_channels, $channel;
-        $log_counter += scalar @{ $c->{irc_heap}->{channel_recent}->{$channel} };
+        $log_counter += scalar @{ $channel->recent_log };
 
         if ($log_counter >= $c->{config}->{httpd}->{recent_log_per_page}) {
-            $has_next_page = true;
+            $has_next_page = true; # FIXME: BUGGY
             last;
         }
     }
@@ -97,9 +100,8 @@ sub dispatch_recent {
     );
 
     # reset counter.
-    for my $canon_channel ( @target_channels ) {
-        $c->{irc_heap}->{unread_lines}->{$canon_channel}   = 0;
-        $c->{irc_heap}->{channel_recent}->{$canon_channel} = [];
+    for my $channel ( @target_channels ) {
+        $channel->clear_unread;
     }
 
     return $out;
@@ -111,7 +113,9 @@ sub dispatch_topics {
 
     return render(
         $c,
-        'topics' => { },
+        'topics' => {
+            channels => [$c->{global_context}->channels],
+        },
     );
 }
 
@@ -145,12 +149,15 @@ sub post_dispatch_show_channel {
 
             DEBUG "Sending message $message";
             if ($c->{config}->{httpd}->{echo} eq true) {
-                add_message(
-                    $c->{poe},
-                    $channel,
-                    decode( $c->{config}->{irc}->{incode}, $c->{irc_heap}->{irc}->nick_name),
-                    $message,
-                    'publicfromhttpd',
+                $c->{global_context}->get_channel($channel)->add_message(
+                    Mobirc::Message->new(
+                        who => decode(
+                            $c->{config}->{irc}->{incode},
+                            $c->{irc_nick}
+                        ),
+                        body  => $message,
+                        class => 'publicfromhttpd',
+                    )
                 );
             }
         }
@@ -168,43 +175,37 @@ sub post_dispatch_show_channel {
 sub dispatch_keyword {
     my ($class, $c, $recent_mode) = @_;
 
+    my $channel = $c->{global_context}->get_channel(U '*keyword*');
+
     my $out = render(
         $c,
         'keyword' => {
-            rows => ($recent_mode ? $c->{irc_heap}->{keyword_recent} : $c->{irc_heap}->{keyword_buffer}),
+            rows => ($recent_mode ? $channel->recent_log : $channel->message_log),
         },
     );
 
-    $c->{irc_heap}->{keyword_recent} = [];
+    $channel->clear_unread;
 
     return $out;
 }
 
 sub dispatch_show_channel {
-    my ($class, $c, $recent_mode, $channel) = @_;
+    my ($class, $c, $recent_mode, $channel_name) = @_;
 
-    DEBUG "show channel page: $channel";
-    $channel = decode('utf8', $channel); # maybe $channel is not flagged utf8.
+    DEBUG "show channel page: $channel_name";
+    $channel_name = decode('utf8', $channel_name); # maybe $channel_name is not flagged utf8.
+
+    my $channel = $c->{global_context}->get_channel($channel_name);
 
     my $out = render(
         $c,
         'show_channel' => {
-            canon_channel  => normalize_channel_name($channel),
             channel        => $channel,
-            subtitle       => compact_channel_name($channel),
             recent_mode    => $recent_mode,
         }
     );
 
-    {
-        my $canon_channel = normalize_channel_name($channel);
-
-        # clear unread counter
-        $c->{irc_heap}->{unread_lines}->{$canon_channel} = 0;
-
-        # clear recent messages buffer
-        $c->{irc_heap}->{channel_recent}->{$canon_channel} = [];
-    }
+    $channel->clear_unread;
 
     return $out;
 }
@@ -218,7 +219,6 @@ sub render {
 
     # set default vars
     $args = {
-        compact_channel_name => \&compact_channel_name,
         docroot              => $c->{config}->{httpd}->{root},
         render_line          => sub { render_line( $c, @_ ) },
         user_agent           => $c->{user_agent},
@@ -226,8 +226,6 @@ sub render {
         title                => $c->{config}->{httpd}->{title},
         version              => $Mobirc::VERSION,
         now                  => time(),
-
-        %{ $c->{irc_heap} },
 
         %$args,
     };
@@ -280,20 +278,20 @@ sub _html_filter {
 
 sub render_line {
     my $c   = shift;
-    my $row = shift;
+    my $message = shift;
 
-    return "" unless $row;
-    croak "must be hashref: $row" unless ref $row eq 'HASH';
+    return "" unless $message;
+    croak "must be hashref: $message" unless ref $message eq 'Mobirc::Message';
 
-    my ( $sec, $min, $hour ) = localtime($row->{time});
+    my ( $sec, $min, $hour ) = localtime($message->time);
     my $ret = sprintf(qq!<span class="time"><span class="hour">%02d</span><span class="colon">:</span><span class="minute">%02d</span></span> !, $hour, $min);
-    if ($row->{who}) {
-        my $who_class = ($row->{who} eq $c->{irc_heap}->{irc}->nick_name)  ? 'nick_myself' : 'nick_normal';
-        my $who = encode_entities($row->{who});
+    if ($message->who) {
+        my $who_class = ($message->who eq $c->{irc_nick})  ? 'nick_myself' : 'nick_normal';
+        my $who = encode_entities($message->who);
         $ret .= "<span class='$who_class'>($who)</span> ";
     }
-    my $body = _process_body($c, $row->{msg});
-    my $class = encode_entities($row->{class});
+    my $body = _process_body($c, $message->body);
+    my $class = encode_entities($message->class);
     $ret .= qq!<span class="$class">$body</span>!;
 
     return $ret;

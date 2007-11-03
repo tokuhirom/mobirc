@@ -1,15 +1,13 @@
 [% INCLUDE 'include/header.html' %]
 
-[%# < %][% IF keyword_recent.size() > 0 %]
-<div class="keyword_recent_notice"><a href="[% docroot %]keyword-recent">Keyword([% keyword_recent.size() | html %])</a></div>
+[%# < %][% IF keyword_recent_num > 0 %]
+<div class="keyword_recent_notice"><a href="[% docroot %]keyword-recent">Keyword([% keyword_recent_num | html %])</a></div>
 [% END %]
 
 <!-- channel list -->
 [% accesskey = 1 %]
 
-[% FOR canon_channel IN canon_channels -%]
-    [% SET channel = channel_name.item( canon_channel ) %]
-
+[% FOR channel IN channels -%]
     [%- IF accesskey < 10 %][%# > %]
         [% SWITCH mobile_agent.carrier %]
         [% CASE 'I' %]
@@ -22,7 +20,7 @@
             [% accesskey %]
         [% END %]
 
-        <a accesskey="[% accesskey %]" href="[% docroot %]channels/[% channel | uri %]">
+        <a accesskey="[% accesskey %]" href="[% docroot %]channels/[% channel.name | uri %]">
     [%- ELSE %]
 
         [% SWITCH mobile_agent.carrier %]
@@ -36,13 +34,13 @@
             *
         [% END %]
 
-        <a href="[% docroot %]channels/[% channel | uri %]">
+        <a href="[% docroot %]channels/[% channel.name | uri %]">
     [%- END -%]
-            [% compact_channel_name(channel) %]
+            [% channel.name %]
         </a>
 
-    [% IF unread_lines.item(canon_channel) %]
-        <a href="[% docroot %]channels-recent/[% channel | uri %]">[% unread_lines.item(canon_channel) %]</a>
+    [% IF channel.unread_lines %]
+        <a href="[% docroot %]channels-recent/[% channel.name | uri %]">[% channel.unread_lines %]</a>
     [% END %]
 
     <br />

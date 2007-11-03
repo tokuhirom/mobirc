@@ -72,7 +72,7 @@ sub on_web_request {
         req        => $request,
         user_agent => $user_agent,
         mobile_agent => HTTP::MobileAgent->new($user_agent),
-        irc_heap   => $poe->kernel->alias_resolve('irc_session')->get_heap,
+        irc_nick     => $poe->kernel->alias_resolve('irc_session')->get_heap->{irc}->nick_name,
         global_context => Mobirc->context,
     };
 

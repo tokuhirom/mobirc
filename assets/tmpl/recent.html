@@ -2,11 +2,11 @@
 
 [% FOR channel IN target_channels %]
     <div class="ChannelHeader">
-        <b class="ChannelName">[% channel_name.item(channel) | html %]</b>
-        <a href="[% docroot %]channels/[% channel_name.item(channel) | uri%]">more..</a><br />
+        <b class="ChannelName">[% channel.name | html %]</b>
+        <a href="[% docroot %]channels/[% channel.name | uri%]">more..</a><br />
     </div>
 
-    [% FOR line IN channel_recent.item(channel) %]
+    [% FOR line IN channel.recent_log %]
         [% render_line( line ) %]<br />
     [% END %]
 
