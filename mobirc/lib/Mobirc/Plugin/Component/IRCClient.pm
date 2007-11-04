@@ -1,4 +1,4 @@
-package Mobirc::IRCClient;
+package Mobirc::Plugin::Component::IRCClient;
 use strict;
 use warnings;
 
@@ -12,18 +12,28 @@ use Carp;
 use Mobirc::Message;
 use Mobirc::Util;
 
-sub init {
-    my ($class, $config, $global_context) = @_;
+sub register {
+    my ($class, $global_context, $conf) = @_;
 
+    DEBUG "register ircclient component";
+    $global_context->register_hook(
+        'run_component' => sub { _init($conf, $global_context) },
+    );
+}
+
+sub _init {
+    my ($config, $global_context) = @_;
+
+    DEBUG "initialize ircclient";
     # irc component
     my $irc = POE::Component::IRC->spawn(
         Alias    => 'mobirc_irc',
-        Nick     => $config->{irc}->{nick},
-        Username => $config->{irc}->{username},
-        Ircname  => $config->{irc}->{desc},
-        Server   => $config->{irc}->{server},
-        Port     => $config->{irc}->{port},
-        Password => $config->{irc}->{password}
+        Nick     => $config->{nick},
+        Username => $config->{username},
+        Ircname  => $config->{desc},
+        Server   => $config->{server},
+        Port     => $config->{port},
+        Password => $config->{password}
     );
 
     POE::Session->create(
@@ -59,7 +69,7 @@ sub init {
     );
 
     $global_context->add_channel(
-        Mobirc::Channel->new($global_context, decode('utf8', '*server*'))
+        Mobirc::Channel->new($global_context, U('*server*'))
     );
 }
 
@@ -75,7 +85,7 @@ sub on_irc_start {
 
     $poe->kernel->alias_set('irc_session');
 
-    DEBUG "input charset is: " . $poe->heap->{config}->{irc}->{incode};
+    DEBUG "input charset is: " . $poe->heap->{config}->{incode};
 
     $poe->heap->{irc}->yield( register => 'all' );
     $poe->heap->{irc}->yield( connect  => {} );
@@ -361,9 +371,9 @@ sub _get_args {
     my @ret;
     for my $elem (@{$poe->args}) {
         if ( ref $elem && ref $elem eq 'ARRAY') {
-            push @ret, [map { decode($poe->heap->{config}->{irc}->{incode}, $_) } @$elem];
+            push @ret, [map { decode($poe->heap->{config}->{incode}, $_) } @$elem];
         } else {
-            push @ret, decode($poe->heap->{config}->{irc}->{incode}, $elem);
+            push @ret, decode($poe->heap->{config}->{incode}, $elem);
         }
     }
     return @ret;

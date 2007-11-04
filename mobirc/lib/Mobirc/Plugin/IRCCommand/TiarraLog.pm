@@ -24,7 +24,9 @@ sub _process {
         # の場合を想定。後者は Log::Recent のデフォルトだったはず
         # kick とかに対応していない
         my $class;
-        my $chann  = encode($poe->heap->{config}->{irc}->{incode}, $channel->[0]);
+        my $irc_incode = $poe->kernel->alias_resolve('irc_session')->get_heap->{config}->{incode};
+        DEBUG "IRC INCODE IS $irc_incode";
+        my $chann  = encode($irc_incode , $channel->[0]);
         if ($msg =~ qr|^(\d\d:\d\d(?::\d\d)?) ! ([^\s]+?) \((.*)\)|) {
             # ほんとは quit
             $class = "part";
@@ -72,7 +74,7 @@ sub _process {
                 "irc_$class",
                 $who,
                 $chann,
-                encode($poe->heap->{config}->{irc}->{incode}, $msg)
+                encode($irc_incode, $msg)
             );
             return true;
         }

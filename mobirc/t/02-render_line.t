@@ -18,14 +18,6 @@ sub render_line {
     my $irc = bless {}, 'PoCoIRCMock';
     my $global_context = Mobirc->new(
         {
-            irc => {
-                nick     => 'foo',
-                port     => 52522,
-                incode   => 'utf8',
-                username => 'foo',
-                desc     => 'foo',
-                server   => 'bar'
-            },
             httpd => { port => 80 }
         }
     );

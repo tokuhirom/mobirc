@@ -130,13 +130,14 @@ sub post_dispatch_show_channel {
 
     DEBUG "POST MESSAGE $message";
 
+    my $irc_incode = $c->{irc_incode};
     if ($message) {
         if ($message =~ m{^/}) {
             DEBUG "SENDING COMMAND";
             $message =~ s!^/!!g;
 
             my @args =
-              map { encode( $c->{config}->{irc}->{incode}, $_ ) } split /\s+/,
+              map { encode( $irc_incode, $_ ) } split /\s+/,
               $message;
 
             $c->{poe}->kernel->post('mobirc_irc', @args);
@@ -144,15 +145,15 @@ sub post_dispatch_show_channel {
             DEBUG "NORMAL PRIVMSG";
 
             $c->{poe}->kernel->post( 'mobirc_irc',
-                privmsg => encode( $c->{config}->{irc}->{incode}, $channel ) =>
-                encode( $c->{config}->{irc}->{incode}, $message ) );
+                privmsg => encode( $irc_incode, $channel ) =>
+                encode( $irc_incode, $message ) );
 
             DEBUG "Sending message $message";
             if ($c->{config}->{httpd}->{echo} eq true) {
                 $c->{global_context}->get_channel($channel)->add_message(
                     Mobirc::Message->new(
                         who => decode(
-                            $c->{config}->{irc}->{incode},
+                            $irc_incode,
                             $c->{irc_nick}
                         ),
                         body  => $message,

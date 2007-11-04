@@ -27,41 +27,6 @@ my $schema = {
                 },
             ],
         },
-        irc => {
-            name     => 'irc',
-            desc     => 'settings for irc',
-            type     => 'map',
-            required => 1,
-            mapping  => {
-                server => {
-                    type     => 'str',
-                    required => 1,
-                },
-                incode => {
-                    type     => 'str',
-                    required => 1,
-                },
-                nick   => {
-                    type     => 'str',
-                    required => 1,
-                },
-                port => {
-                    type     => 'int',
-                    required => 1,
-                },
-                desc => {
-                    type     => 'str',
-                    required => 1,
-                },
-                username => {
-                    type     => 'str',
-                    required => 1,
-                },
-                password        => { type => 'str', },
-                ping_delay      => { type => 'int', },
-                reconnect_delay => { type => 'int', },
-            }
-        },
         httpd => {
             name     => 'httpd',
             type     => 'map',
