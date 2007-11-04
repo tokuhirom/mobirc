@@ -35,13 +35,12 @@ sub _init {
             _start => sub {
                 my $poe = sweet_args;
                 $twitter->yield('register');
-                $poe->kernel->delay( 'delay_friend_timeline' =>
-                      $conf->{friend_timeline_interval} );
+                $poe->kernel->delay( 'delay_friend_timeline' => 5);
             },
             delay_friend_timeline => sub {
                 my $poe = sweet_args;
                 $twitter->yield('friend_timeline');
-                $poe->kernel->delay( 'delay_friend_timeline' => 5 );
+                $poe->kernel->delay( 'delay_friend_timeline' => $conf->{friend_timeline_interval} );
             },
             'twitter.friend_timeline_success' => sub {
                 my $poe = sweet_args;
