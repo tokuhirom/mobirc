@@ -1,8 +1,8 @@
 [% INCLUDE 'include/header.html' %]
 
-[% FOR canon_channel IN channel_name.keys.sort %]
-    <a href="[% docroot %]channels/[% channel_name.item(canon_channel) | uri %]">[% channel_name.item(canon_channel) | html %]</a><br />
-    [% channel_topic.item(canon_channel) %]<br />
+[% FOR channel IN channels %]
+    <a href="[% docroot %]channels/[% channel.name | uri %]">[% channel.name | html %]</a><br />
+    [% channel.topic %]<br />
 [% END %]
 <br />
 <a accesskey="8" href="[% docroot %]">ch list[8]</a>

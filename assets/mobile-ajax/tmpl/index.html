@@ -75,9 +75,8 @@
 </textarea>
 
 <h1><select id="channel" onchange="Mobirc.onChangeChannel();">
-[% FOR canon_channel IN canon_channels -%]
-[% SET channel = channel_name.item( canon_channel ) %]
-<option value="[% channel | uri %]">[% compact_channel_name(channel) %]</option>
+[% FOR channel IN channels -%]
+<option value="[% channel.name | uri %]">[% channel.name %]</option>
 [% END %]
 </select></h1>
 

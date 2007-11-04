@@ -1,15 +1,15 @@
-[% IF channel_buffer.item(canon_channel) and channel_buffer.item(canon_channel).size %]
+[% IF channel and channel.message_log.size() %]
 [%- IF recent_mode %]
 [% USE JavaScript %]
 Mobirc.callbackChannel([
-[% FOR line IN channel_recent.item(canon_channel).reverse() %]
+[% FOR line IN channel.recent_log.reverse() %]
 '[% render_line( line ) | js | html %]'[% UNLESS loop.last %],[% END %]
 [% END %]
 ]);
 [% ELSE %]
 [% USE JavaScript %]
 Mobirc.callbackChannel([
-[% FOR line IN channel_buffer.item(canon_channel).reverse() %]
+[% FOR line IN channel.message_log.reverse() %]
 '[% render_line( line ) | js | html %]'[% UNLESS loop.last %],[% END %]
 [% END %]
 ]);
