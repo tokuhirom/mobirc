@@ -16,6 +16,9 @@ sub register {
     my ($class, $global_context, $conf) = @_;
 
     DEBUG "register ircclient component";
+    $conf->{ping_delay}       ||= 30;
+    $conf->{reconnect_delay}  ||= 10;
+
     $global_context->register_hook(
         'run_component' => sub { _init($conf, shift) },
     );
