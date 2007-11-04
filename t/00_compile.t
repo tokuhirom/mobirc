@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 18;
+use Test::More tests => 19;
 
 use_ok 'Mobirc';
 use_ok 'Mobirc::Util';
@@ -9,6 +9,8 @@ use_ok 'Mobirc::Message';
 use_ok 'Mobirc::Channel';
 
 use_ok 'Mobirc::Plugin::Component::IRCClient';
+use_ok 'Mobirc::Plugin::Component::Twitter';
+
 use_ok 'Mobirc::HTTPD';
 use_ok 'Mobirc::HTTPD::Router';
 use_ok 'Mobirc::HTTPD::Controller';
