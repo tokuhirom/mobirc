@@ -6,7 +6,6 @@ use POE;
 use Mobirc::ConfigLoader;
 use Mobirc::Util;
 use Mobirc::HTTPD;
-use Mobirc::IRCClient;
 use UNIVERSAL::require;
 use Carp;
 use Mobirc::Channel;
@@ -46,8 +45,11 @@ sub run {
     my $self = shift;
     die "this is instance method" unless blessed $self;
 
+    for my $code (@{$self->get_hook_codes('run_component')}) {
+        $code->($self);
+    }
+
     # TODO: pluggable?
-    Mobirc::IRCClient->init($self->config, $self);
     Mobirc::HTTPD->init($self->config);
 
     $poe_kernel->run();
@@ -64,6 +66,7 @@ sub register_hook {
 sub get_hook_codes {
     my ($self, $hook_point) = @_;
     die "this is instance method" unless blessed $self;
+    croak "hook point missing" unless $hook_point;
     return $self->{hooks}->{$hook_point} || [];
 }
 

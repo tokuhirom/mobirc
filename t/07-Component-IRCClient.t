@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use POE;
-use Mobirc::IRCClient;
+use Mobirc::Plugin::Component::IRCClient;
 use Mobirc;
 use Test::More;
 use Data::Dumper;
@@ -15,16 +15,21 @@ plan tests => 6;
 my $PORT = 9999;
 
 my $config = {
-    irc => {
-        nick => 'testee',
-        port => $PORT,
-        incode => 'utf8',
-        username => 'test man',
-        desc => 'hoge',
-        server => 'localhost',
-    },
+    plugin => [
+        {
+            module => 'Mobirc::Plugin::Component::IRCClient',
+            config => {
+                nick     => 'testee',
+                port     => $PORT,
+                incode   => 'utf8',
+                username => 'test man',
+                desc     => 'hoge',
+                server   => 'localhost',
+            },
+        }
+    ],
     httpd => {
-        port => 88888,
+        port  => 88888,
         lines => 50,
     },
 };
@@ -32,7 +37,7 @@ my $config = {
 $SIG{INT} = sub { die };
 
 my $global_context = Mobirc->new($config);
-Mobirc::IRCClient->init($global_context->config, $global_context);
+$_->($global_context) for @{$global_context->get_hook_codes('run_component')};
 POE::Session->create(
     package_states => [
         main => [qw/_start test/],

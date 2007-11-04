@@ -8,7 +8,7 @@ use_ok 'Mobirc::ConfigLoader';
 use_ok 'Mobirc::Message';
 use_ok 'Mobirc::Channel';
 
-use_ok 'Mobirc::IRCClient';
+use_ok 'Mobirc::Plugin::Component::IRCClient';
 use_ok 'Mobirc::HTTPD';
 use_ok 'Mobirc::HTTPD::Router';
 use_ok 'Mobirc::HTTPD::Controller';

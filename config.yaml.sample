@@ -30,14 +30,15 @@ plugin:
     config:
       # no_decorate: 0
 
-irc:
-  server: 127.0.0.1
-  port: 252322
-  nick: netwatcher
-  desc: Net Watcher
-  username: netwatcher
-  # password: netwatch
-  incode: utf-8
+  - module: Mobirc::Plugin::Component::IRCClient
+    config:
+      server: 127.0.0.1
+      port: 252322
+      nick: netwatcher
+      desc: Net Watcher
+      username: netwatcher
+      # password: netwatch
+      incode: utf-8
 
 httpd:
   port: 5785
