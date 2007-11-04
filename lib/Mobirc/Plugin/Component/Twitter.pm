@@ -18,7 +18,7 @@ sub register {
     $conf->{channel} ||= U '#twitter';
     $conf->{alias} ||= 'twitter';
     $conf->{screenname} ||= $conf->{username};
-    $conf->{friend_timeline_interval} ||= 20;
+    $conf->{friend_timeline_interval} ||= 60;
 }
 
 sub _init {
