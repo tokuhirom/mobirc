@@ -68,12 +68,10 @@ sub on_web_request {
     my $user_agent = $request->{_headers}->{'user-agent'};
     my $c = {
         config     => $config,
-        poe        => $poe,
         req        => $request,
         user_agent => $user_agent,
         mobile_agent => HTTP::MobileAgent->new($user_agent),
         irc_nick     => $poe->kernel->alias_resolve('irc_session')->get_heap->{irc}->nick_name,
-        irc_incode   => $poe->kernel->alias_resolve('irc_session')->get_heap->{config}->{incode},
         global_context => Mobirc->context,
     };
 

@@ -70,6 +70,15 @@ sub clear_unread {
     $self->{recent_log} = [];
 }
 
+sub post_command {
+    my ($self, $command) = @_;
+
+    for my $code (@{$self->{global_context}->get_hook_codes('process_command')}) {
+        my $ret = $code->($self->{global_context}, $command, $self);
+        last if $ret;
+    }
+}
+
 sub name {
     my ($self, $name) = @_;
 

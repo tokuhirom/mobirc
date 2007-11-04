@@ -17,8 +17,52 @@ sub register {
 
     DEBUG "register ircclient component";
     $global_context->register_hook(
-        'run_component' => sub { _init($conf, $global_context) },
+        'run_component' => sub { _init($conf, shift) },
     );
+    $global_context->register_hook(
+        'process_command' => sub { my ($global_context, $command, $channel) = @_;  _process_command($conf, $global_context, $command, $channel) },
+    );
+}
+
+sub _process_command {
+    my ($conf, $global_context, $command, $channel) = @_;
+
+    my $irc_incode = $conf->{incode};
+    if ($command && $channel->name =~ /^[#*%]/) {
+        if ($command =~ m{^/}) {
+            DEBUG "SENDING COMMAND";
+            $command =~ s!^/!!g;
+
+            my @args =
+              map { encode( $irc_incode, $_ ) } split /\s+/,
+              $command;
+
+            $poe_kernel->post('mobirc_irc', @args);
+        } else {
+            DEBUG "NORMAL PRIVMSG";
+
+            $poe_kernel->post( 'mobirc_irc',
+                privmsg => encode( $irc_incode, $channel->name ) =>
+                encode( $irc_incode, $command ) );
+
+            DEBUG "Sending command $command";
+            # FIXME: httpd 関係ない件
+            if ($global_context->config->{httpd}->{echo} eq true) {
+                $channel->add_message(
+                    Mobirc::Message->new(
+                        who => decode(
+                            $irc_incode,
+                            $conf->{irc_nick}
+                        ),
+                        body  => $command,
+                        class => 'public',
+                    )
+                );
+            }
+        }
+        return true;
+    }
+    return false;
 }
 
 sub _init {
