@@ -9,7 +9,7 @@ use POE::Sugar::Args;
 use Mobirc::Util;
 use Encode;
 eval q{use POE::Component::Server::IRC;};
-plan skip_all => "String::IRC is not installed." if $@;
+plan skip_all => "POE::Component::Server::IRC is not installed." if $@;
 plan tests => 6;
 
 my $PORT = 9999;
