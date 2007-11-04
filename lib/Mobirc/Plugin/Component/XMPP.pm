@@ -15,8 +15,27 @@ use Carp;
 use Mobirc::Channel;
 use Mobirc::Util;
 
+sub config_schema {
+    {
+        type    => 'map',
+        mapping => {
+            jid => {
+                type     => 'str',
+                required => 1,
+            },
+            password => {
+                type     => 'str',
+                required => 1,
+            },
+            hostname        => { type => 'str', },
+            channel         => { type => 'str', },
+            alias           => { type => 'str', },
+            connection_type => { type => 'int', },
+        }
+    }
+}
+
 our $PLUGIN_COUNT = 0;
-our $XMPP_SESSION_NAME; # XXX for debug
 sub register {
     my ($class, $global_context, $conf) = @_;
 
@@ -39,7 +58,6 @@ sub register {
 
     $conf->{channel} ||= U 'xmpp[%s]';
     $conf->{alias} ||= "XMPP$PLUGIN_COUNT";
-    $XMPP_SESSION_NAME = $conf->{alias};
     $conf->{connection_type} ||= POE::Component::Jabber::ProtocolFactory::XMPP;
 }
 

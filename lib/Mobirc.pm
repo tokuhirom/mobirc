@@ -13,6 +13,12 @@ use Encode;
 
 our $VERSION = 0.02;
 
+our $HasKwalify;
+eval {
+    require Kwalify;
+    $HasKwalify++;
+};
+
 my $context;
 sub context { $context }
 
@@ -35,6 +41,12 @@ sub load_plugins {
     for my $plugin (@{$self->config->{plugin}}) {
         DEBUG "LOAD PLUGIN: $plugin->{module}";
         $plugin->{module}->use or die $@;
+        if ( $HasKwalify && $plugin->{module}->can('config_schema') ) {
+            my $res = Kwalify::validate( $plugin->{module}->config_schema, $plugin->{config} );
+            unless ( $res == 1 ) {
+                die "config.yaml validation error : $plugin->{module}, $res";
+            }
+        }
         $plugin->{module}->register( $self, $plugin->{config} );
     }
 }
