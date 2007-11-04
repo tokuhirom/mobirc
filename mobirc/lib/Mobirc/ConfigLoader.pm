@@ -85,8 +85,6 @@ sub load {
     }
 
     # set default vars.
-    $config->{irc}->{ping_delay}       ||= 30;
-    $config->{irc}->{reconnect_delay}  ||= 10;
     $config->{httpd}->{charset}        ||= 'cp932';
     $config->{httpd}->{root}           ||= decode( 'utf8', '/' );
     $config->{httpd}->{content_type}   ||= 'text/html; charset=Shift_JIS';
