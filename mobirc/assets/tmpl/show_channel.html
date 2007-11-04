@@ -19,7 +19,7 @@
                 [% render_line( line ) %]<br />
             [% END %]
             <hr />
-            <a accesskey="5" href="[% docroot %]channels/[% channel | uri %]">more[5]</a><br />
+            <a accesskey="5" href="[% docroot %]channels/[% channel.name | uri %]">more[5]</a><br />
         [% ELSE %]
             [% FOR line IN channel.message_log.reverse() %]
                 [% render_line( line ) %]<br />
