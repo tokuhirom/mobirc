@@ -6,6 +6,7 @@ use Mobirc::Channel;
 use Mobirc::Util;
 use POE;
 use POE::Sugar::Args;
+use Encode;
 
 sub register {
     my ($class, $global_context, $conf) = @_;
@@ -14,11 +15,31 @@ sub register {
     $global_context->register_hook(
         'run_component' => sub { _init($conf, shift) },
     );
+    $global_context->register_hook(
+        'process_command' => sub { my ($global_context, $command, $channel) = @_;  _process_command($conf, $global_context, $command, $channel) },
+    );
 
     $conf->{channel} ||= U '#twitter';
     $conf->{alias} ||= 'twitter';
     $conf->{screenname} ||= $conf->{username};
     $conf->{friend_timeline_interval} ||= 60;
+}
+
+sub _process_command {
+    my ($conf, $global_context, $command, $channel) = @_;
+
+    if ($conf->{channel} eq $channel->name) {
+        $poe_kernel->post( $conf->{alias}, 'update', encode('utf-8', $command) );
+        $channel->add_message(
+            Mobirc::Message->new(
+                who => $conf->{screenname},
+                body  => $command,
+                class => 'twitter',
+            )
+        );
+        return true;
+    }
+    return false;
 }
 
 sub _init {
@@ -84,8 +105,4 @@ Mobirc::Plugin::Component::Twitter - twitter component for mobirc
       password: bar
       screenname: bababa
       channel: #mytwitter
-
-=head1 LIMITATION
-
-read only. you cannot post to twitter ;-(
 
