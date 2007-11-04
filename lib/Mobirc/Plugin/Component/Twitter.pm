@@ -34,7 +34,7 @@ sub _process_command {
             Mobirc::Message->new(
                 who => $conf->{screenname},
                 body  => $command,
-                class => 'twitter',
+                class => 'public',
             )
         );
         return true;
@@ -81,7 +81,7 @@ sub _init {
                         Mobirc::Message->new(
                             who => $who,
                             body => $body,
-                            class => 'twitter',
+                            class => 'public',
                         )
                     );
                 }
