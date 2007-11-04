@@ -11,7 +11,7 @@ use Carp;
 use Mobirc::Channel;
 use Encode;
 
-our $VERSION = 0.01;
+our $VERSION = 0.02;
 
 my $context;
 sub context { $context }
