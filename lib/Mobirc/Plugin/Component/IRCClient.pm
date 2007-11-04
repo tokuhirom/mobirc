@@ -52,7 +52,7 @@ sub _process_command {
                     Mobirc::Message->new(
                         who => decode(
                             $irc_incode,
-                            $conf->{irc_nick}
+                            $poe_kernel->alias_resolve('irc_session')->get_heap->{irc}->nick_name
                         ),
                         body  => $command,
                         class => 'public',
