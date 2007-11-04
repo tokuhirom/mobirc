@@ -61,6 +61,7 @@ sub _init {
                         Mobirc::Message->new(
                             who => $who,
                             body => $body,
+                            class => 'twitter',
                         )
                     );
                 }
