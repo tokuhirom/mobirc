@@ -28,7 +28,6 @@ sub config_schema {
                 required => 1,
             },
             hostname        => { type => 'str', },
-            channel         => { type => 'str', },
             alias           => { type => 'str', },
             connection_type => { type => 'int', },
         }
@@ -49,16 +48,53 @@ sub register {
     $global_context->register_hook(
         'run_component' => sub { _init($conf, $PLUGIN_COUNT, shift) },
     );
- #  $global_context->register_hook(
- #      'process_command' => sub {
- #          my ( $global_context, $command, $channel ) = @_;
- #          _process_command( $conf, $global_context, $command, $channel );
- #      },
- #  );
+    $global_context->register_hook(
+        'process_command' => sub {
+            my ( $global_context, $command, $channel ) = @_;
+            _process_command( $conf, $global_context, $command, $channel );
+        },
+    );
 
-    $conf->{channel} ||= U 'xmpp[%s]';
     $conf->{alias} ||= "XMPP$PLUGIN_COUNT";
+    $conf->{parent_alias} ||= "ParentXMPP$PLUGIN_COUNT";
+    $conf->{resource} ||= 'mobirc';
     $conf->{connection_type} ||= POE::Component::Jabber::ProtocolFactory::XMPP;
+}
+
+sub _process_command {
+    my ($conf, $global_context, $command, $channel) = @_;
+
+    DEBUG "PROCESS COMMAND AT XMPP";
+    if (my $to_jid = _get_to_jid($channel->name)) {
+        DEBUG "TO JID IS: $to_jid";
+        my $from_jid = $poe_kernel->alias_resolve($conf->{parent_alias})->get_heap->{client}->jid;
+        DEBUG "from jid is: $from_jid";
+        my $node = POE::Filter::XML::Node->new(
+            'message',
+            [
+                from => $from_jid,
+                to   => $to_jid,
+                type => 'chat',
+            ]
+        );
+        $node->insert_tag('body')->data($command);
+        DEBUG "sending " . $node->to_str;
+        $poe_kernel->call( $conf->{alias}, 'output_handler', $node );
+
+        return true;
+    } else {
+        return false;
+    }
+}
+
+sub _get_to_jid {
+    my $channel_name = shift;
+
+    if ($channel_name =~ /^xmpp\[(.+)\]$/) {
+        return $1;
+    } else {
+        return;
+    }
 }
 
 sub _init {
@@ -73,18 +109,20 @@ sub _init {
         inline_states => {
             _start => sub {
                 my $poe = sweet_args;
+                $poe->kernel->alias_set($conf->{parent_alias});
                 unless ($conf->{jid} =~ /@/) {
                     die "invalid jid: $conf->{jid}";
                 }
                 my ($username, $componentname) = split /@/, $conf->{jid};
                 DEBUG "username: $username, componentname: $componentname, hostname: $conf->{hostname}";
-                POE::Component::Jabber->new(
+                my $client = POE::Component::Jabber->new(
                     IP             => $conf->{hostname} || $componentname,
                     PORT           => $conf->{port} || 5222,
                     HOSTNAME       => $componentname,
                     USERNAME       => $username,
                     PASSWORD       => $conf->{password},
                     ALIAS          => $conf->{alias},
+                    RESOURCE       => $conf->{resource},
                     CONNECTIONTYPE => $conf->{connection_type},
                     STATES         => {
                         InputEvent  => 'input_event',
@@ -92,6 +130,7 @@ sub _init {
                         StatusEvent => 'status_event',
                     }
                 );
+                $poe->heap->{client} = $client;
                 $poe->kernel->post( $conf->{alias}, 'connect' );
             },
             input_event  => \&_input_event,
@@ -116,7 +155,7 @@ sub _input_event {
 
         my $body_elem = $node->get_children_hash->{body};
         my $conf = $poe->heap->{conf};
-        my $channel = $poe->heap->{global_context}->get_channel( sprintf($conf->{channel}, $node->attr('from')) );
+        my $channel = $poe->heap->{global_context}->get_channel( sprintf(U("xmpp[%s]"), $node->attr('from')) );
         $channel->add_message(
             Mobirc::Message->new(
                 who   => undef,
@@ -172,8 +211,4 @@ Mobirc::Plugin::Component::XMPP - xmpp component for mobirc.
       password: sexy
       hostname: talk.google.com
       port: 5222
-
-=head1 LIMITATION
-
-post feature is not implemented yet.
 
