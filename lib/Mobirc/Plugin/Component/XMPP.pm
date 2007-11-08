@@ -30,6 +30,7 @@ sub config_schema {
             hostname        => { type => 'str', },
             alias           => { type => 'str', },
             connection_type => { type => 'int', },
+            port            => { type => 'int', },
         }
     }
 }
