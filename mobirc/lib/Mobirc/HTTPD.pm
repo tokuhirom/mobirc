@@ -32,6 +32,7 @@ sub init {
 
     my $session_id = POE::Component::Server::TCP->new(
         Alias        => 'mobirc_httpd',
+        Address      =>($config->{httpd}->{address} || '0.0.0.0'),
         Port         => $config->{httpd}->{port},
         ClientFilter => 'POE::Filter::HTTPD',
         ClientInput  => \&on_web_request,
