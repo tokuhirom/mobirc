@@ -33,6 +33,7 @@ my $schema = {
             required => 1,
             mapping  => {
                 lines          => { type => 'int', },
+                address        => { type => 'str', },
                 port           => { type => 'int', required => 1, },
                 title          => { type => 'str', },
                 content_type   => { type => 'str', },
