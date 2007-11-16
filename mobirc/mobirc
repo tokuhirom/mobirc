@@ -51,7 +51,7 @@ __END__
 
 =head1 SYNOPSIS
 
-   mobirc config.yaml
+   mobirc -config config.yaml
 
 =head1 WARNINGS
 
