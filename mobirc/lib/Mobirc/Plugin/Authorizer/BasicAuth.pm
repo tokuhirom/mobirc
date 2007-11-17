@@ -1,11 +1,21 @@
-package Mobirc::HTTPD::Authorizer::BasicAuth;
+package Mobirc::Plugin::Authorizer::BasicAuth;
 use strict;
 use warnings;
 use Carp;
 use Mobirc::Util;
 
-sub authorize {
-    my ( $class, $c, $conf ) = @_;
+sub register {
+    my ($class, $global_context, $conf) = @_;
+
+    $global_context->register_hook(
+        'authorize' => sub { my $c = shift;  _authorize($c, $conf) },
+    );
+}
+
+sub _authorize {
+    my ( $c, $conf ) = @_;
+
+    DEBUG "Basic Auth...";
 
     croak "missing username" unless $conf->{username};
     croak "missing password" unless $conf->{password};
