@@ -1,17 +1,9 @@
-package Mobirc::Plugin::MessageBodyFilter::IRCColor;
+package Mobirc::HTTPD::Filter::IRCColor;
 use strict;
 use warnings;
 
-sub register {
-    my ($class, $global_context, $conf) = @_;
-
-    $global_context->register_hook(
-        'message_body_filter' => sub { my $body = shift;  process($body, $conf) },
-    );
-}
-
 sub process {
-    my ( $text, $conf ) = @_;
+    my ( $class, $text, $conf ) = @_;
 
     return _decorate_irc_color($text, $conf->{no_decorate} || 0);
 }
