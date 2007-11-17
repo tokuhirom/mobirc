@@ -1,21 +1,11 @@
-package Mobirc::Plugin::Authorizer::EZSubscriberID;
+package Mobirc::HTTPD::Authorizer::EZSubscriberID;
 use strict;
 use warnings;
 use Carp;
 use Mobirc::Util;
 
-sub register {
-    my ($class, $global_context, $conf) = @_;
-
-    $global_context->register_hook(
-        'authorize' => sub { my $c = shift;  _authorize($c, $conf) },
-    );
-}
-
-sub _authorize {
-    my ( $c, $conf ) = @_;
-
-    DEBUG __PACKAGE__;
+sub authorize {
+    my ($class, $c, $conf) = @_;
 
     unless ($conf->{au_subscriber_id}) {
         croak "missing au_subscriber_id";
@@ -23,7 +13,6 @@ sub _authorize {
 
     my $subno = $c->{req}->header('x-up-subno');
     if ( $subno && $subno eq $conf->{au_subscriber_id} ) {
-        DEBUG "SUCESS AT EZSubscriberID";
         return true;
     } else {
         return false;
