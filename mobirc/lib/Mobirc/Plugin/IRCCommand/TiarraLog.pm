@@ -5,20 +5,22 @@ use Encode;
 use Mobirc::Util;
 
 sub register {
-    my ($class, $global_context) = @_;
+    my ($class, $global_context, $conf) = @_;
 
     $global_context->register_hook(
-        'on_irc_notice' => \&_process,
+        'on_irc_notice' => sub { _process(@_, $conf) },
     );
+
+    $conf->{sysmsg_prefix} ||= q{tiarra};
 }
 
 sub _process {
-    my ($poe, $who, $channel, $msg) = @_;
+    my ($poe, $who, $channel, $msg, $conf) = @_;
 
     DEBUG "parse tiara's Log::Recent log";
 
     # Tiarra Log::Recent Parser
-    if ($who && $who eq "tiarra") {
+    if ($who && $who eq $conf->{sysmsg_prefix}) {
         # header: %H:%M:%S
         # header: %H:%M
         # の場合を想定。後者は Log::Recent のデフォルトだったはず
@@ -27,38 +29,38 @@ sub _process {
         my $irc_incode = $poe->kernel->alias_resolve('irc_session')->get_heap->{config}->{incode};
         DEBUG "IRC INCODE IS $irc_incode";
         my $chann  = encode($irc_incode , $channel->[0]);
-        if ($msg =~ qr|^(\d\d:\d\d(?::\d\d)?) ! ([^\s]+?) \((.*)\)|) {
+        if ($msg =~ qr|^([0-2]\d:[0-5]\d(?::[0-5]\d)?) ! (\S+?) \((.*)\)|) {
             # ほんとは quit
             $class = "part";
             $who   = $2;
             $msg   = undef;
             $chann = $chann;
-        } elsif ($msg =~ qr|^(\d\d:\d\d(?::\d\d)) \+ ([^\s]+?) \(([^\)]+)\) to ([^\s]+)|) {
+        } elsif ($msg =~ qr|^([0-2]\d:[0-5]\d(?::[0-5]\d)?) \+ (\S+?) \(([^\)]+)\) to (\S+)|) {
             $class = "join";
             $who   = $2;
             $msg   = decode("utf8", "$2 join");
             $chann = $chann;
-        } elsif ($msg =~ qr|^(\d\d:\d\d(?::\d\d)) \- ([^\s]+?) from ([^\s]+)|) {
+        } elsif ($msg =~ qr|^([0-2]\d:[0-5]\d(?::[0-5]\d)?) \- (\S+?) from (\S+)|) {
             $class = "part";
             $who   = $2;
             $msg   = undef;
             $chann = $chann;
-        } elsif ($msg =~ qr|^(\d\d:\d\d(?::\d\d)) Mode by ([^\s]+?): ([^\s]+) (.*)|) {
+        } elsif ($msg =~ qr|^([0-2]\d:[0-5]\d(?::[0-5]\d)?) Mode by (\S+?): (\S+) (.*)|) {
             $class = "mode";
             $who   = $2;
             $msg   = undef;
             $chann = $chann;
-        } elsif ($msg =~ qr|^(\d\d:\d\d(?::\d\d)) Topic of channel ([^\s]+?) by ([^\s]+): (.*)|) {
+        } elsif ($msg =~ qr|^([0-2]\d:[0-5]\d(?::[0-5]\d)?) Topic of channel (\S+?) by (\S+): (.*)|) {
             $class = "topic";
             $who   = $3;
             $msg   = $4;
             $chann = $chann;
-        } elsif ($msg =~ qr|^(\d\d:\d\d(?::\d\d)) ([^\s]+?) -> ([^\s]+)|) {
+        } elsif ($msg =~ qr|^([0-2]\d:[0-5]\d(?::[0-5]\d)?) (\S+?) -> (\S+)|) {
             $class = "nick";
             $who   = $3;
             $msg   = $4;
             $chann = $chann;
-        } elsif ($msg =~ qr|^(\d\d:\d\d(?::\d\d)) [<>()=-]([^>]+?)[<>()=-] (.*)|) {
+        } elsif ($msg =~ qr|^([0-2]\d:[0-5]\d(?::[0-5]\d)?) [<>()=-]([^>]+?)[<>()=-] (.*)|) {
             # priv も notice もまとめて notice に
             # keyword 反応を再度しないため
             $class = "notice";
@@ -84,3 +86,15 @@ sub _process {
 }
 
 1;
+__END__
+
+=head1 NAME
+
+Mobirc::Plugin::IRCCommand::TiarraLog - Tiarra log blah-blah-blah
+
+=head1 SYNOPSIS
+
+  - module: Mobirc::Plugin::IRCCommand::TiarraLog
+    config:
+      sysmsg_prefix: tiarra
+
