@@ -5,6 +5,7 @@ use Mobirc::Util;
 use Carp;
 use CGI::Cookie;
 use Digest::MD5 ();
+use Encode;
 
 our $SALT = 'CSS Nite';
 
@@ -51,13 +52,15 @@ sub _set_cookie {
     my ($c, $response, $conf) = @_;
 
     my $password = $conf->{password} or croak "conf->{password} missing";
-
+    my $cookie = CGI::Cookie->new(
+        -name    => 'mobirc_key',
+        -value   => _calc_digest($password),
+        -expires => $conf->{expires} || '+7d',
+    );
+    my $cookie_str = $cookie->as_string;
+    $cookie_str = Encode::is_utf8($cookie_str) ? encode('utf8', $cookie_str) : $cookie_str; ## BK
     $response->push_header(
-        'Set-Cookie' => CGI::Cookie->new(
-            -name    => 'mobirc_key',
-            -value   => _calc_digest($password),
-            -expires => $conf->{expires} || '+7d',
-        )
+        'Set-Cookie' => $cookie_str
     );
 }
 
