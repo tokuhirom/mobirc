@@ -17,7 +17,7 @@ sub register {
 sub _process {
     my ($poe, $who, $channel, $msg, $conf) = @_;
 
-    DEBUG "parse tiara's Log::Recent log";
+    DEBUG "parse tiarra's Log::Recent log";
 
     # Tiarra Log::Recent Parser
     if ($who && $who eq $conf->{sysmsg_prefix}) {
