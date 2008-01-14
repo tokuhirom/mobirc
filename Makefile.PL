@@ -25,7 +25,6 @@ requires 'Template' => 2.16; # new 'uri' is supported from 2.16
 requires 'URI::Escape';
 requires 'URI::Find';
 requires 'YAML';
-requires 'utf8';
 requires 'UNIVERSAL::require';
 requires 'Kwalify';
 requires 'Storable';
@@ -33,6 +32,13 @@ requires 'List::MoreUtils';
 requires 'Template::Provider::Encoding';
 requires 'HTTP::MobileAgent';
 requires 'Class::Accessor';
+
+features(
+    'GPS support' => [
+        -default => 0,
+        recommends('HTTP::MobileAgent::Plugin::Locator'),
+    ],
+);
 
 build_requires 'Test::More';
 use_test_base;

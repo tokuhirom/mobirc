@@ -26,11 +26,20 @@ sub route {
     elsif ( $uri =~ m{^/keyword(-recent)?$} ) {
         return 'keyword', $1 ? true : false;
     }
-    elsif ($uri =~ m{^/channels(-recent)?/([^?]+)(?:\?time=\d+)?$}) {
+    elsif ($uri =~ m{^/channels(-recent)?/([^?]+)}) {
         my $recent_mode = $1 ? true : false;
         my $channel_name = $2;
         return 'show_channel', $recent_mode, uri_unescape($channel_name);
     } else {
+        # hook by plugins
+        for my $code (@{$c->{global_context}->get_hook_codes('httpd')}) {
+            my $response = $code->($c, $uri);
+            if ($response) {
+                return $response;
+            }
+        }
+
+        # doesn't match.
         warn "dan the 404 not found: $uri";
         my $response = HTTP::Response->new(404);
         $response->content("Dan the 404 not found: $uri");

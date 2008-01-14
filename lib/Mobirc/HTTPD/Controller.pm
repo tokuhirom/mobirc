@@ -4,6 +4,7 @@ use warnings;
 
 use Carp;
 use CGI;
+use URI;
 use Encode;
 use Template;
 use File::Spec;
@@ -171,9 +172,17 @@ sub dispatch_show_channel {
     my $out = render(
         $c,
         'show_channel' => {
-            channel        => $channel,
-            recent_mode    => $recent_mode,
-        }
+            channel     => $channel,
+            recent_mode => $recent_mode,
+            msg         => decode(
+                'utf8', +{ URI->new( $c->{req}->uri )->query_form }->{msg}
+            ),
+            channel_page_option => [
+                map { $_->( $channel, $c ) } @{
+                    $c->{global_context}->get_hook_codes('channel_page_option')
+                  }
+            ],
+          }
     );
 
     $channel->clear_unread;
