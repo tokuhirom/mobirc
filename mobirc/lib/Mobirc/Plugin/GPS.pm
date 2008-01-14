@@ -20,8 +20,8 @@ sub register {
             my $tt = Template->new;
             # TODO: split template string to assets dir.
             $tt->process(
-                \qq{<a href="/channel/[% channel.name | uri %]/gps"'>gps</a>},
-                { channel => $channel },
+                \qq{<a href="/channel/[% channel.name | uri %]/gps?time=[% time %]e"'>gps</a>},
+                { channel => $channel, time => time() },
                 \my $out
             ) or warn $tt->error;
             return $out;
@@ -32,11 +32,14 @@ sub register {
         httpd => sub {
             my ($c, $uri) = @_;
 
-            if ($uri =~ m{^/channel/([^/]+)/gps?$}) {
+            if ($uri =~ m{^/channel/([^/]+)/gps\?time=}) {
                 my $channel_name = $1;
                 my $page2 = $2;
 
                 my $path = File::Spec->catfile($c->{config}->{global}->{assets_dir}, 'plugin', 'GPS', 'measure.tt2');
+
+                local %ENV;
+                $ENV{HTTP_X_UP_DEVCAP_MULTIMEDIA} = $c->{req}->header('X-UP-DEVCAP-MULTIMEDIA');
 
                 my $response = HTTP::Response->new(200);
                 $response->push_header( 'Content-type' => encode('utf8', $c->{config}->{httpd}->{content_type}) );
