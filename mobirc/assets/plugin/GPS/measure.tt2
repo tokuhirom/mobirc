@@ -1,0 +1,39 @@
+<html>
+<head><title>Mobirc::Plugin::GPS</title></head>
+<body>
+<h1>Mobirc::Plugin::GPS</h1>
+
+[%- url = 'http://' _ req.header('Host') _ docroot _ 'channel/' _ channel_name _ '/gps_do' %]
+
+<p>[% IF mobile_agent.gps_compliant %]GPS Compliant[% ELSE %]Not GPS Compliant[% END %]</p>
+
+<p>
+    [% SWITCH mobile_agent.carrier %]
+    [% CASE 'I' %]
+        [% IF mobile_agent.gps_compliant %]
+            <a href="[% url | html %]" lcs="lcs">
+        [% ELSE %]
+            <a href="http://w1m.docomo.ne.jp/cp/iarea?ecode=OPENAREACODE&msn=OPENAREAKEY&posinfo=1&nl=[% url | uri %]">
+        [% END %]
+    [% CASE 'E' %]
+        [% IF mobile_agent.gps_compliant %]
+            <a href="device:gpsone?url=[% url %]&ver=1&datum=0&unit=0&acry=0&number=0">
+        [% ELSE %]
+            <a href="device:location?url=[% url %]">
+        [% END %]
+    [% CASE 'V' %]
+        [% IF mobile_agent.gps_compliant %]
+            <a href="location:auto?url=[% url | uri %]">
+        [% ELSE %]
+            <a href="[% url | uri %]" z="z">
+        [% END %]
+    [% CASE 'H' %]
+        <a href="http://location.request/dummy.cgi?my=[% url | uri %]&pos=$location">
+    [% END %]
+
+                Send Location Information
+    </a>
+</p>
+
+</body>
+</html>
