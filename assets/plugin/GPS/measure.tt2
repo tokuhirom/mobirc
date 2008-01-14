@@ -1,5 +1,7 @@
 <html>
 <head><title>Mobirc::Plugin::GPS</title></head>
+<meta http-equiv="Cache-Control" content="max-age=0" />                                                              
+<meta name="robots" content="noindex, nofollow" />                                                                   
 <body>
 <h1>Mobirc::Plugin::GPS</h1>
 
@@ -17,9 +19,9 @@
         [% END %]
     [% CASE 'E' %]
         [% IF mobile_agent.gps_compliant %]
-            <a href="device:gpsone?url=[% url %]&ver=1&datum=0&unit=0&acry=0&number=0">
+            <a href="device:gpsone?url=[% url | uri %]&ver=1&datum=0&unit=0&acry=0&number=0">
         [% ELSE %]
-            <a href="device:location?url=[% url %]">
+            <a href="device:location?url=[% url | uri %]">
         [% END %]
     [% CASE 'V' %]
         [% IF mobile_agent.gps_compliant %]
