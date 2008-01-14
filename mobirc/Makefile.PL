@@ -32,6 +32,7 @@ requires 'List::MoreUtils';
 requires 'Template::Provider::Encoding';
 requires 'HTTP::MobileAgent';
 requires 'Class::Accessor';
+requires 'CSS::Tiny';
 
 features(
     'GPS support' => [
