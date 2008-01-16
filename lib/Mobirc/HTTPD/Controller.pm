@@ -140,7 +140,17 @@ sub post_dispatch_show_channel {
     $root =~ s!/$!!;
     my $path = $c->{req}->uri;
     $path =~ s/#/%23/;
-    $response->push_header( 'Location' => $root . $path . '?time=' . time); # TODO: must be absoulute url.
+    $response->push_header(
+        'Location' => (
+                'http://'
+              . $c->{req}->header('Host') . ':'
+              . $c->{config}->{httpd}->{port}
+              . $root
+              . $path
+              . '?time='
+              . time
+        )
+    );
     return $response;
 }
 
