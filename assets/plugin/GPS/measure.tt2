@@ -5,7 +5,14 @@
 <body>
 <h1>Mobirc::Plugin::GPS</h1>
 
-[%- url = 'http://' _ req.header('Host') _ ':' _ port _ docroot _ 'channel/' _ channel_name _ '/gps_do' %]
+[% IF mobile_agent.is_ezweb and mobile_agent.gps_compliant %]
+    <!--
+        device:gpsone does not support port number.
+    -->
+    [%- url = 'http://' _ req.header('Host') _ docroot _ 'channel/' _ channel_name _ '/gps_do' %]
+[% ELSE %]
+    [%- url = 'http://' _ req.header('Host') _ ':' _ port _ docroot _ 'channel/' _ channel_name _ '/gps_do' %]
+[% END %]
 
 <p>[% IF mobile_agent.gps_compliant %]GPS Compliant[% ELSE %]Not GPS Compliant[% END %]</p>
 
