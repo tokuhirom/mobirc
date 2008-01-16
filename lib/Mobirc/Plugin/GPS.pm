@@ -54,6 +54,7 @@ sub register {
                         channel_name => $channel_name,
                         mobile_agent => $c->{mobile_agent},
                         docroot      => $c->{config}->{httpd}->{root},
+                        port         => $c->{config}->{httpd}->{port},
                     },
                     \my $out
                 ) or warn $tt->error;
@@ -77,7 +78,9 @@ sub register {
                 my $msg = "Mobirc::Plugin::GPS::InvGeocoder::$inv_geocoder"->inv_geocoder($point);
 
                 my $res = HTTP::Response->new(302);
-                $res->header('Location' => 'http://' . $c->{req}->header('Host') . $c->{config}->{httpd}->{root} . "channels/$channel_name?msg=" . uri_escape(encode('utf8', $msg)));
+                my $abs_uri = 'http://' . $c->{req}->header('Host') . $c->{config}->{httpd}->{root} . "channels/$channel_name?msg=" . uri_escape(encode('utf8', $msg));
+                warn "REDIRECT TO $abs_uri";
+                $res->header('Location' => $abs_uri);
                 $res;
             }
         },
