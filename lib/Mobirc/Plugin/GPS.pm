@@ -39,7 +39,9 @@ sub register {
                 my $path = File::Spec->catfile($c->{config}->{global}->{assets_dir}, 'plugin', 'GPS', 'measure.tt2');
 
                 local %ENV;
-                $ENV{HTTP_X_UP_DEVCAP_MULTIMEDIA} = $c->{req}->header('X-UP-DEVCAP-MULTIMEDIA');
+                if (my $devcap_multimedia = $c->{req}->header('X-UP-DEVCAP-MULTIMEDIA')) {
+                    $ENV{HTTP_X_UP_DEVCAP_MULTIMEDIA} = $devcap_multimedia;
+                }
 
                 my $response = HTTP::Response->new(200);
                 $response->push_header( 'Content-type' => encode('utf8', $c->{config}->{httpd}->{content_type}) );
