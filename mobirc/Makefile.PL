@@ -38,6 +38,7 @@ features(
     'GPS support' => [
         -default => 0,
         recommends('HTTP::MobileAgent::Plugin::Locator'),
+        recommends('Template::Plugin::HTMLMobileJp'),
     ],
 );
 

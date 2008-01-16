@@ -10,31 +10,19 @@
 <p>[% IF mobile_agent.gps_compliant %]GPS Compliant[% ELSE %]Not GPS Compliant[% END %]</p>
 
 <p>
-    [% SWITCH mobile_agent.carrier %]
-    [% CASE 'I' %]
-        [% IF mobile_agent.gps_compliant %]
-            <a href="[% url | html %]" lcs="lcs">
-        [% ELSE %]
-            <a href="http://w1m.docomo.ne.jp/cp/iarea?ecode=OPENAREACODE&msn=OPENAREAKEY&posinfo=1&nl=[% url | uri %]">
-        [% END %]
-    [% CASE 'E' %]
-        [% IF mobile_agent.gps_compliant %]
-            <a href="device:gpsone?url=[% url | uri %]&ver=1&datum=0&unit=0&acry=0&number=0">
-        [% ELSE %]
-            <a href="device:location?url=[% url | uri %]">
-        [% END %]
-    [% CASE 'V' %]
-        [% IF mobile_agent.gps_compliant %]
-            <a href="location:auto?url=[% url | uri %]">
-        [% ELSE %]
-            <a href="[% url | uri %]" z="z">
-        [% END %]
-    [% CASE 'H' %]
-        <a href="http://location.request/dummy.cgi?my=[% url | uri %]&pos=$location">
-    [% END %]
+    [% USE HTMLMobileJp %]
 
-                Send Location Information
-    </a>
+    [% IF mobile_agent.is_non_mobile %]
+        this is not a mobile phone.
+    [% ELSE %]
+        [% HTMLMobileJp.gps_a({
+            carrier      => mobile_agent.carrier,
+            is_gps       => mobile_agent.gps_compliant,
+            callback_url => url,
+        }) %]
+            Send Location Information
+        </a>
+    [% END %]
 </p>
 
 </body>
