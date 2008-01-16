@@ -34,7 +34,6 @@ sub register {
 
             if ($uri =~ m{^/channel/([^/]+)/gps\?time=}) {
                 my $channel_name = $1;
-                my $page2 = $2;
 
                 my $path = File::Spec->catfile($c->{config}->{global}->{assets_dir}, 'plugin', 'GPS', 'measure.tt2');
 
@@ -78,8 +77,7 @@ sub register {
                 my $msg = "Mobirc::Plugin::GPS::InvGeocoder::$inv_geocoder"->inv_geocoder($point);
 
                 my $res = HTTP::Response->new(302);
-                my $abs_uri = 'http://' . $c->{req}->header('Host') . $c->{config}->{httpd}->{root} . "channels/$channel_name?msg=" . uri_escape(encode('utf8', $msg));
-                warn "REDIRECT TO $abs_uri";
+                my $abs_uri = 'http://' . $c->{req}->header('Host') . $c->{config}->{httpd}->{root} . "channels/$channel_name?msg=" . uri_escape(encode('utf8', "L:$msg"));
                 $res->header('Location' => $abs_uri);
                 $res;
             }
