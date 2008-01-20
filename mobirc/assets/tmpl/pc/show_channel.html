@@ -10,7 +10,7 @@
     no such channel.<br />
 [% END %]
 <br />
-<form>
+<form onsubmit="send_message();return false">
 <input type="text" id="msg" name="msg" size="30" />
-<input type="button" value="send" onclick="send_message()" onkeypress="send_message()" />
+<input type="button" value="send" onclick="send_message()" />
 </form>

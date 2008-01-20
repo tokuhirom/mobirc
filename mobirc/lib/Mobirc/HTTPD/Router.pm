@@ -34,6 +34,9 @@ sub route {
     elsif ($uri =~ '/jquery.js') {
         return 'static', 'jquery.js', 'text/javascript';
     }
+    elsif ($uri =~ '/mobirc.js') {
+        return 'static', 'mobirc.js', 'text/javascript';
+    }
     elsif ($uri =~ '/style.css') {
         return 'static', 'style.css', 'text/css';
     } 
