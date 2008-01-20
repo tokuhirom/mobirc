@@ -7,7 +7,7 @@ body { width : 100% ; }
 
 #main { height: 600px; }
 #menu { position : absolute ; right : 0 ; top : 52px ; padding-left: 5px; width : 250px ; }
-#contents { margin-right : 250px; height: 600px; padding-left: 5px; overflow: auto; } 
+#contents { margin-right : 250px; height: 400px; padding-left: 5px; overflow: auto; } 
 
 
 #menu div { margin-bottom: 2px; }
