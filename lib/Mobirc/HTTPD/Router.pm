@@ -32,10 +32,10 @@ sub route {
         return 'show_channel', $recent_mode, uri_unescape($channel_name);
     }
     elsif ($uri =~ '/jquery.js') {
-        return 'static', 'jquery.js', 'text/javascript';
+        return 'static', 'jquery.js', 'application/javascript';
     }
     elsif ($uri =~ '/mobirc.js') {
-        return 'static', 'mobirc.js', 'text/javascript';
+        return 'static', 'mobirc.js', 'application/javascript';
     }
     elsif ($uri =~ '/style.css') {
         return 'static', 'style.css', 'text/css';
@@ -50,7 +50,7 @@ sub route {
         }
 
         # doesn't match.
-        warn "dan the 404 not found: $uri";
+        warn "dan the 404 not found: $uri" if $uri ne '/favicon.ico';
         my $response = HTTP::Response->new(404);
         $response->content("Dan the 404 not found: $uri");
         return $response;
