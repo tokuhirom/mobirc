@@ -1,0 +1,55 @@
+/* page layout */
+* { margin : 0 ; padding : 0 ; font-size: 95%; }
+body { width : 100% ; }
+#body { position : relative ; }
+#header { width : 100% ; height : 50px ; }
+#footer { width : 100% ; clear : both ; }
+
+#main { height: 600px; }
+#menu { position : absolute ; right : 0 ; top : 52px ; padding-left: 5px; width : 250px ; }
+#contents { margin-right : 250px; height: 600px; padding-left: 5px; overflow: auto; } 
+
+
+#menu div { margin-bottom: 2px; }
+#menu div.unread { background-color: #99ffff; }
+
+
+/* irc log styles */
+
+.keyword_recent_notice {
+    background-color: red;
+}
+
+.time {
+    color: #004080;
+}
+.notice {
+    color: #808080;
+}
+.join {
+    color: #bbedbd;
+}
+.leave {
+    color: #bbbded;
+}
+.ctcp_action {
+    color: #808080;
+    font-style: italic;
+}
+.kick {
+    color: #fc4efe;
+}
+.snotice {
+    color: #408080;
+}
+.connect {
+    color: #408080;
+}
+.reconnect {
+    color: #408080;
+}
+
+.nick_normal { color: #000080; }
+.nick_myself { color: #6060a0; }
+
+

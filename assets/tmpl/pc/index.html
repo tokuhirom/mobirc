@@ -1,0 +1,32 @@
+[% INCLUDE 'include/header.html' %]
+
+<div id="body">
+
+<div id="header"></div>
+
+<div id="main">
+
+<div id="menu">
+[%# < %][% IF keyword_recent_num > 0 %]
+<div class="keyword_recent_notice"><a href="#" onclick="$('#contents').load('[% docroot %]keyword-recent');">Keyword([% keyword_recent_num | html %])</a></div>
+[% END %]
+
+<!-- channel list -->
+[% FOR channel IN channels -%]
+<div class="[% IF channel.unread_lines %]unread[% END %]">
+<a href="javascript:contents_load('[% docroot %]channels/[% channel.name | uri %]', '[% channel.name | uri %]');">[% channel.name %]</a>
+</div>
+[% END -%]
+
+<div><a href="[% docroot %]keyword">keyword</a></div>
+</div>
+
+<div id="contents"></div>
+
+</div><!-- /.main -->
+
+<div class="footer">mobirc - <span class="version">[% version %]</span></div>
+
+</div><!-- /.body -->
+
+[% INCLUDE 'include/footer.html' %]
