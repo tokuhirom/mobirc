@@ -30,7 +30,14 @@ sub route {
         my $recent_mode = $1 ? true : false;
         my $channel_name = $2;
         return 'show_channel', $recent_mode, uri_unescape($channel_name);
-    } else {
+    }
+    elsif ($uri =~ '/jquery.js') {
+        return 'static', 'jquery.js', 'text/javascript';
+    }
+    elsif ($uri =~ '/style.css') {
+        return 'static', 'style.css', 'text/css';
+    } 
+    else {
         # hook by plugins
         for my $code (@{$c->{global_context}->get_hook_codes('httpd')}) {
             my $response = $code->($c, $uri);

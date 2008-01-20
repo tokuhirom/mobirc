@@ -7,7 +7,7 @@ use CGI;
 use URI;
 use Encode;
 use Template;
-use File::Spec;
+use Path::Class;
 use URI::Escape;
 use HTTP::Response;
 use HTML::Entities;
@@ -172,7 +172,7 @@ sub dispatch_keyword {
 }
 
 sub dispatch_show_channel {
-    my ($class, $c, $recent_mode, $channel_name) = @_;
+    my ($class, $c, $recent_mode, $channel_name, $render) = @_;
 
     DEBUG "show channel page: $channel_name";
     $channel_name = decode('utf8', $channel_name); # maybe $channel_name is not flagged utf8.
@@ -184,6 +184,7 @@ sub dispatch_show_channel {
         'show_channel' => {
             channel     => $channel,
             recent_mode => $recent_mode,
+            render_ajax    => $render,
             msg         => decode(
                 'utf8', +{ URI->new( $c->{req}->uri )->query_form }->{msg}
             ),
@@ -220,13 +221,14 @@ sub render {
         %$args,
     };
 
+    my $tmpl_dir = $c->{mobile_agent}->is_non_mobile ? 'pc' : 'mobile';
+    DEBUG "tmpl_dir: $tmpl_dir";
+
     my $tt = Template->new(
         LOAD_TEMPLATES => [
             Template::Provider::Encoding->new(
                 ABSOLUTE => 1,
-                INCLUDE_PATH =>
-                  File::Spec->catfile( $c->{config}->{global}->{assets_dir},
-                    'tmpl', )
+                INCLUDE_PATH => dir( $c->{config}->{global}->{assets_dir}, 'tmpl', $tmpl_dir, )->stringify,
             )
         ],
     );
@@ -240,10 +242,18 @@ sub render {
 
     # change content type for docomo
     # FIXME: hmm... should be in the plugin?
-    local $c->{config}->{httpd}->{content_type} = 'application/xhtml+xml' if $c->{mobile_agent}->is_docomo; ## no critic.
+    my $content_type = $c->{config}->{httpd}->{content_type};
+    $content_type= 'application/xhtml+xml' if $c->{mobile_agent}->is_docomo;
+    unless ( $content_type ) {
+        if ( $c->{mobile_agent}->is_non_mobile ) {
+            $content_type = 'text/html; charset=UTF-8';
+        } else {
+            $content_type = 'text/html; charset=Shift_JIS';
+        }
+    }
 
     my $response = HTTP::Response->new(200);
-    $response->push_header( 'Content-type' => encode('utf8', $c->{config}->{httpd}->{content_type}) );
+    $response->push_header( 'Content-type' => encode('utf8', $content_type) );
     $response->push_header('Content-Length' => length($content) );
 
     $response->content( $content );
@@ -251,6 +261,21 @@ sub render {
     for my $code (@{$c->{global_context}->get_hook_codes('response_filter')}) {
         $code->($c, $response);
     }
+
+    return $response;
+}
+
+sub dispatch_static {
+    my ($class, $c, $file_name, $content_type) = @_;
+
+    my $file = file($c->{config}->{global}->{assets_dir},'static', $file_name);
+    my $content = $file->slurp;
+
+    my $response = HTTP::Response->new(200);
+    $response->push_header( 'Content-type' => $content_type );
+    $response->push_header('Content-Length' => length($content) );
+
+    $response->content( $content );
 
     return $response;
 }
@@ -301,10 +326,11 @@ sub _process_body {
     return $body;
 }
 
+# FIXME I want to use HTTP::MobileAgent::Plugin::Charset
 sub _get_charset {
     my ($c, ) = @_;
 
-    my $charset = $c->{config}->{httpd}->{charset};
+    my $charset = $c->{config}->{httpd}->{charset} || 'shift_jis-mobile-auto';
 
     if ($charset =~ /^shift_jis-.+/) {
         require Encode::JP::Mobile;
@@ -313,7 +339,7 @@ sub _get_charset {
     if ($charset eq 'shift_jis-mobile-auto') {
         my $agent = $c->{mobile_agent};
         if ($agent->is_non_mobile) {
-            $charset = 'cp932';
+            $charset = 'utf8';
         } else {
             $charset = 'shift_jis-' . lc $agent->carrier_longname;
         }

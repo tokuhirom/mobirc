@@ -86,9 +86,7 @@ sub load {
     }
 
     # set default vars.
-    $config->{httpd}->{charset}        ||= 'cp932';
     $config->{httpd}->{root}           ||= decode( 'utf8', '/' );
-    $config->{httpd}->{content_type}   ||= 'text/html; charset=Shift_JIS';
     $config->{httpd}->{echo} = true unless exists $config->{httpd}->{echo};
     $config->{httpd}->{recent_log_per_page} ||= 30;
     $config->{global}->{assets_dir}    ||= File::Spec->catfile( $FindBin::Bin, 'assets' );
