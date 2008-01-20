@@ -8,7 +8,7 @@
 
 <div id="menu">
 [%# < %][% IF keyword_recent_num > 0 %]
-<div class="keyword_recent_notice"><a href="#" onclick="$('#contents').load('[% docroot %]keyword-recent');">Keyword([% keyword_recent_num | html %])</a></div>
+<div class="keyword_recent_notice"><a href="#" onclick="$('#contents').load('[% docroot %]keyword-recent')" onkeypress="$('#contents').load('[% docroot %]keyword-recent')">Keyword([% keyword_recent_num | html %])</a></div>
 [% END %]
 
 <!-- channel list -->
