@@ -14,7 +14,7 @@
 <!-- channel list -->
 [% FOR channel IN channels -%]
 <div class="[% IF channel.unread_lines %]unread[% END %]">
-<a href="javascript:contents_load('[% docroot %]channels/[% channel.name | uri %]', '[% channel.name | uri %]');">[% channel.name %]</a>
+<a href="#" onclick="contents_load('[% docroot %]channels/[% channel.name | uri %]', '[% channel.name | uri %]');">[% channel.name %]</a>
 </div>
 [% END -%]
 
