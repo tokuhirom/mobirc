@@ -33,6 +33,7 @@ requires 'Template::Provider::Encoding';
 requires 'HTTP::MobileAgent';
 requires 'Class::Accessor';
 requires 'CSS::Tiny';
+requires 'Encode::JP::Mobile';
 
 features(
     'GPS support' => [
