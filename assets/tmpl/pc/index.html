@@ -25,7 +25,15 @@
 
 </div><!-- /.main -->
 
-<div class="footer">mobirc - <span class="version">[% version %]</span></div>
+<div class="footer">
+<form onsubmit="send_message();return false">
+<input type="text" id="msg" name="msg" size="30" />
+<input type="button" value="send" onclick="send_message()" />
+</form>
+<script type="text/javascript">
+$('#msg').focus();
+</script><br />
+mobirc - <span class="version">[% version %]</span></div>
 
 </div><!-- /.body -->
 
