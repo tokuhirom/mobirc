@@ -140,11 +140,12 @@ sub post_dispatch_show_channel {
     $root =~ s!/$!!;
     my $path = $c->{req}->uri;
     $path =~ s/#/%23/;
+    # SHOULD USE http://example.com/ INSTEAD OF http://example.com:portnumber/
+    # because au phone returns '400 Bad Request' when redrirect to http://example.com:portnumber/
     $response->push_header(
         'Location' => (
                 'http://'
-              . $c->{req}->header('Host') . ':'
-              . $c->{config}->{httpd}->{port}
+              . $c->{req}->header('Host')
               . $root
               . $path
               . '?time='
