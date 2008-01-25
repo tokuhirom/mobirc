@@ -27,8 +27,7 @@ sub _process {
         # kick とかに対応していない
         my $class;
         my $irc_incode = $poe->kernel->alias_resolve('irc_session')->get_heap->{config}->{incode};
-        DEBUG "IRC INCODE IS $irc_incode";
-        my $chann  = encode($irc_incode , $channel->[0]);
+        my $chann = encode($irc_incode , $channel->[0]);
         if ($msg =~ qr|^([0-2]\d:[0-5]\d(?::[0-5]\d)?) ! (\S+?) \((.*)\)|) {
             # ほんとは quit
             $class = "part";
@@ -70,11 +69,11 @@ sub _process {
         }
 
         if ($class) {
-            DEBUG "RE THROW Tiarra RECENT LOG->$class";
+            DEBUG "RE THROW Tiarra RECENT LOG->$class INCODE: $irc_incode";
             $poe->kernel->call(
                 $poe->session,
                 "irc_$class",
-                $who,
+                encode($irc_incode , $who),
                 $chann,
                 encode($irc_incode, $msg)
             );
