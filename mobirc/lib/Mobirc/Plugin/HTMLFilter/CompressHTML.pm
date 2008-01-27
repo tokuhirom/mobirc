@@ -15,8 +15,6 @@ sub register {
 sub _html_filter_compress {
     my ($c, $content) = @_;
 
-    use bytes;
-
     my $bsize = length $content;
 
     $content =~ s{<!--.+?-->}{}gs;
