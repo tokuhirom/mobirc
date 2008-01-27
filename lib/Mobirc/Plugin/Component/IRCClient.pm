@@ -206,7 +206,7 @@ sub on_irc_part {
 
     my $irc = $poe->heap->{irc};
     if ( $who eq $irc->nick_name ) {
-        delete $poe->heap->{global_context}->channels->{$channel_name};
+        $poe->heap->{global_context}->delete_channel($channel_name);
     }
     else {
         my $message = "$who leaves";
