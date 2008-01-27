@@ -14,6 +14,7 @@ use HTML::Entities;
 use Scalar::Util qw/blessed/;
 use List::Util qw/first/;
 use Template::Provider::Encoding;
+use Encode::JP::Mobile 0.24;
 
 use Mobirc;
 use Mobirc::Util;
@@ -127,7 +128,7 @@ sub post_dispatch_show_channel {
 
     my $r       = CGI->new( $c->{req}->content );
     my $message = $r->param('msg');
-    $message = decode( _get_charset($c), $message );
+    $message = decode( $c->{mobile_agent}->encoding, $message );
 
     DEBUG "POST MESSAGE $message";
 
@@ -238,7 +239,7 @@ sub render {
 
     DEBUG "rendering done";
 
-    my $content = encode( _get_charset($c), $out);
+    my $content = encode( $c->{mobile_agent}->encoding, $out);
     $content = _html_filter($c, $content);
 
     # change content type for docomo
@@ -325,30 +326,6 @@ sub _process_body {
     }
 
     return $body;
-}
-
-# FIXME I want to use HTTP::MobileAgent::Plugin::Charset
-sub _get_charset {
-    my ($c, ) = @_;
-
-    my $charset = $c->{config}->{httpd}->{charset} || 'shift_jis-mobile-auto';
-
-    if ($charset =~ /^shift_jis-.+/) {
-        require Encode::JP::Mobile;
-    }
-
-    if ($charset eq 'shift_jis-mobile-auto') {
-        my $agent = $c->{mobile_agent};
-        if ($agent->is_non_mobile) {
-            $charset = 'utf8';
-        } else {
-            $charset = 'shift_jis-' . lc $agent->carrier_longname;
-        }
-    }
-
-    DEBUG "use charset: $charset";
-
-    return $charset;
 }
 
 1;

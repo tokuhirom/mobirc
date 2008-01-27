@@ -34,6 +34,7 @@ requires 'HTTP::MobileAgent';
 requires 'Class::Accessor';
 requires 'CSS::Tiny';
 requires 'Encode::JP::Mobile';
+requires 'HTTP::MobileAgent::Plugin::Charset';
 
 features(
     'GPS support' => [
