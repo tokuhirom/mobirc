@@ -146,7 +146,7 @@ sub post_dispatch_show_channel {
     $response->push_header(
         'Location' => (
                 'http://'
-              . $c->{req}->header('Host')
+              . ($c->{config}->{httpd}->{host} || $c->{req}->header('Host'))
               . $root
               . $path
               . '?time='

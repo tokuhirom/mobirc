@@ -38,6 +38,7 @@ my $schema = {
                 title          => { type => 'str', },
                 content_type   => { type => 'str', },
                 charset        => { type => 'str', },
+                host           => { type => 'str', },
                 root           => { type => 'str', },
                 echo           => { type => 'bool', },
                 recent_log_per_page => { type => 'int', },
