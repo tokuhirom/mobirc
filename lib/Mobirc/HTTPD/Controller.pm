@@ -239,8 +239,8 @@ sub render {
 
     DEBUG "rendering done";
 
+    $out = _html_filter($c, $out);
     my $content = encode( $c->{mobile_agent}->encoding, $out);
-    $content = _html_filter($c, $content);
 
     # change content type for docomo
     # FIXME: hmm... should be in the plugin?
