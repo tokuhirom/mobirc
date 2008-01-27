@@ -141,6 +141,7 @@ sub post_dispatch_show_channel {
     $root =~ s!/$!!;
     my $path = $c->{req}->uri;
     $path =~ s/#/%23/;
+
     # SHOULD USE http://example.com/ INSTEAD OF http://example.com:portnumber/
     # because au phone returns '400 Bad Request' when redrirect to http://example.com:portnumber/
     $response->push_header(
@@ -247,7 +248,7 @@ sub render {
     my $content_type = $c->{config}->{httpd}->{content_type};
     $content_type= 'application/xhtml+xml' if $c->{mobile_agent}->is_docomo;
     unless ( $content_type ) {
-        if ( $c->{mobile_agent}->is_non_mobile ) {
+        if ( $c->{mobile_agent}->can_display_utf8 ) {
             $content_type = 'text/html; charset=UTF-8';
         } else {
             $content_type = 'text/html; charset=Shift_JIS';
