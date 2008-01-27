@@ -9,30 +9,12 @@
 
 [% FOR channel IN channels -%]
     [%- IF accesskey < 10 %][%# > %]
-        [% SWITCH mobile_agent.carrier %]
-        [% CASE 'I' %]
-            &#x[% 59106 + accesskey - 1 | format("%X") %];
-        [% CASE 'E' %]
-            &#x[% 63879 + accesskey - 1 | format("%X") %];
-        [% CASE 'V' %]
-            &#x[% 57884 + accesskey - 1 | format("%X") %];
-        [% CASE %]
-            [% accesskey %]
-        [% END %]
+        &#x[% 59106 + accesskey - 1 | format("%X") %];
 
         <a accesskey="[% accesskey %]" href="[% docroot %]channels/[% channel.name | uri %]">
     [%- ELSE %]
 
-        [% SWITCH mobile_agent.carrier %]
-        [% CASE 'I' %]
-            &#xE6F0;
-        [% CASE 'E' %]
-            &#xF995;
-        [% CASE 'V' %]
-            &#xE206;
-        [% CASE %]
-            *
-        [% END %]
+        &#xE6F0;
 
         <a href="[% docroot %]channels/[% channel.name | uri %]">
     [%- END -%]

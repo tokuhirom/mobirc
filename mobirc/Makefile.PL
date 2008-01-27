@@ -35,6 +35,7 @@ requires 'Class::Accessor';
 requires 'CSS::Tiny';
 requires 'Encode::JP::Mobile';
 requires 'HTTP::MobileAgent::Plugin::Charset';
+requires 'HTML::Entities::ConvertPictogramMobileJp';
 
 features(
     'GPS support' => [
