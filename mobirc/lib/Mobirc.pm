@@ -104,4 +104,10 @@ sub get_channel {
     return $self->{channels}->{$name} ||= Mobirc::Channel->new($self, $name);
 }
 
+sub delete_channel {
+    my ($self, $name) = @_;
+    croak "channel name is flagged utf8" unless Encode::is_utf8($name);
+    delete $self->{channels}->{$name};
+}
+
 1;
