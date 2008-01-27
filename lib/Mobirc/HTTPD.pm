@@ -19,6 +19,7 @@ use HTML::Entities;
 use Scalar::Util qw/blessed/;
 use UNIVERSAL::require;
 use HTTP::MobileAgent;
+use HTTP::MobileAgent::Plugin::Charset;
 
 use Mobirc;
 use Mobirc::Util;
