@@ -1,3 +1,4 @@
+# vim:expandtab:
 package Mobirc::Plugin::IRCCommand::TiarraLog;
 use strict;
 use warnings;
@@ -17,7 +18,6 @@ sub register {
 sub _process {
     my ($poe, $who, $channel, $msg, $conf) = @_;
 
-    DEBUG "parse tiarra's Log::Recent log";
 
     # Tiarra Log::Recent Parser
     if ($who && $who eq $conf->{sysmsg_prefix}) {
@@ -28,6 +28,7 @@ sub _process {
         my $class;
         my $irc_incode = $poe->kernel->alias_resolve('irc_session')->get_heap->{config}->{incode};
         my $chann = encode($irc_incode , $channel->[0]);
+        DEBUG "Parse Tiarra's Log::Recent message. $who NOTICE $channel->[0] :$msg";
         if ($msg =~ qr|^([0-2]\d:[0-5]\d(?::[0-5]\d)?) ! (\S+?) \((.*)\)|) {
             # ほんとは quit
             $class = "part";
@@ -37,7 +38,7 @@ sub _process {
         } elsif ($msg =~ qr|^([0-2]\d:[0-5]\d(?::[0-5]\d)?) \+ (\S+?) \(([^\)]+)\) to (\S+)|) {
             $class = "join";
             $who   = $2;
-            $msg   = decode("utf8", "$2 join");
+            $msg   = "$2 join";
             $chann = $chann;
         } elsif ($msg =~ qr|^([0-2]\d:[0-5]\d(?::[0-5]\d)?) \- (\S+?) from (\S+)|) {
             $class = "part";
@@ -69,7 +70,7 @@ sub _process {
         }
 
         if ($class) {
-            DEBUG "RE THROW Tiarra RECENT LOG->$class INCODE: $irc_incode";
+            DEBUG "RE THROW Tiarra RECENT LOG->$class INCODE: $irc_incode.";
             $poe->kernel->call(
                 $poe->session,
                 "irc_$class",
