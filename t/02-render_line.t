@@ -8,6 +8,8 @@ use Mobirc::Message;
 
 plan tests => 1*blocks;
 
+local $ENV{TZ} = 'Asia/Tokyo';
+
 {
     package PoCoIRCMock;
     sub nick_name { 'tokuhirom' }
