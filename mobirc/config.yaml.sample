@@ -19,6 +19,7 @@ plugin:
   # - module: Mobirc::Plugin::Authorizer::EZSubscriberID
   #   config:
   #     au_subscriber_id: 25253252_oe.ezweb.ne.jp
+  - module: Mobirc::Plugin::HTMLFilter::ConvertPictograms
   - module: Mobirc::Plugin::MessageBodyFilter::Clickable
     config:
       au_pcsv: 0
