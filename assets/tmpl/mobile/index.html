@@ -1,5 +1,7 @@
 [% INCLUDE 'include/header.html' %]
 
+<a name="top"></a>
+
 [%# < %][% IF keyword_recent_num > 0 %]
 <div class="keyword_recent_notice"><a href="[% docroot %]keyword-recent">Keyword([% keyword_recent_num | html %])</a></div>
 [% END %]
@@ -34,7 +36,7 @@
 
 <!-- main menu -->
 
-&#xE6EB; <a href="[% docroot %]" accesskey="0">refresh list</a><br />
+&#xE6EB; <a href="[% docroot %]#top" accesskey="0">refresh list</a><br />
 [%- IF exists_recent_entries %]
 * <a href="[% docroot %]recent" accesskey="*">recent</a><br />
 [%- END %]
