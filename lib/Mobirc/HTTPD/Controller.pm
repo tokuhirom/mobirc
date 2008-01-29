@@ -109,6 +109,30 @@ sub dispatch_recent {
     return $out;
 }
 
+sub dispatch_clear_all_unread {
+    my ($class, $c) = @_;
+
+    for my $channel ($c->{global_context}->channels) {
+        $channel->clear_unread;
+    }
+
+    my $response = HTTP::Response->new(302);
+    my $root = $c->{config}->{httpd}->{root};
+    $root =~ s!/$!!;
+
+    # SHOULD USE http://example.com/ INSTEAD OF http://example.com:portnumber/
+    # because au phone returns '400 Bad Request' when redrirect to http://example.com:portnumber/
+    $response->push_header(
+        'Location' => (
+                'http://'
+              . ($c->{config}->{httpd}->{host} || $c->{req}->header('Host'))
+              . $root
+        )
+    );
+
+    return $response;
+}
+
 # topic on every channel
 sub dispatch_topics {
     my ($class, $c) = @_;

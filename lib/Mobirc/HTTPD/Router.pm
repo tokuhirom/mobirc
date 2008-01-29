@@ -31,6 +31,9 @@ sub route {
         my $channel_name = $2;
         return 'show_channel', $recent_mode, uri_unescape($channel_name);
     }
+    elsif ($uri eq '/clear_all_unread') {
+        return 'clear_all_unread';
+    }
     elsif ($uri =~ '/jquery.js') {
         return 'static', 'jquery.js', 'application/javascript';
     }
