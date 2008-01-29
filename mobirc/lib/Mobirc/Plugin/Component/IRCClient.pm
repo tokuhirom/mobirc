@@ -247,6 +247,11 @@ sub on_irc_public {
             class => 'public',
         )
     );
+    my $irc = $poe->heap->{irc};
+    if ( $who eq $irc->nick_name ) {
+        DEBUG "CLEAR UNREAD";
+        $channel->clear_unread;
+    }
 
     $poe->heap->{seen_traffic}   = true;
     $poe->heap->{disconnect_msg} = true;
@@ -257,7 +262,7 @@ sub on_irc_notice {
 
     my ($who, $channel_name, $msg) = _get_args($poe);
 
-    DEBUG "IRC NOTICE";
+    DEBUG "IRC NOTICE $who $channel_name $msg";
 
     for my $code (@{ $poe->heap->{global_context}->get_hook_codes('on_irc_notice') }) {
         my $finished = $code->($poe, $who, $channel_name, $msg);
