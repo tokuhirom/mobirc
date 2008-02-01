@@ -79,3 +79,4 @@ t/05-filter-decorate_irc_color.t
 t/05-filter-no_decorate_irc_color.t
 t/06-daemonize.t
 t/07-Component-IRCClient.t
+Changes
