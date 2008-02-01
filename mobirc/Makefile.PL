@@ -46,6 +46,7 @@ features(
 );
 
 build_requires 'Test::More';
+install_script 'mobirc';
 use_test_base;
 auto_include;
 WriteAll;
