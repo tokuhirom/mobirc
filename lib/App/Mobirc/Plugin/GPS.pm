@@ -43,7 +43,7 @@ sub register {
                 }
 
                 my $response = HTTP::Response->new(200);
-                $response->push_header( 'Content-type' => encode('utf8', $c->{config}->{httpd}->{content_type}) );
+                $response->push_header( 'Content-type' => encode('utf8', 'text/html; charset=Shift_JIS') );
                 my $tt = Template->new(ABSOLUTE => 1);
                 $tt->process(
                     $path,
