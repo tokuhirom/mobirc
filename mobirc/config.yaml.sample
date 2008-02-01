@@ -7,31 +7,31 @@
 #     - mogera
 
 plugin:
-  - module: Mobirc::Plugin::HTMLFilter::DoCoMoCSS
-  - module: Mobirc::Plugin::IRCCommand::TiarraLog
-  - module: Mobirc::Plugin::Authorizer::Cookie
+  - module: App::Mobirc::Plugin::HTMLFilter::DoCoMoCSS
+  - module: App::Mobirc::Plugin::IRCCommand::TiarraLog
+  - module: App::Mobirc::Plugin::Authorizer::Cookie
     config:
       password: 1152
-  - module: Mobirc::Plugin::Authorizer::BasicAuth
+  - module: App::Mobirc::Plugin::Authorizer::BasicAuth
     config:
       username: netwatcher
       password: 0721
-  # - module: Mobirc::Plugin::Authorizer::EZSubscriberID
+  # - module: App::Mobirc::Plugin::Authorizer::EZSubscriberID
   #   config:
   #     au_subscriber_id: 25253252_oe.ezweb.ne.jp
-  - module: Mobirc::Plugin::HTMLFilter::ConvertPictograms
-  - module: Mobirc::Plugin::MessageBodyFilter::Clickable
+  - module: App::Mobirc::Plugin::HTMLFilter::ConvertPictograms
+  - module: App::Mobirc::Plugin::MessageBodyFilter::Clickable
     config:
       au_pcsv: 0
       pocket_hatena: 1
       # http_link_string: $host$path
       # accept_schemes: [mailto, tel]
       # redirector: http://www.google.com/url?sa=D&q=
-  - module: Mobirc::Plugin::MessageBodyFilter::IRCColor
+  - module: App::Mobirc::Plugin::MessageBodyFilter::IRCColor
     config:
       # no_decorate: 0
 
-  - module: Mobirc::Plugin::Component::IRCClient
+  - module: App::Mobirc::Plugin::Component::IRCClient
     config:
       server: 127.0.0.1
       port: 252322

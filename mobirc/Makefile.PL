@@ -1,6 +1,6 @@
 use inc::Module::Install;
 name 'mobirc';
-all_from 'lib/Mobirc.pm';
+all_from 'lib/App/Mobirc.pm';
 
 license  'gpl';
 

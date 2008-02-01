@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Test::Base;
-use Mobirc::Plugin::MessageBodyFilter::Clickable;
+use App::Mobirc::Plugin::MessageBodyFilter::Clickable;
 
 plan tests => 1*blocks;
 
@@ -11,7 +11,7 @@ filters {
 
 sub clickable {
     my $x = shift;
-    Mobirc::Plugin::MessageBodyFilter::Clickable::process( $x->{text}, $x->{conf} );
+    App::Mobirc::Plugin::MessageBodyFilter::Clickable::process( $x->{text}, $x->{conf} );
 }
 
 run_is input => 'expected';

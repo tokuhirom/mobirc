@@ -1,9 +1,9 @@
 <html>
-<head><title>Mobirc::Plugin::GPS</title></head>
+<head><title>App::Mobirc::Plugin::GPS</title></head>
 <meta http-equiv="Cache-Control" content="max-age=0" />                                                              
 <meta name="robots" content="noindex, nofollow" />                                                                   
 <body>
-<h1>Mobirc::Plugin::GPS</h1>
+<h1>App::Mobirc::Plugin::GPS</h1>
 
 [% IF mobile_agent.is_ezweb and mobile_agent.gps_compliant %]
     <!--
