@@ -2,9 +2,9 @@ use strict;
 use warnings;
 use utf8;
 use Test::Base;
-use Mobirc::HTTPD::Controller;
-use Mobirc;
-use Mobirc::Message;
+use App::Mobirc::HTTPD::Controller;
+use App::Mobirc;
+use App::Mobirc::Message;
 
 plan tests => 1*blocks;
 
@@ -18,19 +18,19 @@ local $ENV{TZ} = 'Asia/Tokyo';
 sub render_line {
     my $src = shift;
     my $irc = bless {}, 'PoCoIRCMock';
-    my $global_context = Mobirc->new(
+    my $global_context = App::Mobirc->new(
         {
             httpd => { port => 80 }
         }
     );
-    return Mobirc::HTTPD::Controller::render_line(
+    return App::Mobirc::HTTPD::Controller::render_line(
         { irc_nick => 'tokuhirom', global_context => $global_context },
         $src );
 }
 
 sub message {
     my $hash = shift;
-    Mobirc::Message->new(%$hash);
+    App::Mobirc::Message->new(%$hash);
 }
 
 filters {

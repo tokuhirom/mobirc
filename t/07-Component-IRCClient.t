@@ -1,12 +1,12 @@
 use strict;
 use warnings;
 use POE;
-use Mobirc::Plugin::Component::IRCClient;
-use Mobirc;
+use App::Mobirc::Plugin::Component::IRCClient;
+use App::Mobirc;
 use Test::More;
 use Data::Dumper;
 use POE::Sugar::Args;
-use Mobirc::Util;
+use App::Mobirc::Util;
 use Encode;
 eval q{use POE::Component::Server::IRC;};
 plan skip_all => "POE::Component::Server::IRC is not installed." if $@;
@@ -17,7 +17,7 @@ my $PORT = 9999;
 my $config = {
     plugin => [
         {
-            module => 'Mobirc::Plugin::Component::IRCClient',
+            module => 'App::Mobirc::Plugin::Component::IRCClient',
             config => {
                 nick     => 'testee',
                 port     => $PORT,
@@ -36,7 +36,7 @@ my $config = {
 
 $SIG{INT} = sub { die };
 
-my $global_context = Mobirc->new($config);
+my $global_context = App::Mobirc->new($config);
 $_->($global_context) for @{$global_context->get_hook_codes('run_component')};
 POE::Session->create(
     package_states => [
@@ -55,7 +55,7 @@ sub _start {
 sub test {
     my ($kernel, $heap) = @_[ KERNEL, HEAP ];
 
-    my $context = Mobirc->context;
+    my $context = App::Mobirc->context;
 
     my $tasks_for = {
         '#coderepos' => [

@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Test::More tests => 2;
-use Mobirc::ConfigLoader;
+use App::Mobirc::ConfigLoader;
 use FindBin;
 use File::Spec;
 use YAML;
@@ -12,7 +12,7 @@ sub check {
     my $stuff = shift;
 
     eval {
-        Mobirc::ConfigLoader->load($stuff);
+        App::Mobirc::ConfigLoader->load($stuff);
     };
     my $err = $@ || '';
     is $err, '', "loading success";

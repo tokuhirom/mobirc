@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Data::Dumper;
-use Mobirc::Plugin::MessageBodyFilter::IRCColor;
+use App::Mobirc::Plugin::MessageBodyFilter::IRCColor;
 
 use Test::Base;
 eval q{ use String::IRC };
@@ -13,7 +13,7 @@ filters {
 
 sub decorate_irc_color {
     my $x = shift;
-    Mobirc::Plugin::MessageBodyFilter::IRCColor::process( $x, {no_decorate => 1} );
+    App::Mobirc::Plugin::MessageBodyFilter::IRCColor::process( $x, {no_decorate => 1} );
 }
 
 run_is input => 'expected';

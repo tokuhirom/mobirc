@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Test::More;
-use Mobirc::Util;
+use App::Mobirc::Util;
 eval "use Proc::Daemon; use File::Temp;";
 if ($@) {
     plan skip_all => "Proc::Daemon, File::Temp is not installed.";

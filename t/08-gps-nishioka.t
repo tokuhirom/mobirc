@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use utf8;
 use Test::Base;
-use Mobirc::Plugin::GPS::InvGeocoder::Nishioka;
+use App::Mobirc::Plugin::GPS::InvGeocoder::Nishioka;
 use Geo::Coordinates::Converter;
 
 plan tests => 1*blocks;
@@ -19,7 +19,7 @@ sub point {
 
 sub inv_geocoder {
     my $point = shift;
-    Mobirc::Plugin::GPS::InvGeocoder::Nishioka->inv_geocoder($point);
+    App::Mobirc::Plugin::GPS::InvGeocoder::Nishioka->inv_geocoder($point);
 }
 
 run_is input => 'expected';
