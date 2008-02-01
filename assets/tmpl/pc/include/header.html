@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html lang="ja" xml:lang="ja" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta http-equiv="Cache-Control" content="max-age=0" />
+<meta name="robots" content="noindex, nofollow" /> 
+
+[% IF $user_agent.match('(iPod|iPhone)') %]
+<meta name="viewport" content="width=device-width">
+<meta name="viewport" content="initial-scale=1.0, user-scalable=yes">
+[% END %]
+
+<title>[% IF subtitle %][% subtitle | html %] - [% END %][% title | html %]</title>
+
+<link rel="stylesheet" href="/style.css" type="text/css"> 
+<script src="/jquery.js"></script>
+<script src="/mobirc.js"></script>
+
+</head>
+<body>

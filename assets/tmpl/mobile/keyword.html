@@ -1,0 +1,15 @@
+[% INCLUDE 'include/header.html' %]
+
+<a name="1"></a>
+<a accesskey="7" href="#1"></a>
+
+<div class="ttlLv1">keyword</div>
+
+[% FOR row IN rows %]
+    [% render_line(row) %](<a href="[% docroot %]channels/[% row.channel.name | uri%]">[% row.channel.name | html %]</a>)<br />
+[% END %]
+
+<hr />
+&#xE6E9;<a accesskey="8" href="[% docroot %]">top</a><br />
+
+[% INCLUDE 'include/footer.html' %]
