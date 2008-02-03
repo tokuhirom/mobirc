@@ -17,3 +17,4 @@
 ^[^/]+\.yaml$
 ^[^/]+\.pl$
 ^\.shipit$
+^t/Plugins/GPS/

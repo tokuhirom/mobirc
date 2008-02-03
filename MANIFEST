@@ -24,6 +24,7 @@ assets/tmpl/pc/recent.html
 assets/tmpl/pc/show_channel.html
 assets/tmpl/pc/topics.html
 AUTHORS
+Changes
 config.yaml.sample
 inc/Module/Install.pm
 inc/Module/Install/Base.pm
@@ -79,4 +80,6 @@ t/05-filter-decorate_irc_color.t
 t/05-filter-no_decorate_irc_color.t
 t/06-daemonize.t
 t/07-Component-IRCClient.t
-Changes
+t/Plugins/Filter/clickable.t
+t/Plugins/Filter/decorate-irc-color.t
+t/Plugins/Filter/no-decorate-irc-color.t
