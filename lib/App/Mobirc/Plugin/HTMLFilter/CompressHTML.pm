@@ -37,4 +37,21 @@ sub _html_filter_compress {
 1;
 __END__
 
+=encoding utf8
+
+=head1 NAME
+
+App::Mobirc::Plugin::HTMLFilter::CompressHTML - compress the html filter
+
+=head1 DESCRIPTION
+
+compress the html filter for mobirc
+
+=head1 AUTHOR
+
+cho45
+
+=head1 SEE ALSO
+
+L<App::Mobirc>
 
