@@ -75,11 +75,10 @@ mobirc
 t/00_compile.t
 t/02-render_line.t
 t/04-config-validation.t
-t/05-filter-clickable.t
-t/05-filter-decorate_irc_color.t
-t/05-filter-no_decorate_irc_color.t
 t/06-daemonize.t
 t/07-Component-IRCClient.t
 t/Plugins/Filter/clickable.t
 t/Plugins/Filter/decorate-irc-color.t
 t/Plugins/Filter/no-decorate-irc-color.t
+t/Plugins/HTMLFilter/CompressHTML.t
+t/Plugins/HTMLFilter/ConvertPictograms.t
