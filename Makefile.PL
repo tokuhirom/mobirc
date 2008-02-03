@@ -45,6 +45,7 @@ features(
     ],
 );
 
+tests 't/*.t t/*/*.t t/*/*/*.t';
 build_requires 'Test::More';
 install_script 'mobirc';
 use_test_base;
