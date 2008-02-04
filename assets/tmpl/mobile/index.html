@@ -3,7 +3,7 @@
 <a name="top"></a>
 
 [%# < %][% IF keyword_recent_num > 0 %]
-<div class="keyword_recent_notice"><a href="[% docroot %]keyword-recent">Keyword([% keyword_recent_num | html %])</a></div>
+<div class="keyword_recent_notice"><a href="/keyword-recent">Keyword([% keyword_recent_num | html %])</a></div>
 [% END %]
 
 <!-- channel list -->
@@ -13,18 +13,18 @@
     [%- IF accesskey < 10 %][%# > %]
         &#x[% 59106 + accesskey - 1 | format("%X") %];
 
-        <a accesskey="[% accesskey %]" href="[% docroot %]channels/[% channel.name | uri %]">
+        <a accesskey="[% accesskey %]" href="/channels/[% channel.name | uri %]">
     [%- ELSE %]
 
         &#xE6F0;
 
-        <a href="[% docroot %]channels/[% channel.name | uri %]">
+        <a href="/channels/[% channel.name | uri %]">
     [%- END -%]
             [% channel.name %]
         </a>
 
     [% IF channel.unread_lines %]
-        <a href="[% docroot %]channels-recent/[% channel.name | uri %]">[% channel.unread_lines %]</a>
+        <a href="/channels-recent/[% channel.name | uri %]">[% channel.unread_lines %]</a>
     [% END %]
 
     <br />
@@ -36,13 +36,13 @@
 
 <!-- main menu -->
 
-&#xE6EB; <a href="[% docroot %]#top" accesskey="0">refresh list</a><br />
+&#xE6EB; <a href="/#top" accesskey="0">refresh list</a><br />
 [%- IF exists_recent_entries %]
-* <a href="[% docroot %]recent" accesskey="*">recent</a><br />
+* <a href="/recent" accesskey="*">recent</a><br />
 [%- END %]
-# <a href="[% docroot %]topics" accesskey="#">topics</a><br />
-<a href="[% docroot %]keyword">keyword</a><br />
-<a href="[% docroot %]clear_all_unread">clear_all_unread</a><br />
+# <a href="/topics" accesskey="#">topics</a><br />
+<a href="/keyword">keyword</a><br />
+<a href="/clear_all_unread">clear_all_unread</a><br />
 
 <hr />
 

@@ -1,6 +1,6 @@
 [% INCLUDE 'include/header.html' %]
 
-<form action="[% docroot %]channels/[% channel.name | uri %]" method="post">
+<form action="/channels/[% channel.name | uri %]" method="post">
 [% IF user_agent.match('(iPod|iPhone)') %]
     <input type="text" name="msg" />
 [% ELSE %]
@@ -20,7 +20,7 @@
                 [% render_line( line ) %]<br />
             [% END %]
             <hr />
-            &#xE6E6;<a accesskey="5" href="[% docroot %]channels/[% channel.name | uri %]">more</a><br />
+            &#xE6E6;<a accesskey="5" href="/channels/[% channel.name | uri %]">more</a><br />
         [% ELSE %]
             [% FOR line IN channel.message_log.reverse() %]
                 [% render_line( line ) %]<br />
@@ -34,6 +34,6 @@
 [% END %]
 
 <hr />
-&#xE6E9;<a accesskey="8" href="[% docroot %]">top</a><br />
+&#xE6E9;<a accesskey="8" href="/">top</a><br />
 
 [% INCLUDE 'include/footer.html' %]

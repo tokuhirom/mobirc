@@ -3,7 +3,7 @@
 [% FOR channel IN target_channels %]
     <div class="ChannelHeader">
         <b class="ChannelName">[% channel.name | html %]</b>
-        <a href="[% docroot %]channels/[% channel.name | uri%]">more..</a><br />
+        <a href="/channels/[% channel.name | uri%]">more..</a><br />
     </div>
 
     [% FOR line IN channel.recent_log %]
@@ -15,11 +15,11 @@
 <br />
 
 [% IF has_next_page %]
-<a href="[% docroot %]recent?t=[% now %]">next</a>
+<a href="/recent?t=[% now %]">next</a>
 [% END %]
 
 <hr />
 
-<a accesskey="8" href="[% docroot %]">ch list[8]</a>
+<a accesskey="8" href="/">ch list[8]</a>
 
 [% INCLUDE 'include/footer.html' %]

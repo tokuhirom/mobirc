@@ -1,10 +1,10 @@
 [% INCLUDE 'include/header.html' %]
 
 [% FOR channel IN channels %]
-    <a href="[% docroot %]channels/[% channel.name | uri %]">[% channel.name | html %]</a><br />
+    <a href="/channels/[% channel.name | uri %]">[% channel.name | html %]</a><br />
     [% channel.topic %]<br />
 [% END %]
 <br />
-<a accesskey="8" href="[% docroot %]">ch list[8]</a>
+<a accesskey="8" href="/">ch list[8]</a>
 
 [% INCLUDE 'include/footer.html' %]
