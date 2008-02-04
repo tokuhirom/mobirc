@@ -20,7 +20,7 @@ sub register {
             my $tt = Template->new;
             # TODO: split template string to assets dir.
             $tt->process(
-                \qq{<a href="/channel/[% channel.name | uri %]/gps?time=[% time %]e"'>gps</a>},
+                \qq{<a href="/channel/[% channel.name | uri %]/gps?time=[% time %]e">gps</a>},
                 { channel => $channel, time => time() },
                 \my $out
             ) or warn $tt->error;
