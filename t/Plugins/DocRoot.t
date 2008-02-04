@@ -1,6 +1,8 @@
 use strict;
 use warnings;
+use utf8;
 use App::Mobirc::Plugin::DocRoot;
+use Encode;
 use Test::Base;
 
 filters {
@@ -8,7 +10,11 @@ filters {
 };
 
 sub convert {
-    App::Mobirc::Plugin::DocRoot::_html_filter_docroot(undef, $_[0], {root => '/foo/'});
+    my $src = shift;
+    ok Encode::is_utf8($src);
+    my $dst = App::Mobirc::Plugin::DocRoot::_html_filter_docroot(undef, $src, {root => '/foo/'});
+    ok Encode::is_utf8($dst);
+    $dst;
 }
 
 __END__

@@ -35,7 +35,7 @@ sub _html_filter_docroot {
         $elem->setAttribute(src => $root . $elem->getAttribute('src'));
     }
 
-    $doc->toStringHTML;
+    U $doc->toStringHTML;
 }
 
 1;
