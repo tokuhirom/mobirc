@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use App::Mobirc::Util;
 use XML::LibXML;
+use Encode;
 
 sub register {
     my ($class, $global_context, $conf) = @_;
@@ -42,7 +43,7 @@ sub _html_filter_docroot {
         $elem->setAttribute(src => $root . $elem->getAttribute('src'));
     }
 
-    U $doc->toStringHTML;
+    decode($doc->encoding, $doc->toStringHTML);
 }
 
 1;
