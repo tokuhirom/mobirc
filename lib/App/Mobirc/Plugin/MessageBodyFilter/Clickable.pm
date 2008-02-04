@@ -76,13 +76,13 @@ sub process_http {
     if ( $conf->{pocket_hatena} ) {
         $out .=
         sprintf(
-            '<a href="http://mgw.hatena.ne.jp/?url=%s&noimage=0&split=1" rel="nofollow" class="pocket_hatena">[ph]</a>',
+            '<a href="http://mgw.hatena.ne.jp/?url=%s;noimage=0;split=1" rel="nofollow" class="pocket_hatena">[ph]</a>',
             uri_escape($uri) );
     }
     if ( $conf->{google_gwt} ) {
         $out .=
         sprintf(
-            '<a href="http://www.google.co.jp/gwt/n?u=%s&_gwt_noimg=0" rel="nofollow" class="google_gwt">[gwt]</a>',
+            '<a href="http://www.google.co.jp/gwt/n?u=%s;_gwt_noimg=0" rel="nofollow" class="google_gwt">[gwt]</a>',
             uri_escape($uri) );
     }
     return $out;
