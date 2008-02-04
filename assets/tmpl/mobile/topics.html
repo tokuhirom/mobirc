@@ -2,7 +2,7 @@
 
 [% FOR channel IN channels %]
     <a href="/channels/[% channel.name | uri %]">[% channel.name | html %]</a><br />
-    [% channel.topic %]<br />
+    [% channel.topic | html %]<br />
 [% END %]
 <br />
 &#xE6E9;<a accesskey="8" href="/">ch list</a>
