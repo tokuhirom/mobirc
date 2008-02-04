@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use URI::Find;
 use URI::Escape;
+use App::Mobirc::Util;
 @URI::tel::ISA = qw( URI );
 
 sub register {
@@ -63,6 +64,8 @@ sub process_http {
         }eg
     }
 
+    $link_string = uri_unescape($link_string);
+
     if ( $conf->{redirector} ) {
         $out = sprintf('<a href="%s%s" rel="nofollow" class="url">%s</a>', $conf->{redirector}, $uri, $link_string);
     } else {
@@ -85,7 +88,7 @@ sub process_http {
             '<a href="http://www.google.co.jp/gwt/n?u=%s;_gwt_noimg=0" rel="nofollow" class="google_gwt">[gwt]</a>',
             uri_escape($uri) );
     }
-    return $out;
+    return U $out;
 }
 
 sub process_default {
