@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use URI::Find;
 use URI::Escape;
+use HTML::Entities;
 use App::Mobirc::Util;
 @URI::tel::ISA = qw( URI );
 
@@ -64,17 +65,21 @@ sub process_http {
         }eg
     }
 
-    $link_string = uri_unescape($link_string);
+    $link_string = encode_entities(uri_unescape($link_string),  q(<>&"));
+    my $encoded_uri = encode_entities($uri, q(<>&"));
 
     if ( $conf->{redirector} ) {
-        $out = sprintf('<a href="%s%s" rel="nofollow" class="url">%s</a>', $conf->{redirector}, $uri, $link_string);
+        $out =
+        sprintf(
+            '<a href="%s%s" rel="nofollow" class="url">%s</a>',
+            encode_entities($conf->{redirector}, q(<>&")),
+            $encoded_uri,
+            $link_string );
     } else {
-        $out = qq{<a href="$uri" rel="nofollow" class="url">$link_string</a>};
+        $out = qq{<a href="$encoded_uri" rel="nofollow" class="url">$link_string</a>};
     }
     if ( $conf->{au_pcsv} ) {
-        $out .=
-        sprintf( '<a href="device:pcsiteviewer?url=%s" rel="nofollow" class="au_pcsv">[PCSV]</a>',
-            $uri );
+        $out .= '<a href="device:pcsiteviewer?url=$encoded_uri" rel="nofollow" class="au_pcsv">[PCSV]</a>';
     }
     if ( $conf->{pocket_hatena} ) {
         $out .=
