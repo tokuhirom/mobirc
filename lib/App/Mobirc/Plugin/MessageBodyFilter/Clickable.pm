@@ -79,7 +79,7 @@ sub process_http {
         $out = qq{<a href="$encoded_uri" rel="nofollow" class="url">$link_string</a>};
     }
     if ( $conf->{au_pcsv} ) {
-        $out .= '<a href="device:pcsiteviewer?url=$encoded_uri" rel="nofollow" class="au_pcsv">[PCSV]</a>';
+        $out .= qq{<a href="device:pcsiteviewer?url=$encoded_uri" rel="nofollow" class="au_pcsv">[PCSV]</a>};
     }
     if ( $conf->{pocket_hatena} ) {
         $out .=
