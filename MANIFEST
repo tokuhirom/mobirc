@@ -57,6 +57,7 @@ lib/App/Mobirc/Plugin/Authorizer/SoftBankID.pm
 lib/App/Mobirc/Plugin/Component/IRCClient.pm
 lib/App/Mobirc/Plugin/Component/Twitter.pm
 lib/App/Mobirc/Plugin/Component/XMPP.pm
+lib/App/Mobirc/Plugin/DocRoot.pm
 lib/App/Mobirc/Plugin/GPS.pm
 lib/App/Mobirc/Plugin/GPS/InvGeocoder/EkiData.pm
 lib/App/Mobirc/Plugin/GPS/InvGeocoder/Nishioka.pm
@@ -77,6 +78,7 @@ t/02-render_line.t
 t/04-config-validation.t
 t/06-daemonize.t
 t/07-Component-IRCClient.t
+t/Plugins/DocRoot.t
 t/Plugins/Filter/clickable.t
 t/Plugins/Filter/decorate-irc-color.t
 t/Plugins/Filter/no-decorate-irc-color.t

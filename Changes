@@ -1,3 +1,11 @@
+0.05
+
+    - (SECURITY FIX)fixed xss(http://coderepos.org/share/changeset/6204)
+    - use more pictograms in mobile template.
+    - give accesskey="9" to clear_all_unread.
+    - added App/Mobirc/Plugin/DocRoot.pm
+    - well formed html
+
 0.04
 
     - fixed docroot related bug.fixed by hirose31++
