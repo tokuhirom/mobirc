@@ -10,7 +10,7 @@
 [% accesskey = 1 %]
 
 [% FOR channel IN channels -%]
-    [%- IF accesskey < 10 %][%# > %]
+    [%- IF accesskey <= 8 %][%# > %]
         &#x[% 59106 + accesskey - 1 | format("%X") %];
 
         <a accesskey="[% accesskey %]" href="/channels/[% channel.name | uri %]">
@@ -42,7 +42,7 @@
 [%- END %]
 # <a href="/topics" accesskey="#">topics</a><br />
 <a href="/keyword">keyword</a><br />
-<a href="/clear_all_unread">clear_all_unread</a><br />
+<a href="/clear_all_unread" accesskey="9">clear_all_unread</a><br />
 
 <hr />
 
