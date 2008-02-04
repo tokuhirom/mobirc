@@ -28,6 +28,13 @@ sub _html_filter_docroot {
             }
         }
     }
+    for my $elem ($doc->findnodes('//form')) {
+        if (my $uri = $elem->getAttribute('action')) {
+            if ($uri =~ m{^/}) {
+                $elem->setAttribute(action => $root . $uri);
+            }
+        }
+    }
     for my $elem ($doc->findnodes('//link')) {
         $elem->setAttribute(href => $root . $elem->getAttribute('href'));
     }

@@ -171,6 +171,7 @@ sub post_dispatch_show_channel {
         'Location' => (
                 'http://'
               . ($c->{config}->{httpd}->{host} || $c->{req}->header('Host'))
+              . $root
               . $path
               . '?time='
               . time
