@@ -41,9 +41,9 @@ plugin:
       # password: netwatch
       incode: utf-8
 
-# - module: App::Mobirc::Plugin::DocRoot
-#   config:
-#     root: /foo/
+  # - module: App::Mobirc::Plugin::DocRoot
+  #   config:
+  #     root: /foo/
 
 httpd:
   port: 5785
