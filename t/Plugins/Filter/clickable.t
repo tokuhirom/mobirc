@@ -24,6 +24,12 @@ text: http://d.hatena.ne.jp/
 conf: ~
 --- expected: <a href="http://d.hatena.ne.jp/" rel="nofollow" class="url">http://d.hatena.ne.jp/</a>
 
+=== basic with amp
+--- input
+text: http://www.google.co.jp/search?hl=ja&q=foo
+conf: ~
+--- expected: <a href="http://www.google.co.jp/search?hl=ja&amp;q=foo" rel="nofollow" class="url">http://www.google.co.jp/search?hl=ja&amp;q=foo</a>
+
 === basic scheme restrict
 --- input
 text: http://d.hatena.ne.jp/
@@ -75,6 +81,13 @@ text: http://d.hatena.ne.jp/
 conf:
   au_pcsv: true
 --- expected: <a href="http://d.hatena.ne.jp/" rel="nofollow" class="url">http://d.hatena.ne.jp/</a><a href="device:pcsiteviewer?url=http://d.hatena.ne.jp/" rel="nofollow" class="au_pcsv">[PCSV]</a>
+
+=== au_pcsv with amp
+--- input
+text: http://www.google.co.jp/search?hl=ja&q=foo
+conf:
+  au_pcsv: true
+--- expected: <a href="http://www.google.co.jp/search?hl=ja&amp;q=foo" rel="nofollow" class="url">http://www.google.co.jp/search?hl=ja&amp;q=foo</a><a href="device:pcsiteviewer?url=http://www.google.co.jp/search?hl=ja&amp;q=foo" rel="nofollow" class="au_pcsv">[PCSV]</a>
 
 === google_gwt
 --- input
