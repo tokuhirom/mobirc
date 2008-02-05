@@ -121,6 +121,38 @@ App::Mobirc - pluggable IRC to HTTP gateway
 
 mobirc is a pluggable IRC to HTTP gateway for mobile phones.
 
+=head1 CODE COVERAGE
+
+I use Devel::Cover to test the code coverage of my tests, below is the Devel::Cover report on this module test suite.
+
+    ---------------------------- ------ ------ ------ ------ ------ ------ ------
+    File                           stmt   bran   cond    sub    pod   time  total
+    ---------------------------- ------ ------ ------ ------ ------ ------ ------
+    blib/lib/App/Mobirc.pm         80.0   35.7   62.5   87.0    0.0   10.2   66.5
+    ...lib/App/Mobirc/Channel.pm   77.3   53.6   66.7   81.2   14.3    2.6   68.3
+    ...pp/Mobirc/ConfigLoader.pm   94.3   50.0   72.7  100.0    0.0   29.4   81.8
+    blib/lib/App/Mobirc/HTTPD.pm   63.3    0.0    0.0   85.2    0.0    3.7   56.4
+    ...obirc/HTTPD/Controller.pm   38.9   19.4    0.0   61.3    0.0    3.6   35.6
+    ...pp/Mobirc/HTTPD/Router.pm   40.9    0.0    n/a   85.7    0.0    1.7   30.0
+    ...lib/App/Mobirc/Message.pm  100.0    n/a    n/a  100.0  100.0    0.9  100.0
+    ...n/Authorizer/BasicAuth.pm   48.0    0.0    0.0   57.1    0.0    0.1   38.1
+    ...ugin/Authorizer/Cookie.pm   44.7    0.0    0.0   53.8    0.0    0.2   37.8
+    ...horizer/EZSubscriberID.pm   48.0    0.0    0.0   57.1    0.0    0.1   40.0
+    .../Authorizer/SoftBankID.pm   52.2    0.0    0.0   57.1    0.0    0.1   42.1
+    ...in/Component/IRCClient.pm   83.2   33.3   41.7   83.3    0.0   11.3   72.1
+    .../Mobirc/Plugin/DocRoot.pm   77.8   25.0    n/a   75.0    0.0    4.3   67.9
+    ...PS/InvGeocoder/EkiData.pm   93.8   75.0    n/a  100.0    0.0    2.8   90.9
+    ...S/InvGeocoder/Nishioka.pm   93.3   50.0    n/a  100.0    0.0    3.0   90.0
+    ...TMLFilter/CompressHTML.pm   90.9    n/a    n/a   80.0    0.0    0.3   85.7
+    ...lter/ConvertPictograms.pm   84.6    n/a    n/a   80.0    0.0    1.1   78.9
+    ...n/HTMLFilter/DoCoMoCSS.pm   37.5    0.0    n/a   66.7    0.0    0.2   35.3
+    ...n/IRCCommand/TiarraLog.pm   21.4    0.0    0.0   57.1    0.0    0.1   18.4
+    ...geBodyFilter/Clickable.pm   92.8   83.3   72.7   83.3    0.0    5.4   85.1
+    ...ageBodyFilter/IRCColor.pm   77.3   64.3  100.0   81.8    0.0    1.4   72.4
+    blib/lib/App/Mobirc/Util.pm    75.6   30.0    n/a   83.3    0.0   17.8   63.8
+    Total                          66.0   31.7   36.0   77.5    2.7  100.0   58.5
+    ---------------------------- ------ ------ ------ ------ ------ ------ ------
+
 =head1 AUTHOR
 
 Tokuhiro Matsuno and Mobirc AUTHORS.
