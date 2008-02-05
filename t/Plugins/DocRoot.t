@@ -20,7 +20,6 @@ sub convert {
 __END__
 
 ===
---- ONLY
 --- input
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
@@ -36,18 +35,28 @@ __END__
 
 ===
 --- input
-<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><script src="/mobirc.js"></script></body></html>
+<html>
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /></head>
+<body><script src="/mobirc.js"></script></body>
+</html>
 --- expected
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><script src="/foo/mobirc.js"></script></body></html>
+<html>
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head>
+<body><script src="/foo/mobirc.js"></script></body>
+</html>
 
 ===
 --- input
-<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><link rel="stylesheet" href="/style.css" type="text/css"></body></html>
+<html>
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /></head>
+<body><link rel="stylesheet" href="/style.css" type="text/css"></body>
+</html>
 --- expected
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><link rel="stylesheet" href="/foo/style.css" type="text/css"></body></html>
+<html>
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head>
+<body><link rel="stylesheet" href="/foo/style.css" type="text/css"></body>
+</html>
