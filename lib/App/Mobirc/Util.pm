@@ -21,7 +21,7 @@ sub DEBUG($) { ## no critic.
 # -------------------------------------------------------------------------
 
 sub normalize_channel_name {
-    local ($_) = shift;
+    local $_ = shift;
     tr/A-Z[\\]^/a-z{|}~/;
     $_;
 }
