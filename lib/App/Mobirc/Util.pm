@@ -6,7 +6,7 @@ use Carp;
 use List::MoreUtils qw/any/;
 use Encode;
 
-our @EXPORT = qw/true false DEBUG compact_channel_name normalize_channel_name daemonize decorate_irc_color U/;
+our @EXPORT = qw/true false DEBUG normalize_channel_name daemonize decorate_irc_color U/;
 
 sub true  () { 1 } ## no critic.
 sub false () { 0 } ## no critic.
@@ -16,23 +16,6 @@ sub U ($) { decode('utf-8', shift) } ## no critic.
 sub DEBUG($) { ## no critic.
     my $txt = shift;
     print "$txt\n" if $ENV{DEBUG};
-}
-
-# -------------------------------------------------------------------------
-# shorten channel name
-
-sub compact_channel_name {
-    local ($_) = shift;
-
-    # #name:*.jp to %name
-    if (s/:\*\.jp$//) {
-        s/^#/%/;
-    }
-
-    # 末尾の単独の @ は取る (plumプラグインのmulticast.plm対策)
-    s/\@$//;
-
-    $_;
 }
 
 # -------------------------------------------------------------------------
