@@ -14,7 +14,7 @@ requires 'FindBin';
 requires 'HTML::Entities';
 requires 'HTTP::Response';
 requires 'POE';
-requires 'POE::Component::IRC';
+requires 'POE::Component::IRC' => 5.58;
 requires 'POE::Component::Server::TCP';
 requires 'POE::Filter::HTTPD';
 requires 'POE::Sugar::Args';

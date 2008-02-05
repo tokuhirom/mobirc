@@ -12,7 +12,7 @@ use Carp;
 use App::Mobirc::Channel;
 use Encode;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 our $HasKwalify;
 eval {

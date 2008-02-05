@@ -1,3 +1,8 @@
+0.06
+
+    - fixed some tests.
+    - fixed dependencies
+
 0.05
 
     - (SECURITY FIX)fixed xss(http://coderepos.org/share/changeset/6204)

@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 19;
+use Test::More tests => 18;
 
 use_ok 'App::Mobirc';
 use_ok 'App::Mobirc::Util';
