@@ -28,25 +28,6 @@ sub normalize_channel_name {
 
 # -------------------------------------------------------------------------
 
-sub add_message {
-    my ( $poe, $channel, $who, $body, $class ) = @_;
-    carp "hmmm... class missing?" unless $class;
-
-    DEBUG "ADD MESSAGE TO $channel($class)";
-
-    my $canon_channel = normalize_channel_name($channel);
-
-    App::Mobirc->context->channels->{$canon_channel}->add_message(
-        App::Mobirc::Message->new(
-            who   => $who,
-            body  => $body,
-            class => $class,
-        )
-    );
-}
-
-# -------------------------------------------------------------------------
-
 sub daemonize {
     my $pid_fname = shift;
 
