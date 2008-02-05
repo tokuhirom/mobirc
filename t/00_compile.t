@@ -9,7 +9,6 @@ use_ok 'App::Mobirc::Message';
 use_ok 'App::Mobirc::Channel';
 
 use_ok 'App::Mobirc::Plugin::Component::IRCClient';
-use_ok 'App::Mobirc::Plugin::Component::Twitter';
 
 use_ok 'App::Mobirc::HTTPD';
 use_ok 'App::Mobirc::HTTPD::Router';
