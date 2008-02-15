@@ -103,8 +103,11 @@ sub process_default {
     if ( $link_string_table->{$orig_uri} ) {
         $link_string = $link_string_table->{$orig_uri};
     }
-    my $out = qq{<a href="$uri" rel="nofollow" class="url">$link_string</a>};
-    return $out;
+    return sprintf(
+        qq{<a href="%s" rel="nofollow" class="url">%s</a>},
+        encode_entities($uri, q(<>&")),
+        encode_entities($link_string, q(<>&")),
+    );
 }
 
 1;

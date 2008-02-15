@@ -68,6 +68,12 @@ text: mailto:aaa@example.com
 conf: ~
 --- expected: <a href="mailto:aaa@example.com" rel="nofollow" class="url">mailto:aaa@example.com</a>
 
+=== mailto
+--- input
+text: <aaa@example.com>
+conf: ~
+--- expected: <a href="mailto:aaa@example.com" rel="nofollow" class="url">&lt;mailto:aaa@example.com&gt;</a>
+
 === pocket hatena
 --- input
 text: http://d.hatena.ne.jp/
