@@ -121,6 +121,56 @@ App::Mobirc - pluggable IRC to HTTP gateway
 
 mobirc is a pluggable IRC to HTTP gateway for mobile phones.
 
+=head1 METHODS
+
+=over 4
+
+=item context
+
+get a context object
+
+=item new
+
+create a instance of context object.
+
+=item load_plugins
+
+load plugins
+
+=item config
+
+get a global configuration
+
+=item run
+
+run server
+
+=item register_hook
+
+register hook
+
+=item get_hook_codes
+
+get hook codes
+
+=item add_channel
+
+register channel object
+
+=item channels
+
+get a channel objects.
+
+=item get_channel
+
+get a channel
+
+=item delete_channel
+
+delete channel
+
+=back
+
 =head1 CODE COVERAGE
 
 I use Devel::Cover to test the code coverage of my tests, below is the Devel::Cover report on this module test suite.
