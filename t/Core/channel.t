@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 3;
+use Test::More tests => 7;
 use Test::Exception;
 use Encode;
 use App::Mobirc;
@@ -39,6 +39,7 @@ describe 'add & get', sub {
     my $channel = App::Mobirc::Channel->new(
         context, U '#test',
     );
+    context->add_channel($channel);
     isa_ok context->get_channel(U '#test'), 'App::Mobirc::Channel';
 };
 
@@ -46,9 +47,14 @@ describe 'channels', sub {
     my $channel = App::Mobirc::Channel->new(
         context, U '#test',
     );
+    context->add_channel($channel);
+
     my @channels = context->channels;
-    use Data::Dumper; warn Dumper(scalar context->channels);
     is scalar(@channels), 1;
     isa_ok $channels[0], 'App::Mobirc::Channel';
+
+    my $channels = context->channels;
+    is ref($channels), 'ARRAY';
+    is_deeply $channels, \@channels;
 };
 
