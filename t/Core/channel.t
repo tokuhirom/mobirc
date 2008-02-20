@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 7;
+use Test::More tests => 9;
 use Test::Exception;
 use Encode;
 use App::Mobirc;
@@ -16,7 +16,7 @@ sub describe ($&) {
     App::Mobirc->new(
         {
             httpd  => { port     => 3333, title => 'mobirc', lines => 40 },
-            global => { keywords => [qw/foo/] }
+            global => { keywords => [qw/foo/], stopwords => [qw/foo31/] }
         }
     );
 
@@ -34,6 +34,16 @@ describe 'keyword', sub {
     is $log[0]->body, 'foobar';
 };
 
+describe 'stopword', sub {
+    my $channel = App::Mobirc::Channel->new(
+        context, '#test',
+    );
+    $channel->add_message(
+        App::Mobirc::Message->new( body => 'foo31bar', class => 'public', ) );
+    my @log = @{context->get_channel(U "*keyword*")->message_log};
+    is scalar(@log), 0;
+    is $log[0], undef;
+};
 
 describe 'add & get', sub {
     my $channel = App::Mobirc::Channel->new(

@@ -5,6 +5,8 @@
 #   keywords:
 #     - tokuhirom
 #     - mogera
+#   stopwords:
+#     - tokuhirom31
 
 plugin:
   - module: App::Mobirc::Plugin::HTMLFilter::DoCoMoCSS

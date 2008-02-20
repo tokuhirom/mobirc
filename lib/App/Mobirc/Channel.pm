@@ -4,7 +4,7 @@ use warnings;
 use base qw/Class::Accessor::Fast/;
 use Scalar::Util qw/blessed/;
 use Carp;
-use List::MoreUtils qw/any/;
+use List::MoreUtils qw/any all/;
 use App::Mobirc::Util;
 
 __PACKAGE__->mk_accessors(qw/message_log recent_log topic/);
@@ -31,7 +31,8 @@ sub add_message {
 
     # update keyword buffer.
     if ($message->class eq 'public' && $self->name ne '*keyword*') {
-        if (any { $message->body =~ /$_/i } @{$self->{global_context}->config->{global}->{keywords} || []}) {
+        if ((any { $message->body =~ /$_/i } @{$self->{global_context}->config->{global}->{keywords} || []})
+         && (all { $message->body !~ /$_/i } @{$self->{global_context}->config->{global}->{stopwords} || ["\0"]})) {
             App::Mobirc::Channel->update_keyword_buffer($self->{global_context}, $message);
         }
     }

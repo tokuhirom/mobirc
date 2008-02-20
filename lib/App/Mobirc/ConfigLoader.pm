@@ -58,6 +58,14 @@ my $schema = {
                         }
                     ],
                 },
+                stopwords   => {
+                    type => 'seq',
+                    sequence => [
+                        {
+                            type => 'str'
+                        }
+                    ],
+                },
             }
         },
     },
