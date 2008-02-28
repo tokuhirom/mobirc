@@ -5,6 +5,7 @@ use CSS::Tiny;
 use XML::LibXML;
 use HTML::Selector::XPath;
 use App::Mobirc::Util;
+use Encode;
 
 sub register {
     my ($class, $global_context) = @_;
@@ -46,7 +47,7 @@ sub _html_filter_docomocss {
             $element->setAttribute('style', $style_attr);
         }
     }
-    $content = $doc->toString;
+    $content = decode_utf8($doc->toString);
 
     $content =~ s{(<a[^>]+)/>}{$1></a>}gi;
 
