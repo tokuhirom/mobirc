@@ -327,15 +327,53 @@ sub render_line {
     my ( $sec, $min, $hour ) = localtime($message->time);
     my $ret = sprintf(qq!<span class="time"><span class="hour">%02d</span><span class="colon">:</span><span class="minute">%02d</span></span> !, $hour, $min);
     if ($message->who) {
-        my $who_class = ($message->who eq $c->{irc_nick})  ? 'nick_myself' : 'nick_normal';
-        my $who = encode_entities($message->who);
-        $ret .= "<span class='$who_class'>($who)</span> ";
+        my($who, $who_class) = _process_who($c, $message->who);
+        $ret .= qq!<span class="$who_class">$who</span> !;
     }
     my $body = _process_body($c, $message->body);
     my $class = encode_entities($message->class);
     $ret .= qq!<span class="$class">$body</span>!;
 
     return $ret;
+}
+
+sub _process_who {
+    my ($c, $who) = @_;
+
+    ### fixme should move to App::Mobirc::Util::get_plugin_config ?
+    my %groups = do {
+        my $g = {};
+        for my $p (@{ $c->{global_context}->config->{plugin} || []}) {
+            if ($p->{module} eq 'App::Mobirc::Plugin::Component::IRCClient') {
+                #warn YAML::Syck::Dump($p->{config}{groups});
+                $g = $p->{config}{groups} if exists $p->{config}{groups};
+                last;
+            }
+        }
+        %$g;
+    };
+    ### fixme store this hash to context and reuse it?
+    my %class_for; # nick -> who_class ("nick_" + groupname)
+    while (my ($group, $nicks) = each %groups) {
+        for my $nick (@{ $nicks }) {
+            push @{ $class_for{$nick} }, "nick_" . $group;
+        }
+    }
+
+    my $who_class = do {
+        if ($who eq $c->{irc_nick}) {
+            'nick_myself';
+        } elsif (my $nick = first { $who =~ /^$_/i } keys %class_for) {
+            join(' ', @{ $class_for{$nick} });
+        } else {
+            'nick_normal';
+        }
+    };
+
+    $who = encode_entities($who);
+    $who = qq!($who)!;
+
+    return ($who, $who_class);
 }
 
 sub _process_body {

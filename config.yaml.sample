@@ -35,6 +35,7 @@ plugin:
 
   - module: App::Mobirc::Plugin::Component::IRCClient
     config:
+
       server: 127.0.0.1
       port: 252322
       nick: netwatcher
@@ -42,6 +43,16 @@ plugin:
       username: netwatcher
       # password: netwatch
       incode: utf-8
+      groups:
+        subtech:
+          - tokuhir
+          - miyagawa
+          - takesako
+          - yappo
+        initialJ:
+          - jknaoya
+          - jkondo
+          - jagayama
 
   # - module: App::Mobirc::Plugin::DocRoot
   #   config:
