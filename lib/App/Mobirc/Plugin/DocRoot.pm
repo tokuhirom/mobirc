@@ -47,7 +47,10 @@ sub _html_filter_docroot {
         $elem->setAttribute(src => $root . $elem->getAttribute('src'));
     }
 
-    decode($doc->encoding, $doc->toStringHTML);
+    my $html = $doc->toStringHTML;
+    $html =~ s{<!DOCTYPE[^>]*>\s*}{};
+
+    decode($doc->encoding | "UTF-8", $html);
 }
 
 1;
