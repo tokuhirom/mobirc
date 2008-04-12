@@ -13,6 +13,7 @@ requires 'File::Spec';
 requires 'FindBin';
 requires 'HTML::Entities';
 requires 'HTTP::Response';
+requires 'Path::Class';
 requires 'POE';
 requires 'POE::Component::IRC' => 5.58;
 requires 'POE::Component::Server::TCP';
