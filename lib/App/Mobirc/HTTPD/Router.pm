@@ -13,6 +13,9 @@ sub route {
     my $root = $c->{config}->{httpd}->{root};
     $root =~ s!/$!!;
     $uri =~ s!^$root!!;
+    # FIXME: it's for DoCoMoGUID. it may be too ugly.
+    $uri =~ s/\?guid=on$//i;
+    $uri =~ s!\&?guid=on\&?!!i; 
 
     if ( $uri eq '/' ) {
         return 'index';
