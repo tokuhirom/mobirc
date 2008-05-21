@@ -1,13 +1,32 @@
 package App::Mobirc::Model::Message;
-use strict;
-use warnings;
-use base qw/Class::Accessor::Fast/;
+use Moose;
+use Moose::Util::TypeConstraints;
 
-__PACKAGE__->mk_accessors(qw/channel who body class time/);
+has channel => (
+    is       => 'rw',
+    isa      => 'Any',
+);
 
-sub new {
-    my $class = shift;
-    bless {'time' => time(), @_}, $class;
-}
+has who => (
+    is  => 'ro',
+    isa => 'Str | Undef',
+);
 
+has body => (
+    is  => 'ro',
+    isa => 'Str',
+);
+
+has class => (
+    is  => 'ro',
+    isa => 'Str',
+);
+
+has 'time' => (
+    is      => 'ro',
+    isa     => 'Int',
+    default => sub { time() },
+);
+
+__PACKAGE__->meta->make_immutable;
 1;
