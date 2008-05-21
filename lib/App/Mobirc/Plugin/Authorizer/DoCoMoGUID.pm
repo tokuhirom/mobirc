@@ -35,16 +35,12 @@ sub _authorize {
 }
 
 sub _html_filter_docomo_guid {
-  my $c = shift;
-  my $content = shift;
+    my ($c, $content) = @_;
 
-  DEBUG "Filter DoCoMoGUID";
-  return $content unless $c->{mobile_agent}->is_docomo;
-  
-  return HTML::StickyQuery::DoCoMoGUID->new->sticky(
-    scalarref => \$content,
-  );
+    DEBUG "Filter DoCoMoGUID";
+    return $content unless $c->{mobile_agent}->is_docomo;
 
+    return HTML::StickyQuery::DoCoMoGUID->new()->sticky( scalarref => \$content, );
 }
 
 1;
