@@ -2,7 +2,7 @@ package App::Mobirc::Plugin::Component::Twitter;
 use strict;
 use warnings;
 use POE::Component::Client::Twitter;
-use App::Mobirc::Channel;
+use App::Mobirc::Model::Channel;
 use App::Mobirc::Util;
 use POE;
 use POE::Sugar::Args;
@@ -31,7 +31,7 @@ sub _process_command {
     if ($conf->{channel} eq $channel->name) {
         $poe_kernel->post( $conf->{alias}, 'update', encode('utf-8', $command) );
         $channel->add_message(
-            App::Mobirc::Message->new(
+            App::Mobirc::Model::Message->new(
                 who => $conf->{screenname},
                 body  => $command,
                 class => 'public',
@@ -48,7 +48,7 @@ sub _init {
     my $twitter = POE::Component::Client::Twitter->spawn( %{ $conf } );
 
     $global_context->add_channel(
-        App::Mobirc::Channel->new( $global_context, $conf->{channel}, ),
+        App::Mobirc::Model::Channel->new( $global_context, $conf->{channel}, ),
     );
 
     POE::Session->create(
@@ -78,7 +78,7 @@ sub _init {
                     next if $conf->{screenname} eq $who;
 
                     $channel->add_message(
-                        App::Mobirc::Message->new(
+                        App::Mobirc::Model::Message->new(
                             who => $who,
                             body => $body,
                             class => 'public',

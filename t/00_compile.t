@@ -5,8 +5,8 @@ use Test::More tests => 18;
 use_ok 'App::Mobirc';
 use_ok 'App::Mobirc::Util';
 use_ok 'App::Mobirc::ConfigLoader';
-use_ok 'App::Mobirc::Message';
-use_ok 'App::Mobirc::Channel';
+use_ok 'App::Mobirc::Model::Message';
+use_ok 'App::Mobirc::Model::Channel';
 
 use_ok 'App::Mobirc::Plugin::Component::IRCClient';
 

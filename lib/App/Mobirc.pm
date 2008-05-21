@@ -9,7 +9,7 @@ use App::Mobirc::Util;
 use App::Mobirc::HTTPD;
 use UNIVERSAL::require;
 use Carp;
-use App::Mobirc::Channel;
+use App::Mobirc::Model::Channel;
 use Encode;
 
 our $VERSION = '0.06';
@@ -101,7 +101,7 @@ sub get_channel {
     my ($self, $name) = @_;
     croak "channel name is flagged utf8" unless Encode::is_utf8($name);
     croak "invalid channel name : $name" if $name =~ / /;
-    return $self->{channels}->{$name} ||= App::Mobirc::Channel->new($self, $name);
+    return $self->{channels}->{$name} ||= App::Mobirc::Model::Channel->new($self, $name);
 }
 
 sub delete_channel {

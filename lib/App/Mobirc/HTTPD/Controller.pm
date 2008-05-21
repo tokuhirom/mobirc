@@ -322,7 +322,7 @@ sub render_line {
     my $message = shift;
 
     return "" unless $message;
-    croak "must be hashref: $message" unless ref $message eq 'App::Mobirc::Message';
+    croak "must be hashref: $message" unless ref $message eq 'App::Mobirc::Model::Message';
 
     my ( $sec, $min, $hour ) = localtime($message->time);
     my $ret = sprintf(qq!<span class="time"><span class="hour">%02d</span><span class="colon">:</span><span class="minute">%02d</span></span> !, $hour, $min);

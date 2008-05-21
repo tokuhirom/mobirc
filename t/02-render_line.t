@@ -4,7 +4,7 @@ use utf8;
 use Test::Base;
 use App::Mobirc::HTTPD::Controller;
 use App::Mobirc;
-use App::Mobirc::Message;
+use App::Mobirc::Model::Message;
 
 plan tests => 1*blocks;
 
@@ -38,7 +38,7 @@ sub render_line {
 
 sub message {
     my $hash = shift;
-    App::Mobirc::Message->new(%$hash);
+    App::Mobirc::Model::Message->new(%$hash);
 }
 
 filters {

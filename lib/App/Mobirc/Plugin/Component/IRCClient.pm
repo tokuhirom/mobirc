@@ -9,7 +9,7 @@ use POE::Component::IRC;
 use Encode;
 use Carp;
 
-use App::Mobirc::Message;
+use App::Mobirc::Model::Message;
 use App::Mobirc::Util;
 
 sub register {
@@ -52,7 +52,7 @@ sub _process_command {
             # FIXME: httpd 関係ない件
             if ($global_context->config->{httpd}->{echo} eq true) {
                 $channel->add_message(
-                    App::Mobirc::Message->new(
+                    App::Mobirc::Model::Message->new(
                         who => decode(
                             $irc_incode,
                             $poe_kernel->alias_resolve('irc_session')->get_heap->{irc}->nick_name
@@ -116,7 +116,7 @@ sub _init {
     );
 
     $global_context->add_channel(
-        App::Mobirc::Channel->new($global_context, U('*server*'))
+        App::Mobirc::Model::Channel->new($global_context, U('*server*'))
     );
 }
 
@@ -145,7 +145,7 @@ sub on_irc_001 {
 
     my $channel = $poe->heap->{global_context}->get_channel(decode( 'utf8', '*server*' ));
     $channel->add_message(
-        App::Mobirc::Message->new(
+        App::Mobirc::Model::Message->new(
             who   => undef,
             body  => decode('utf8', 'Connected to irc server!'),
             class => 'connect',
@@ -172,7 +172,7 @@ sub on_irc_join {
     # create channel
     my $channel = $poe->heap->{global_context}->get_channel($channel_name);
     unless ($channel) {
-        $channel = App::Mobirc::Channel->new(
+        $channel = App::Mobirc::Model::Channel->new(
             $poe->heap->{global_context},
             $channel_name,
         );
@@ -182,7 +182,7 @@ sub on_irc_join {
     my $irc = $poe->heap->{irc};
     unless ( $who eq $irc->nick_name ) {
         $channel->add_message(
-            App::Mobirc::Message->new(
+            App::Mobirc::Model::Message->new(
                 who   => undef,
                 body  => $who . U(" joined"),
                 class => 'join',
@@ -216,7 +216,7 @@ sub on_irc_part {
 
         my $channel = $poe->heap->{global_context}->get_channel($channel_name);
         $channel->add_message(
-            App::Mobirc::Message->new(
+            App::Mobirc::Model::Message->new(
                 who   => undef,
                 body  => $message,
                 class => 'leave',
@@ -241,7 +241,7 @@ sub on_irc_public {
 
     my $channel = $poe->heap->{global_context}->get_channel($channel_name);
     $channel->add_message(
-        App::Mobirc::Message->new(
+        App::Mobirc::Model::Message->new(
             who   => $who,
             body  => $msg,
             class => 'public',
@@ -275,7 +275,7 @@ sub on_irc_notice {
 
     my $channel = $poe->heap->{global_context}->get_channel($channel_name);
     $channel->add_message(
-        App::Mobirc::Message->new(
+        App::Mobirc::Model::Message->new(
             who   => $who,
             body  => $msg,
             class => 'notice',
@@ -298,7 +298,7 @@ sub on_irc_topic {
     my $channel = $poe->heap->{global_context}->get_channel($channel_name);
     $channel->topic($topic);
     $channel->add_message(
-        App::Mobirc::Message->new(
+        App::Mobirc::Model::Message->new(
             who   => undef,
             body  => "$who set topic: $topic",
             class => 'topic',
@@ -334,7 +334,7 @@ sub on_irc_ctcp_action {
     my $channel = $poe->heap->{global_context}->get_channel($channel_name);
     my $body = sprintf(decode('utf8', "* %s %s"), $who, $msg);
     $channel->add_message(
-        App::Mobirc::Message->new(
+        App::Mobirc::Model::Message->new(
             who   => undef,
             body  => $body,
             class => 'ctcp_action',
@@ -356,7 +356,7 @@ sub on_irc_kick {
     $kicker =~ s/!.*//;
 
     $poe->heap->{global_context}->get_channel($channel_name)->add_message(
-        App::Mobirc::Message->new(
+        App::Mobirc::Model::Message->new(
             who   => undef,
             body  => "$kicker has kicked $kickee($msg)",
             class => 'kick',
@@ -390,7 +390,7 @@ sub on_irc_snotice {
 
     my $channel = $poe->heap->{global_context}->get_channel(U('*server*' ));
     $channel->add_message(
-        App::Mobirc::Message->new(
+        App::Mobirc::Model::Message->new(
             who   => undef,
             body  => $message,
             class => 'snotice',
@@ -405,7 +405,7 @@ sub on_irc_reconnect {
     if ( $poe->heap->{disconnect_msg} ) {
         my $channel = $poe->heap->{global_context}->get_channel(decode( 'utf8', '*server*' ));
         $channel->add_message(
-            App::Mobirc::Message->new(
+            App::Mobirc::Model::Message->new(
                 who   => undef,
                 body  => decode( 'utf8', 'Disconnected from irc server, trying to reconnect...'),
                 class => 'reconnect',

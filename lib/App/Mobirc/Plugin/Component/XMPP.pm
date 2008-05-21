@@ -12,7 +12,7 @@ use POE::Filter::XML::NS qw/ :JABBER :IQ /; #include namespace constants
 use POE::Filter::XML::Utils;                #include some general utilites
 use POE::Component::Jabber::XMPP;
 use Carp;
-use App::Mobirc::Channel;
+use App::Mobirc::Model::Channel;
 use App::Mobirc::Util;
 
 sub config_schema {
@@ -158,7 +158,7 @@ sub _input_event {
         my $conf = $poe->heap->{conf};
         my $channel = $poe->heap->{global_context}->get_channel( sprintf(U("xmpp[%s]"), $node->attr('from')) );
         $channel->add_message(
-            App::Mobirc::Message->new(
+            App::Mobirc::Model::Message->new(
                 who   => undef,
                 body  => $body_elem->data,
                 class => 'public',

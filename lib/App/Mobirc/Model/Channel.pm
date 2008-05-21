@@ -1,4 +1,4 @@
-package App::Mobirc::Channel;
+package App::Mobirc::Model::Channel;
 use strict;
 use warnings;
 use base qw/Class::Accessor::Fast/;
@@ -33,7 +33,7 @@ sub add_message {
     if ($message->class eq 'public' && $self->name ne '*keyword*') {
         if ((any { $message->body =~ /$_/i } @{$self->{global_context}->config->{global}->{keywords} || []})
          && (all { $message->body !~ /$_/i } @{$self->{global_context}->config->{global}->{stopwords} || ["\0"]})) {
-            App::Mobirc::Channel->update_keyword_buffer($self->{global_context}, $message);
+            App::Mobirc::Model::Channel->update_keyword_buffer($self->{global_context}, $message);
         }
     }
 }
@@ -97,7 +97,7 @@ __END__
 
 =head1 NAME
 
-App::Mobirc::Channel - channel object for mobirc
+App::Mobirc::Model::Channel - channel object for mobirc
 
 =head1 DESCRIPTION
 

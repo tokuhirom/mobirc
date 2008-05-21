@@ -1,4 +1,4 @@
-package App::Mobirc::Message;
+package App::Mobirc::Model::Message;
 use strict;
 use warnings;
 use base qw/Class::Accessor::Fast/;
