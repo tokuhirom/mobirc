@@ -1,6 +1,5 @@
 package App::Mobirc;
-use strict;
-use warnings;
+use Moose;
 use 5.00800;
 use Scalar::Util qw/blessed/;
 use POE;
@@ -9,7 +8,7 @@ use App::Mobirc::Util;
 use App::Mobirc::HTTPD;
 use UNIVERSAL::require;
 use Carp;
-use App::Mobirc::Model::Channel;
+use App::Mobirc::Model::Server;
 use Encode;
 
 our $VERSION = '0.06';
@@ -20,20 +19,33 @@ eval {
     $HasKwalify++;
 };
 
+has server => (
+    is      => 'ro',
+    isa     => 'App::Mobirc::Model::Server',
+    default => sub { App::Mobirc::Model::Server->instance() },
+    handles => [qw/add_channel delete_channel channels get_channel delete_channel/], # for backward compatibility
+);
+
+has config => (
+    is       => 'ro',
+    isa      => 'HashRef',
+    required => 1,
+);
+
 my $context;
 sub context { $context }
 
-sub new {
-    my ($class, $config_stuff) = @_;
+around 'new' => sub {
+    my ($next, $class, $config_stuff) = @_;
     my $config = App::Mobirc::ConfigLoader->load($config_stuff);
-    my $self = bless {config => $config, channels => {}}, $class;
 
+    my $self = $next->( $class, config => $config );
     $self->load_plugins;
 
     $context = $self;
 
     return $self;
-}
+};
 
 sub load_plugins {
     my ($self,) = @_;
@@ -80,34 +92,6 @@ sub get_hook_codes {
     die "this is instance method" unless blessed $self;
     croak "hook point missing" unless $hook_point;
     return $self->{hooks}->{$hook_point} || [];
-}
-
-# -------------------------------------------------------------------------
-
-sub add_channel {
-    my ($self, $channel) = @_;
-    croak "missing channel" unless $channel;
-
-    $self->{channels}->{$channel->name} = $channel;
-}
-
-sub channels {
-    my $self = shift;
-    my @channels = values %{ $self->{channels} };
-    return wantarray ? @channels : \@channels;
-}
-
-sub get_channel {
-    my ($self, $name) = @_;
-    croak "channel name is flagged utf8" unless Encode::is_utf8($name);
-    croak "invalid channel name : $name" if $name =~ / /;
-    return $self->{channels}->{$name} ||= App::Mobirc::Model::Channel->new($self, $name);
-}
-
-sub delete_channel {
-    my ($self, $name) = @_;
-    croak "channel name is flagged utf8" unless Encode::is_utf8($name);
-    delete $self->{channels}->{$name};
 }
 
 1;

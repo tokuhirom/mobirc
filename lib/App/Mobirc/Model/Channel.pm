@@ -11,7 +11,8 @@ __PACKAGE__->mk_accessors(qw/message_log recent_log topic/);
 
 sub new {
     my ($class, $global_context, $name) = @_;
-    croak "global context missing" unless blessed $global_context && $global_context->isa("App::Mobirc");
+    $global_context = App::Mobirc->context; # XXX this is temporary thing
+    croak "global context missing" unless blessed $global_context;
     croak "missing channel name" unless defined $name;
     croak "Invalid channel name $name" if $name =~ / /;
     bless {global_context => $global_context, name => $name, message_log => [], recent_log => []}, $class;
