@@ -1,22 +1,45 @@
 package App::Mobirc::Model::Channel;
-use strict;
-use warnings;
+use Moose;
 use base qw/Class::Accessor::Fast/;
 use Scalar::Util qw/blessed/;
 use Carp;
 use List::MoreUtils qw/any all/;
 use App::Mobirc::Util;
 
-__PACKAGE__->mk_accessors(qw/message_log recent_log topic/);
+has message_log => (
+    is      => 'rw',
+    isa     => 'ArrayRef',
+    default => sub { +[] },
+);
 
-sub new {
-    my ($class, $global_context, $name) = @_;
-    $global_context = App::Mobirc->context; # XXX this is temporary thing
-    croak "global context missing" unless blessed $global_context;
-    croak "missing channel name" unless defined $name;
-    croak "Invalid channel name $name" if $name =~ / /;
-    bless {global_context => $global_context, name => $name, message_log => [], recent_log => []}, $class;
-}
+has recent_log => (
+    is      => 'rw',
+    isa     => 'ArrayRef',
+    default => sub { +[] },
+);
+
+has topic => (
+    is      => 'rw',
+    isa     => 'Str',
+    default => '',
+);
+
+has global_context => (
+    is      => 'rw',
+    isa     => 'App::Mobirc',
+    default => sub { App::Mobirc->context },
+);
+
+has name => (
+    is       => 'rw',
+    isa      => 'Str',
+    required => 1,
+);
+
+around 'new' => sub {
+    my ($next, $class, $trash, $name) = @_;
+    $next->($class, name => $name);
+};
 
 sub add_message {
     my ($self, $message) = @_;
@@ -79,17 +102,6 @@ sub post_command {
     for my $code (@{$self->{global_context}->get_hook_codes('process_command')}) {
         my $ret = $code->($self->{global_context}, $command, $self);
         last if $ret;
-    }
-}
-
-sub name {
-    my ($self, $name) = @_;
-
-    if (@_ == 1) {
-        return $self->{name};
-    } else {
-        croak "channel name is flagged utf8" unless Encode::is_utf8($name);
-        $self->{name} = $name;
     }
 }
 
