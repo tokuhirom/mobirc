@@ -31,6 +31,8 @@ sub call {
 sub dispatch_index {
     my ($class, $c) = @_;
 
+    my $server = App::Mobirc->context->server;
+
     my $channels = [
         reverse
           map {
@@ -51,16 +53,16 @@ sub dispatch_index {
               my $time = ($last->{time} || 0);
               [$_, $unl, $time];
           }
-          $c->{global_context}->channels
+          $server->channels
     ];
 
-    my $keyword_recent_num = $c->{global_context}->get_channel(U '*keyword*')->unread_lines;
+    my $keyword_recent_num = $server->get_channel(U '*keyword*')->unread_lines;
 
     return render(
         $c,
         'index' => {
             exists_recent_entries => (
-                grep( $_->unread_lines, $c->{global_context}->channels )
+                grep( $_->unread_lines, $server->channels )
                 ? true
                 : false
             ),
