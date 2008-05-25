@@ -17,7 +17,7 @@ our $VERSION = '0.10';
 has server => (
     is      => 'ro',
     isa     => 'App::Mobirc::Model::Server',
-    default => sub { App::Mobirc::Model::Server->instance() },
+    default => sub { App::Mobirc::Model::Server->new() },
     handles => [qw/add_channel delete_channel channels get_channel delete_channel/], # for backward compatibility
 );
 
@@ -32,7 +32,7 @@ sub context { $context }
 
 around 'new' => sub {
     my ($next, $class, $config_stuff) = @_;
-    my $config = App::Mobirc::ConfigLoader->load($config_stuff);
+    my $config = App::Mobirc::ConfigLoader->load($config_stuff); # TODO: use coercing
 
     my $self = $next->( $class, config => $config );
     $self->load_plugins;

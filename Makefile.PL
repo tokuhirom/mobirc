@@ -6,7 +6,6 @@ license  'gpl';
 
 # moooooose
 requires 'Moose'               => '0.45';
-requires 'MooseX::Singleton'   => '0.08';
 
 # poe
 requires 'POE'                         => '1.0002';

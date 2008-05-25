@@ -15,7 +15,7 @@ App::Mobirc->new(
 );
 
 sub context () { App::Mobirc->context }
-sub server () { App::Mobirc::Model::Server->instance }
+sub server () { context->server }
 sub keyword_channel () { server->get_channel(U "*keyword*") }
 sub test_channel    () { server->get_channel(U '#test') }
 

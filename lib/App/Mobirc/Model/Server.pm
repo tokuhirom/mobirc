@@ -1,6 +1,6 @@
 package App::Mobirc::Model::Server;
 use strict;
-use MooseX::Singleton;
+use Moose;
 use App::Mobirc::Model::Channel;
 use Carp;
 
