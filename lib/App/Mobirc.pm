@@ -1,6 +1,6 @@
 package App::Mobirc;
 use Moose;
-with 'App::Mobirc::Role::Pluggable';
+with 'App::Mobirc::Role::Pluggable', 'App::Mobirc::Role::Context';
 use 5.00800;
 use Scalar::Util qw/blessed/;
 use POE;
@@ -27,17 +27,12 @@ has config => (
     required => 1,
 );
 
-my $context;
-sub context { $context }
-
 around 'new' => sub {
     my ($next, $class, $config_stuff) = @_;
     my $config = App::Mobirc::ConfigLoader->load($config_stuff); # TODO: use coercing
 
     my $self = $next->( $class, config => $config );
     $self->load_plugins;
-
-    $context = $self;
 
     return $self;
 };
