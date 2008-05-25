@@ -110,6 +110,7 @@ sub recent_log_count {
     scalar @{ $self->recent_log };
 }
 
+__PACKAGE__->meta->make_immutable;
 1;
 __END__
 

@@ -36,4 +36,5 @@ sub delete_channel {
     delete $self->channel_map->{$name};
 }
 
+__PACKAGE__->meta->make_immutable;
 1;
