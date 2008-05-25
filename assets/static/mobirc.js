@@ -8,6 +8,7 @@ function contents_load(url) {
 function send_message() {
     $.post(load_url, {"msg":($('#msg').get())[0].value}, function (html) {
         $('#contents').html(html);
+        $('#msg').val('');
         $('#msg').focus();
     });
 }
