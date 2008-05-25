@@ -104,4 +104,27 @@ template 'topics' => sub {
     }, 'topics';
 };
 
+template 'keyword' => sub {
+    my ($self, $mobile_agent, $rows, $irc_nick) = @_;
+
+    show 'wrapper_mobile', $mobile_agent, sub {
+        a { attr { name => "1" } }
+        a { attr { accesskey => '7', href => '#1' } };
+
+        div { attr { class => 'ttlLv1' } 'keyword' };
+
+        for my $row ( @$rows ) {
+            show 'irc_message', $row, $irc_nick;
+            outs '(';
+                a { attr { 'href' => sprintf('/channels/%s', uri_escape( $row->channel->name)) }
+                    $row->channel->name
+                };
+            outs ')';
+            br { };
+        }
+
+        show 'footer';
+    }, 'topics';
+};
+
 1;

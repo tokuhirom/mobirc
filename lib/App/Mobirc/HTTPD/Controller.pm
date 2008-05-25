@@ -26,12 +26,14 @@ sub call {
     $class->$method(@args);
 }
 
+sub server () { App::Mobirc->context->server } ## no critic.
+
 # this module contains MVC's C.
 
 sub dispatch_index {
     my ($class, $c) = @_;
 
-    my $server = App::Mobirc->context->server;
+    my $server = server;
 
     my $channels = [
         reverse
@@ -139,11 +141,11 @@ sub dispatch_clear_all_unread {
 sub dispatch_topics {
     my ($class, $c) = @_;
 
-    my $html = App::Mobirc::HTTPD::View->show(
-        'topics',
-        $c->{mobile_agent}, App::Mobirc->context->server
+    render_td(
+        $c => (
+            'topics', $c->{mobile_agent}, App::Mobirc->context->server
+        )
     );
-    make_response($c, $html);
 }
 
 sub post_dispatch_show_channel {
@@ -185,18 +187,20 @@ sub post_dispatch_show_channel {
 sub dispatch_keyword {
     my ($class, $c, $recent_mode) = @_;
 
-    my $channel = $c->{global_context}->get_channel(U '*keyword*');
+    my $channel = server->get_channel(U '*keyword*');
 
-    my $out = render(
+    my $res = render_td(
         $c,
-        'keyword' => {
-            rows => ($recent_mode ? $channel->recent_log : $channel->message_log),
-        },
+        'keyword' => (
+            $c->{mobile_agent},
+            ($recent_mode ? $channel->recent_log : $channel->message_log),
+            $c->{irc_nick},
+        ),
     );
 
     $channel->clear_unread;
 
-    return $out;
+    return $res;
 }
 
 sub dispatch_show_channel {
@@ -323,6 +327,12 @@ sub _html_filter {
     }
 
     $content;
+}
+
+sub render_td {
+    my ($c, @args) = @_;
+    my $html = App::Mobirc::HTTPD::View->show(@args);
+    make_response($c, $html);
 }
 
 sub render_line {
