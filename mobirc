@@ -3,12 +3,12 @@ use strict;
 use warnings;
 use utf8;
 use Encode;
-use File::Spec;
+use File::Spec::Functions;
 use FindBin;
 use Carp;
 use Getopt::Long;
 
-use lib File::Spec->catfile( $FindBin::Bin, 'lib');
+use lib catfile( $FindBin::Bin, 'lib');
 
 use App::Mobirc;
 use App::Mobirc::Util;
@@ -19,7 +19,7 @@ if ($ENV{STACKTRACE}) {
 $SIG{INT} = sub { die "SIGINT!\n" };
 
 my $daemonize_fg = false;
-my $conffname = File::Spec->catfile($FindBin::Bin, 'config.yaml');
+my $conffname = catfile($FindBin::Bin, 'config.yaml');
 my $version = false;
 GetOptions(
     'daemonize' => \$daemonize_fg,
