@@ -4,7 +4,7 @@ body { width : 100% ; }
 #body { position:relative ; }
 #footer { width:100% ; clear:both ; }
 
-#main { height: 600px; }
+#main { }
 #main #menu { position:absolute; right:0 ; padding-left: 5px; width : 250px ; }
 #main #contents { margin-right : 250px; height: 400px; padding-left: 5px; overflow: auto; } 
 
