@@ -12,6 +12,8 @@ body { width : 100% ; }
 
 #menu div { margin-bottom: 2px; }
 #menu div.unread { background-color: #99ffff; }
+#menu div.KeywordChannel { background-color: #ff99ff; }
+#menu hr { margin-bottom: 3px }
 
 
 /* irc log styles */
