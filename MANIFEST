@@ -70,6 +70,7 @@ lib/App/Mobirc/Plugin/HTMLFilter/DoCoMoCSS.pm
 lib/App/Mobirc/Plugin/IRCCommand/TiarraLog.pm
 lib/App/Mobirc/Plugin/MessageBodyFilter/Clickable.pm
 lib/App/Mobirc/Plugin/MessageBodyFilter/IRCColor.pm
+lib/App/Mobirc/Role/Context.pm
 lib/App/Mobirc/Role/Pluggable.pm
 lib/App/Mobirc/Util.pm
 Makefile.PL
@@ -89,3 +90,4 @@ t/Plugins/Filter/no-decorate-irc-color.t
 t/Plugins/HTMLFilter/CompressHTML.t
 t/Plugins/HTMLFilter/ConvertPictograms.t
 t/Plugins/HTMLFilter/DoCoMoCSS.t
+t/Role/Context.t
