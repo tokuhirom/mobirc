@@ -12,7 +12,7 @@ use Carp;
 use App::Mobirc::Model::Server;
 use Encode;
 
-our $VERSION = '0.06';
+our $VERSION = '0.10';
 
 has server => (
     is      => 'ro',
@@ -115,6 +115,10 @@ get a channel
 delete channel
 
 =back
+
+=head1 TODO
+
+    use HTTP::MobileAttribute instead of HTTP::MobileAgent
 
 =head1 CODE COVERAGE
 
