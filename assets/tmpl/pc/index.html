@@ -8,14 +8,14 @@
             <div class="keyword_recent_notice"><a href="#" onclick="$('#contents').load('[% docroot %]keyword-recent')" onkeypress="$('#contents').load('[% docroot %]keyword-recent')">Keyword([% keyword_recent_num | html %])</a></div>
             [% END %]
 
-            <!-- channel list -->
             [% FOR channel IN channels -%]
-            <div class="[% IF channel.unread_lines %]unread[% END %]">
-            <a href="#" onclick="contents_load('[% docroot %]channels/[% channel.name | uri %]', '[% channel.name | uri %]');">[% channel.name %]</a>
-            </div>
+                <div class="[% IF channel.unread_lines %]unread[% END %] channel">
+                    <a href="#">[% channel.name %]</a>
+                </div>
             [% END -%]
 
             <hr />
+
             <div class="KeywordChannel"><a href="/keyword">keyword</a></div>
         </div>
 
@@ -31,5 +31,9 @@
         <div>mobirc - <span class="version">[% version %]</span></div>
     </div>
 </div>
+
+<script lang="javascript">
+    docroot = '[% docroot || '/' %]';
+</script>
 
 [% INCLUDE 'include/footer.html' %]

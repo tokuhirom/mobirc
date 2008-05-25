@@ -19,6 +19,12 @@ function send_message() {
 // onload
 $(function () {
     $('#msg').focus();
+
+    $('#menu .channel a').click(function () {
+        contents_load(docroot + 'channels/' + encodeURIComponent($(this).text()), $(this).text());
+        $(this).parent().removeClass('unread');
+    });
+
     setInterval(function(){ if(load_url){ contents_load(load_url); } }, 30000);
 });
 
