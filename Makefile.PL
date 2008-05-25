@@ -4,8 +4,8 @@ all_from 'lib/App/Mobirc.pm';
 
 license  'gpl';
 
-requires 'Moose' => 0.44;
-requires 'MooseX::Singleton' => 0.07;
+requires 'Moose' => '0.45';
+requires 'MooseX::Singleton' => '0.08';
 requires 'CGI';
 requires 'CGI::Cookie';
 requires 'Carp';
