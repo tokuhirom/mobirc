@@ -21,6 +21,7 @@ requires 'HTML::Entities::ConvertPictogramMobileJp' => '0.06';
 # template engine
 requires 'Template' => 2.16;                # new 'uri' is supported from 2.16
 requires 'Template::Provider::Encoding' => '0.10';
+requires 'Template::Declare'  => '0.28';
 
 # utilities
 requires 'CGI'                => '3.37';
@@ -33,6 +34,7 @@ requires 'HTML::Entities'     => '1.35';
 requires 'HTTP::Response'     => '5.811';
 requires 'Path::Class'        => '0.16';
 requires 'Proc::Daemon'       => '0.03';
+requires 'Params::Validate'   => '0.91';
 requires 'Scalar::Util'       => '0.19';
 requires 'URI'                => '1.36';
 requires 'URI::Find'          => '0.16';
