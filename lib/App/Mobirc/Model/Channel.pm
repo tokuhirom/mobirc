@@ -1,6 +1,5 @@
 package App::Mobirc::Model::Channel;
 use Moose;
-use base qw/Class::Accessor::Fast/;
 use Scalar::Util qw/blessed/;
 use Carp;
 use List::MoreUtils qw/any all/;
