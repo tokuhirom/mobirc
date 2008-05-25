@@ -137,12 +137,11 @@ sub dispatch_clear_all_unread {
 sub dispatch_topics {
     my ($class, $c) = @_;
 
-    return render(
-        $c,
-        'topics' => {
-            channels => [$c->{global_context}->channels],
-        },
+    my $html = App::Mobirc::HTTPD::View->show(
+        'topics',
+        $c->{mobile_agent}, App::Mobirc->context->server
     );
+    make_response($c, $html);
 }
 
 sub post_dispatch_show_channel {
@@ -228,6 +227,37 @@ sub dispatch_show_channel {
     return $out;
 }
 
+sub make_response {
+    my ( $c, $out ) = @_;
+
+    $out = _html_filter($c, $out);
+    my $content = encode( $c->{mobile_agent}->encoding, $out);
+
+    # change content type for docomo
+    # FIXME: hmm... should be in the plugin?
+    my $content_type = $c->{config}->{httpd}->{content_type};
+    $content_type= 'application/xhtml+xml' if $c->{mobile_agent}->is_docomo;
+    unless ( $content_type ) {
+        if ( $c->{mobile_agent}->can_display_utf8 ) {
+            $content_type = 'text/html; charset=UTF-8';
+        } else {
+            $content_type = 'text/html; charset=Shift_JIS';
+        }
+    }
+
+    my $response = HTTP::Response->new(200);
+    $response->push_header( 'Content-type' => encode('utf8', $content_type) );
+    $response->push_header('Content-Length' => length($content) );
+
+    $response->content( $content );
+
+    for my $code (@{$c->{global_context}->get_hook_codes('response_filter')}) {
+        $code->($c, $response);
+    }
+
+    return $response;
+}
+
 sub render {
     my ( $c, $name, $args ) = @_;
 
@@ -264,32 +294,7 @@ sub render {
 
     DEBUG "rendering done";
 
-    $out = _html_filter($c, $out);
-    my $content = encode( $c->{mobile_agent}->encoding, $out);
-
-    # change content type for docomo
-    # FIXME: hmm... should be in the plugin?
-    my $content_type = $c->{config}->{httpd}->{content_type};
-    $content_type= 'application/xhtml+xml' if $c->{mobile_agent}->is_docomo;
-    unless ( $content_type ) {
-        if ( $c->{mobile_agent}->can_display_utf8 ) {
-            $content_type = 'text/html; charset=UTF-8';
-        } else {
-            $content_type = 'text/html; charset=Shift_JIS';
-        }
-    }
-
-    my $response = HTTP::Response->new(200);
-    $response->push_header( 'Content-type' => encode('utf8', $content_type) );
-    $response->push_header('Content-Length' => length($content) );
-
-    $response->content( $content );
-
-    for my $code (@{$c->{global_context}->get_hook_codes('response_filter')}) {
-        $code->($c, $response);
-    }
-
-    return $response;
+    return make_response($c, $out);
 }
 
 sub dispatch_static {
