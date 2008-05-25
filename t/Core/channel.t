@@ -1,48 +1,49 @@
 use strict;
 use warnings;
-use Test::More tests => 9;
+use Test::More tests => 8;
 use Test::Exception;
 use Encode;
 use App::Mobirc;
 use App::Mobirc::Util;
-use App::Mobirc::Model::Channel;
-use App::Mobirc::Model::Message;
+use App::Mobirc::Model::Server;
+
+App::Mobirc->new(
+    {
+        httpd  => { port     => 3333, title => 'mobirc', lines => 40 },
+        global => { keywords => [qw/foo/], stopwords => [qw/foo31/] }
+    }
+);
 
 sub context () { App::Mobirc->context }
+sub server () { App::Mobirc::Model::Server->instance }
+sub keyword_channel () { server->get_channel(U "*keyword*") }
+sub test_channel    () { server->get_channel(U '#test') }
 
 sub describe ($&) {
     my ($name, $code) = @_;
 
-    App::Mobirc->new(
-        {
-            httpd  => { port     => 3333, title => 'mobirc', lines => 40 },
-            global => { keywords => [qw/foo/], stopwords => [qw/foo31/] }
-        }
-    );
-
     $code->();
+    keyword_channel->clear_unread();
 }
 
 describe 'keyword', sub {
-    my $channel = App::Mobirc::Model::Channel->new(
-        context, '#test',
+    test_channel->add_message(
+        App::Mobirc::Model::Message->new( body => 'foobar', class => 'public', )
     );
-    $channel->add_message(
-        App::Mobirc::Model::Message->new( body => 'foobar', class => 'public', ) );
-    my @log = @{context->get_channel(U "*keyword*")->message_log};
-    is scalar(@log), 1;
-    is $log[0]->body, 'foobar';
+
+    is keyword_channel->recent_log_count, 1;
+    is keyword_channel->recent_log->[0]->body, 'foobar';
 };
 
 describe 'stopword', sub {
-    my $channel = App::Mobirc::Model::Channel->new(
-        context, '#test',
+    test_channel->add_message(
+        App::Mobirc::Model::Message->new(
+            body  => 'foo31bar',
+            class => 'public',
+        )
     );
-    $channel->add_message(
-        App::Mobirc::Model::Message->new( body => 'foo31bar', class => 'public', ) );
-    my @log = @{context->get_channel(U "*keyword*")->message_log};
-    is scalar(@log), 0;
-    is $log[0], undef;
+
+    is keyword_channel->recent_log_count, 0;
 };
 
 describe 'add & get', sub {
@@ -53,17 +54,13 @@ describe 'add & get', sub {
     isa_ok context->get_channel(U '#test'), 'App::Mobirc::Model::Channel';
 };
 
+# TODO: move to Model/Server.t
 describe 'channels', sub {
-    my $channel = App::Mobirc::Model::Channel->new(
-        context, U '#test',
-    );
-    context->add_channel($channel);
-
-    my @channels = context->channels;
-    is scalar(@channels), 1;
+    my @channels = server->channels;
+    is scalar(@channels), 2;
     isa_ok $channels[0], 'App::Mobirc::Model::Channel';
 
-    my $channels = context->channels;
+    my $channels = server->channels;
     is ref($channels), 'ARRAY';
     is_deeply $channels, \@channels;
 };

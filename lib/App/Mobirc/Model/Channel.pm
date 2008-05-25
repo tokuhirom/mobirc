@@ -5,6 +5,7 @@ use Scalar::Util qw/blessed/;
 use Carp;
 use List::MoreUtils qw/any all/;
 use App::Mobirc::Util;
+use App::Mobirc::Model::Message;
 
 has message_log => (
     is      => 'rw',
@@ -103,6 +104,11 @@ sub post_command {
         my $ret = $code->($self->{global_context}, $command, $self);
         last if $ret;
     }
+}
+
+sub recent_log_count {
+    my $self = shift;
+    scalar @{ $self->recent_log };
 }
 
 1;
