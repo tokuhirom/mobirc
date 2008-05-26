@@ -33,28 +33,18 @@ sub server () { App::Mobirc->context->server } ## no critic.
 sub dispatch_index {
     my ($class, $c) = @_;
 
-    if ($c->{mobile_agent}->is_non_mobile) {
-        return render_td(
-            $c,
-            'pc_top' => (
-                $c->{mobile_agent},
-                ($c->{config}->{httpd}->{root} || '/'),
-            )
-        );
-    } else {
-        return render(
-            $c,
-            'index' => {
-                exists_recent_entries => (
-                    grep( $_->unread_lines, server->channels )
-                    ? true
-                    : false
-                ),
-                keyword_recent_num => server->keyword_channel->unread_lines(),
-                channels           => scalar( server->channels_sorted ),
-            }
-        );
-    }
+    return render(
+        $c,
+        'index' => {
+            exists_recent_entries => (
+                grep( $_->unread_lines, server->channels )
+                ? true
+                : false
+            ),
+            keyword_recent_num => server->keyword_channel->unread_lines(),
+            channels           => scalar( server->channels_sorted ),
+        }
+    );
 }
 
 # recent messages on every channel
@@ -144,24 +134,20 @@ sub post_dispatch_show_channel {
 
     $c->{global_context}->get_channel($channel)->post_command($message);
 
-    my $irc_incode = $c->{irc_incode};
-
     my $response = HTTP::Response->new(302);
     my $root = $c->{config}->{httpd}->{root};
     $root =~ s!/$!!;
     my $path = $c->{req}->uri;
     $path =~ s/#/%23/;
 
-    # SHOULD USE http://example.com/ INSTEAD OF http://example.com:portnumber/
-    # because au phone returns '400 Bad Request' when redrirect to http://example.com:portnumber/
     $response->push_header(
         'Location' => (
                 'http://'
-              . ($c->{config}->{httpd}->{host} || $c->{req}->header('Host'))
-              . $root
-              . $path
-              . '?time='
-              . time
+            . ($c->{config}->{httpd}->{host} || $c->{req}->header('Host'))
+            . $root
+            . $path
+            . '?time='
+            . time
         )
     );
     return $response;
@@ -216,30 +202,75 @@ sub dispatch_show_channel {
     return $out;
 }
 
-sub dispatch_pc_menu {
-    my ($class, $c ) = @_;
+{
+    sub dispatch_ajax_base {
+        my ($class, $c) = @_;
 
-    render_td(
-        $c,
-        'pc_menu' => (
-            server,
-            server->keyword_channel->unread_lines,
-        )
-    );
-}
+        return render_td(
+            $c,
+            'ajax_base' => (
+                $c->{mobile_agent},
+                ($c->{config}->{httpd}->{root} || '/'),
+            )
+        );
+    }
 
-sub dispatch_pc_keyword {
-    my ($class, $c ) = @_;
+    sub dispatch_ajax_channel {
+        my ($class, $c, $channel_name) = @_;
 
-    my $res = render_td(
-        $c,
-        'pc_keyword' => (
-            server,
-            $c->{irc_nick},
-        )
-    );
-    server->keyword_channel->clear_unread();
-    $res;
+        my $channel = server->get_channel(U $channel_name);
+        my $res = render_td(
+            $c,
+            'ajax_channel' => (
+                $channel,
+                $c->{irc_nick}
+            )
+        );
+        $channel->clear_unread();
+        return $res;
+    }
+
+    sub post_dispatch_ajax_channel {
+        my ( $class, $c, $channel) = @_;
+
+        my $r       = CGI->new( $c->{req}->content );
+        my $message = $r->param('msg');
+        $message = decode( $c->{mobile_agent}->encoding, $message );
+
+        DEBUG "POST MESSAGE $message";
+
+        server->get_channel(decode_utf8 $channel)->post_command($message);
+
+        my $response = HTTP::Response->new(200);
+        $response->content('ok');
+        return $response;
+    }
+
+    sub dispatch_ajax_menu {
+        my ($class, $c ) = @_;
+
+        render_td(
+            $c,
+            'ajax_menu' => (
+                server,
+                server->keyword_channel->unread_lines,
+            )
+        );
+    }
+
+    sub dispatch_ajax_keyword {
+        my ($class, $c ) = @_;
+
+        my $res = render_td(
+            $c,
+            'ajax_keyword' => (
+                server,
+                $c->{irc_nick},
+            )
+        );
+        server->keyword_channel->clear_unread();
+        $res;
+    }
 }
 
 sub make_response {
@@ -293,7 +324,7 @@ sub render {
         %$args,
     };
 
-    my $tmpl_dir = $c->{mobile_agent}->is_non_mobile ? 'pc' : 'mobile';
+    my $tmpl_dir = 'mobile';
     DEBUG "tmpl_dir: $tmpl_dir";
 
     my $tt = Template->new(

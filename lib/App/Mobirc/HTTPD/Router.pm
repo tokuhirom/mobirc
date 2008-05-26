@@ -21,6 +21,13 @@ sub route {
     if ( $uri eq '/' ) {
         return 'index';
     }
+    elsif ( $uri eq '/ajax/' ) {
+        return 'ajax_base';
+    }
+    elsif ($uri =~ m{^/ajax/channel/([^?]+)}) {
+        my $channel_name = $1;
+        return 'ajax_channel', uri_unescape($channel_name);
+    }
     elsif ( $uri eq '/topics' ) {
         return 'topics';
     }
@@ -38,11 +45,11 @@ sub route {
     elsif ($uri eq '/clear_all_unread') {
         return 'clear_all_unread';
     }
-    elsif ($uri =~ m{^/pc/menu(?:\?time=\d+)?$}) {
-        return 'pc_menu';
+    elsif ($uri =~ m{^/ajax/menu(?:\?time=\d+)?$}) {
+        return 'ajax_menu';
     }
-    elsif ($uri eq '/pc/keyword') {
-        return 'pc_keyword';
+    elsif ($uri eq '/ajax/keyword') {
+        return 'ajax_keyword';
     }
     elsif ($uri =~ '/jquery.js') {
         return 'static', 'jquery.js', 'application/javascript';

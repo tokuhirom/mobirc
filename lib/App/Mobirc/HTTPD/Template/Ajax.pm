@@ -1,4 +1,4 @@
-package App::Mobirc::HTTPD::Template::PC;
+package App::Mobirc::HTTPD::Template::Ajax;
 use strict;
 use warnings;
 use base qw(Template::Declare);
@@ -7,7 +7,7 @@ use Params::Validate ':all';
 use HTML::Entities qw/encode_entities/;
 use App::Mobirc;
 
-private template 'wrapper_pc' => sub {
+private template 'wrapper_ajax' => sub {
     my ($self, $mobile_agent, $code, $subtitle) = @_;
 
     xml_decl { 'xml', version => 1.0, encoding => 'UTF-8' };
@@ -37,9 +37,9 @@ private template 'wrapper_pc' => sub {
     }
 };
 
-template 'pc_top' => sub {
+template 'ajax_base' => sub {
     my ($self, $mobile_agent, $docroot) = validate_pos(@_, OBJECT, OBJECT, SCALAR);
-    show 'wrapper_pc', $mobile_agent, sub {
+    show 'wrapper_ajax', $mobile_agent, sub {
         div {
             id is 'body';
             div {
@@ -64,7 +64,7 @@ template 'pc_top' => sub {
     };
 };
 
-template 'pc_menu' => sub {
+template 'ajax_menu' => sub {
     my ($self, $server, $keyword_recent_num) = validate_pos(@_, OBJECT, { isa => 'App::Mobirc::Model::Server' }, SCALAR);
 
     div {
@@ -98,12 +98,22 @@ private template 'channel_list' => sub {
     }
 };
 
-template 'pc_keyword' => sub {
+template 'ajax_keyword' => sub {
     my ($self, $server, $irc_nick) = @_;
 
     div {
         for my $row ( @{ $server->keyword_channel->message_log } ) {
             show 'keyword_line', $row, $irc_nick;
+        }
+    }
+};
+
+template 'ajax_channel' => sub {
+    my ($self, $channel, $irc_nick) = @_;
+    div {
+        for my $message ($channel->message_log) {
+            show 'irc_message', $message, $irc_nick;
+            br { };
         }
     }
 };
