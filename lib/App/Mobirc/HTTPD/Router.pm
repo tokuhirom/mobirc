@@ -49,9 +49,9 @@ sub route {
     elsif ($uri =~ '/style.css') {
         return 'static', 'style.css', 'text/css';
     } 
-    elsif ($uri =~ '/mobirc.css') {
-        return 'static', 'mobirc.css', 'text/css';
-    } 
+    elsif ($uri =~ m{^/(pc|mobirc|mobile).css}) {
+        return 'static', "$1.css", 'text/css';
+    }
     elsif ($uri =~ '/mobile.css') {
         return 'static', 'mobile.css', 'text/css';
     }

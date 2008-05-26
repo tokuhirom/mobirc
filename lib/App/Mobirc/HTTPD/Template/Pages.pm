@@ -31,7 +31,6 @@ template 'wrapper_mobile' => sub {
         }
         body {
             $code->()
-
         }
     };
 };

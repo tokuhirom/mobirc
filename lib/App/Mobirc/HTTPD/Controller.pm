@@ -33,15 +33,17 @@ sub server () { App::Mobirc->context->server } ## no critic.
 sub dispatch_index {
     my ($class, $c) = @_;
 
-    my $server = server;
+    if ($c->{mobile_agent}->is_non_mobile) {
+        return render_td(
+            $c,
+            'pc_top' => (
+                $c->{mobile_agent},
+                ($c->{config}->{httpd}->{root} || '/'),
+            )
+        );
+    }
 
-#   if ($c->{mobile_agent}->is_non_mobile) {
-#       return render_td(
-#           $c,
-#           'pc_top' => (
-#           )
-#       );
-#   }
+    my $server = server;
 
     my $channels = [
         reverse
