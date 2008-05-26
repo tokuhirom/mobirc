@@ -10,23 +10,34 @@ template 'pc_menu' => sub {
     my ($self, $server, $keyword_recent_num) = validate_pos(@_, OBJECT, { isa => 'App::Mobirc::Model::Server' }, SCALAR);
 
     div {
-        if ($keyword_recent_num > 0) {
-            div { attr { class => 'keyword_recent_notice' }
-                a { attr { href => '#' }
-                    "Keyword($keyword_recent_num)"
-                }
-            };
-        }
+        show 'keyword_channel', $keyword_recent_num;
+        show 'channel_list', $server;
+    };
+};
 
-        for my $channel ( $server->channels ) {
-            my $class = $channel->unread_lines ? 'unread channel' : 'channel';
-            div { attr { class => $class }
-                a { attr { 'href' => '#' }
-                    $channel->name
-                }
+template 'keyword_channel' => sub {
+    my ($self, $keyword_recent_num) = validate_pos(@_, OBJECT, SCALAR);
+
+    if ($keyword_recent_num > 0) {
+        div { attr { class => 'keyword_recent_notice' }
+            a { attr { href => '#' }
+                "Keyword($keyword_recent_num)"
+            }
+        };
+    }
+};
+
+template 'channel_list' => sub {
+    my ($self, $server) = validate_pos(@_, OBJECT, { 'isa' => 'App::Mobirc::Model::Server' });
+
+    for my $channel ( $server->channels ) {
+        my $class = $channel->unread_lines ? 'unread channel' : 'channel';
+        div { attr { class => $class }
+            a { attr { 'href' => '#' }
+                $channel->name
             }
         }
-    };
+    }
 };
 
 1;
