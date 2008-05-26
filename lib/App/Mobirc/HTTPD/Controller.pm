@@ -41,24 +41,20 @@ sub dispatch_index {
                 ($c->{config}->{httpd}->{root} || '/'),
             )
         );
+    } else {
+        return render(
+            $c,
+            'index' => {
+                exists_recent_entries => (
+                    grep( $_->unread_lines, server->channels )
+                    ? true
+                    : false
+                ),
+                keyword_recent_num => server->keyword_channel->unread_lines(),
+                channels           => scalar( server->channels_sorted ),
+            }
+        );
     }
-
-    my $server = server;
-
-    my $keyword_recent_num = $server->get_channel(U '*keyword*')->unread_lines;
-
-    return render(
-        $c,
-        'index' => {
-            exists_recent_entries => (
-                grep( $_->unread_lines, $server->channels )
-                ? true
-                : false
-            ),
-            keyword_recent_num => $keyword_recent_num,
-            channels           => scalar( $server->channels_sorted ),
-        }
-    );
 }
 
 # recent messages on every channel
