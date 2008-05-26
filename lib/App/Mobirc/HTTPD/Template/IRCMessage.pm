@@ -10,15 +10,15 @@ use HTML::Entities qw/encode_entities/;
 template 'irc_message' => sub {
     my ($self, $message, $my_nick) = validate_pos(@_, OBJECT, { isa => 'App::Mobirc::Model::Message' }, SCALAR);
 
-    show '_irc_time', $message->time;
+    show 'irc_time', $message->time;
     if ($message->who) {
-        show '_irc_who',  $message->who, $my_nick;
+        show 'irc_who',  $message->who, $my_nick;
     }
-    show '_irc_body', $message->class, $message->body;
+    show 'irc_body', $message->class, $message->body;
 };
 
 # render time likes: 12:25
-template '_irc_time' => sub {
+private template 'irc_time' => sub {
     my ( $self, $time ) = validate_pos( @_, OBJECT, SCALAR );
     my ( $sec, $min, $hour ) = localtime($time);
     span {
@@ -35,7 +35,7 @@ template '_irc_time' => sub {
     };
 };
 
-template '_irc_who' => sub {
+private template 'irc_who' => sub {
     my ( $self, $who, $my_nick ) = validate_pos( @_, OBJECT, SCALAR, SCALAR );
 
     my $who_class = do {
@@ -78,7 +78,7 @@ template '_irc_who' => sub {
     };
 };
 
-template '_irc_body' => sub {
+private template 'irc_body' => sub {
     my ( $self, $class, $body ) = validate_pos( @_, OBJECT, SCALAR, SCALAR );
 
     my $c = App::Mobirc->context;
