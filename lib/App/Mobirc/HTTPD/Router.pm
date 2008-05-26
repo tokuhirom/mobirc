@@ -16,6 +16,7 @@ sub route {
     # FIXME: it's for DoCoMoGUID. it may be too ugly.
     $uri =~ s/\?guid=on$//i;
     $uri =~ s!\&?guid=on\&?!!i; 
+    $uri =~ s/\?.+//i;
 
     if ( $uri eq '/' ) {
         return 'index';
@@ -39,6 +40,9 @@ sub route {
     }
     elsif ($uri =~ m{^/pc/menu(?:\?time=\d+)?$}) {
         return 'pc_menu';
+    }
+    elsif ($uri eq '/pc/keyword') {
+        return 'pc_keyword';
     }
     elsif ($uri =~ '/jquery.js') {
         return 'static', 'jquery.js', 'application/javascript';

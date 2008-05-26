@@ -72,17 +72,11 @@ template 'keyword' => sub {
         div { attr { class => 'ttlLv1' } 'keyword' };
 
         for my $row ( @$rows ) {
-            show 'irc_message', $row, $irc_nick;
-            outs '(';
-                a { attr { 'href' => sprintf('/channels/%s', uri_escape( $row->channel->name)) }
-                    $row->channel->name
-                };
-            outs ')';
-            br { };
+            show 'keyword_line', $row, $irc_nick;
         }
 
         show 'footer';
-    }, 'topics';
+    }, 'keyword';
 };
 
 1;

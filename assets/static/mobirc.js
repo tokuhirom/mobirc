@@ -31,7 +31,7 @@ function load_menu () {
             });
 
             var keyword_cb = function () {
-                contents_load(docroot + 'keyword')
+                contents_load(docroot + 'pc/keyword')
                 $(this).parent().remove();
             };
             $('#menu .keyword_recent_notice a').click(keyword_cb).keypress(keyword_cb);

@@ -98,4 +98,14 @@ private template 'channel_list' => sub {
     }
 };
 
+template 'pc_keyword' => sub {
+    my ($self, $server, $irc_nick) = @_;
+
+    div {
+        for my $row ( @{ $server->keyword_channel->message_log } ) {
+            show 'keyword_line', $row, $irc_nick;
+        }
+    }
+};
+
 1;

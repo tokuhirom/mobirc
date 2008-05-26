@@ -197,7 +197,7 @@ sub post_dispatch_show_channel {
 sub dispatch_keyword {
     my ($class, $c, $recent_mode) = @_;
 
-    my $channel = server->get_channel(U '*keyword*');
+    my $channel = server->keyword_channel;
 
     my $res = render_td(
         $c,
@@ -253,6 +253,20 @@ sub dispatch_pc_menu {
             server->keyword_channel->unread_lines,
         )
     );
+}
+
+sub dispatch_pc_keyword {
+    my ($class, $c ) = @_;
+
+    my $res = render_td(
+        $c,
+        'pc_keyword' => (
+            server,
+            $c->{irc_nick},
+        )
+    );
+    server->keyword_channel->clear_unread();
+    $res;
 }
 
 sub make_response {
