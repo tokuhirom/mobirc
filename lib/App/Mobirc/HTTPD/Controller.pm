@@ -45,29 +45,6 @@ sub dispatch_index {
 
     my $server = server;
 
-    my $channels = [
-        reverse
-          map {
-              $_->[0];
-          }
-          sort {
-              $a->[1] <=> $b->[1] ||
-              $a->[2] <=> $b->[2]
-          }
-          map {
-              my $unl  = $_->unread_lines ? 1 : 0;
-              my $buf  = $_->message_log || [];
-              my $last =
-                (grep {
-                    $_->{class} eq "public" ||
-                    $_->{class} eq "notice"
-                } @{ $buf })[-1] || {};
-              my $time = ($last->{time} || 0);
-              [$_, $unl, $time];
-          }
-          $server->channels
-    ];
-
     my $keyword_recent_num = $server->get_channel(U '*keyword*')->unread_lines;
 
     return render(
@@ -79,7 +56,7 @@ sub dispatch_index {
                 : false
             ),
             keyword_recent_num => $keyword_recent_num,
-            channels => $channels,
+            channels           => scalar( $server->channels_sorted ),
         }
     );
 }

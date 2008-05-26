@@ -43,5 +43,34 @@ sub keyword_channel {
     $self->get_channel(U '*keyword*');
 }
 
+# ORDER BY unread_lines, last_updated_at;
+sub channels_sorted {
+    my $self = shift;
+
+    my $channels = [
+        reverse
+          map {
+              $_->[0];
+          }
+          sort {
+              $a->[1] <=> $b->[1] ||
+              $a->[2] <=> $b->[2]
+          }
+          map {
+              my $unl  = $_->unread_lines ? 1 : 0;
+              my $buf  = $_->message_log || [];
+              my $last =
+                (grep {
+                    $_->{class} eq "public" ||
+                    $_->{class} eq "notice"
+                } @{ $buf })[-1] || {};
+              my $time = ($last->{time} || 0);
+              [$_, $unl, $time];
+          }
+          $self->channels
+    ];
+    wantarray ? @$channels : $channels;
+}
+
 __PACKAGE__->meta->make_immutable;
 1;
