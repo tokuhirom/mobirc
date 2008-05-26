@@ -201,7 +201,7 @@ sub dispatch_keyword {
 
     my $res = render_td(
         $c,
-        'keyword' => (
+        'mobile_keyword' => (
             $c->{mobile_agent},
             ($recent_mode ? $channel->recent_log : $channel->message_log),
             $c->{irc_nick},

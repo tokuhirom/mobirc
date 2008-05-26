@@ -62,7 +62,7 @@ template 'topics' => sub {
     }, 'topics';
 };
 
-template 'keyword' => sub {
+template 'mobile_keyword' => sub {
     my ($self, $mobile_agent, $rows, $irc_nick) = @_;
 
     show 'wrapper_mobile', $mobile_agent, sub {
