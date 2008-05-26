@@ -73,7 +73,7 @@ template 'pc_menu' => sub {
     };
 };
 
-template 'keyword_channel' => sub {
+private template 'keyword_channel' => sub {
     my ($self, $keyword_recent_num) = validate_pos(@_, OBJECT, SCALAR);
 
     if ($keyword_recent_num > 0) {
@@ -85,7 +85,7 @@ template 'keyword_channel' => sub {
     }
 };
 
-template 'channel_list' => sub {
+private template 'channel_list' => sub {
     my ($self, $server) = validate_pos(@_, OBJECT, { 'isa' => 'App::Mobirc::Model::Server' });
 
     for my $channel ( $server->channels ) {
