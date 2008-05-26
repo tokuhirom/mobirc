@@ -49,6 +49,12 @@ sub route {
     elsif ($uri =~ '/style.css') {
         return 'static', 'style.css', 'text/css';
     } 
+    elsif ($uri =~ '/mobirc.css') {
+        return 'static', 'mobirc.css', 'text/css';
+    } 
+    elsif ($uri =~ '/mobile.css') {
+        return 'static', 'mobile.css', 'text/css';
+    }
     else {
         # hook by plugins
         for my $code (@{$c->{global_context}->get_hook_codes('httpd')}) {

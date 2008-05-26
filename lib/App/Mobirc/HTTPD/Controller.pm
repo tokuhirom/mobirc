@@ -35,6 +35,14 @@ sub dispatch_index {
 
     my $server = server;
 
+#   if ($c->{mobile_agent}->is_non_mobile) {
+#       return render_td(
+#           $c,
+#           'pc_top' => (
+#           )
+#       );
+#   }
+
     my $channels = [
         reverse
           map {

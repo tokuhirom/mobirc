@@ -8,48 +8,6 @@ use List::Util qw/first/;
 use HTML::Entities qw/encode_entities/;
 use URI::Escape qw/uri_escape/;
 
-my $css = <<'...';
-<style type="text/css">
-    .keyword_recent_notice {
-        background-color: red;
-    }
-
-    .time {
-        color: #004080;
-    }
-    .notice {
-        color: #808080;
-    }
-    .join {
-        color: #ccfece;
-    }
-    .leave {
-        color: #cccefe;
-    }
-    .ctcp_action {
-        color: #808080;
-        font-style: italic;
-    }
-    .kick {
-        color: #fc4efe;
-    }
-    .snotice {
-        color: #408080;
-    }
-    .connect {
-        color: #408080;
-    }
-    .reconnect {
-        color: #408080;
-    }
-
-    .nick_normal { color: #000080; }
-    .nick_myself { color: #6060a0; }
-    .nick_subtech  { color: #FF0080; }
-    .nick_initialJ { color: #00BF1A; }
-</style>
-...
-
 template 'wrapper_mobile' => sub {
     my ($self, $mobile_agent, $code, $subtitle) = @_;
     my $encoding = $mobile_agent->can_display_utf8 ? 'UTF-8' : 'Shift_JIS';
@@ -58,7 +16,9 @@ template 'wrapper_mobile' => sub {
         head {
             meta { attr { 'http-equiv' => 'Content-Type', 'content' => "text/html; charset=$encoding" } }
             meta { attr { 'http-equiv' => 'Cache-Control', content => 'max-age=0' } }
-            meta { attr { name => 'robots', content => 'noindex, nofollow' } };
+            meta { attr { name => 'robots', content => 'noindex, nofollow' } }
+            link { attr { rel => 'stylesheet', href => '/mobirc.css', type=> "text/css"} };
+            link { attr { rel => 'stylesheet', href => '/mobile.css', type=> "text/css"} };
             if ($mobile_agent->user_agent =~ /(?:iPod|iPhone)/) {
                 meta { attr { name => 'viewport', content => 'width=device-width' } }
                 meta { attr { name => 'viewport', content => 'initial-scale=1.0, user-scalable=yes' } }
@@ -68,7 +28,6 @@ template 'wrapper_mobile' => sub {
                    $title .= "mobirc";
                    $title;
             }
-            outs_raw $css; # FIXME: split to mobirc.css
         }
         body {
             $code->()

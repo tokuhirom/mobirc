@@ -1,0 +1,37 @@
+.keyword_recent_notice {
+    background-color: red;
+}
+
+.time {
+    color: #004080;
+}
+.notice {
+    color: #808080;
+}
+.join {
+    color: #ccfece;
+}
+.leave {
+    color: #cccefe;
+}
+.ctcp_action {
+    color: #808080;
+    font-style: italic;
+}
+.kick {
+    color: #fc4efe;
+}
+.snotice {
+    color: #408080;
+}
+.connect {
+    color: #408080;
+}
+.reconnect {
+    color: #408080;
+}
+
+.nick_normal { color: #000080; }
+.nick_myself { color: #6060a0; }
+.nick_subtech  { color: #FF0080; }
+.nick_initialJ { color: #00BF1A; }
