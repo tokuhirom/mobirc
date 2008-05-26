@@ -3,22 +3,7 @@
 <div id="body">
 
     <div id="main">
-        <div id="menu">
-            [%# < %][% IF keyword_recent_num > 0 %]
-            <div class="keyword_recent_notice"><a href="#" onclick="$('#contents').load('[% docroot %]keyword-recent')" onkeypress="$('#contents').load('[% docroot %]keyword-recent')">Keyword([% keyword_recent_num | html %])</a></div>
-            [% END %]
-
-            [% FOR channel IN channels -%]
-                <div class="[% IF channel.unread_lines %]unread[% END %] channel">
-                    <a href="#">[% channel.name %]</a>
-                </div>
-            [% END -%]
-
-            <hr />
-
-            <div class="KeywordChannel"><a href="/keyword">keyword</a></div>
-        </div>
-
+        <div id="menu"></div>
         <div id="contents"></div>
     </div>
 

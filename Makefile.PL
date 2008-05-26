@@ -42,6 +42,7 @@ requires 'YAML'               => '0.66';
 requires 'UNIVERSAL::require' => '0.11';
 requires 'Storable'           => '2.18';
 requires 'List::MoreUtils'    => '0.22';
+requires 'Module::Find'       => '0.06';
 
 # Note.
 #  follow modules are contained by other module.

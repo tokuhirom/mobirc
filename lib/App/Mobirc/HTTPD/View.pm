@@ -2,10 +2,9 @@ package App::Mobirc::HTTPD::View;
 use strict;
 use warnings;
 use Template::Declare;
-use App::Mobirc::HTTPD::Template::IRCMessage;
-use App::Mobirc::HTTPD::Template::Pages;
-
-Template::Declare->init(roots => ['App::Mobirc::HTTPD::Template::IRCMessage', 'App::Mobirc::HTTPD::Template::Pages']);
+use Module::Find;
+my @templates = useall 'App::Mobirc::HTTPD::Template';
+Template::Declare->init(roots => [@templates]);
 
 sub show {
     my ($class, @args) = @_;

@@ -26,7 +26,7 @@ sub route {
     elsif ( $uri =~ m{^/recent(?:\?t=\d+)?$} ) {
         return 'recent';
     }
-    elsif ( $uri =~ m{^/keyword(-recent)?$} ) {
+    elsif ( $uri =~ m{^/keyword(-recent)?(?:\?time=\d+)?$} ) {
         return 'keyword', $1 ? true : false;
     }
     elsif ($uri =~ m{^/channels(-recent)?/([^?]+)}) {
@@ -36,6 +36,9 @@ sub route {
     }
     elsif ($uri eq '/clear_all_unread') {
         return 'clear_all_unread';
+    }
+    elsif ($uri =~ m{^/pc/menu(?:\?time=\d+)?$}) {
+        return 'pc_menu';
     }
     elsif ($uri =~ '/jquery.js') {
         return 'static', 'jquery.js', 'application/javascript';

@@ -3,6 +3,7 @@ use strict;
 use Moose;
 use App::Mobirc::Model::Channel;
 use Carp;
+use App::Mobirc::Util;
 
 has channel_map => (
     is      => 'rw',
@@ -34,6 +35,12 @@ sub delete_channel {
     my ($self, $name) = @_;
     croak "channel name is flagged utf8" unless Encode::is_utf8($name);
     delete $self->channel_map->{$name};
+}
+
+# shortcut
+sub keyword_channel {
+    my $self = shift;
+    $self->get_channel(U '*keyword*');
 }
 
 __PACKAGE__->meta->make_immutable;

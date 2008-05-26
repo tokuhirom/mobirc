@@ -233,6 +233,18 @@ sub dispatch_show_channel {
     return $out;
 }
 
+sub dispatch_pc_menu {
+    my ($class, $c ) = @_;
+
+    render_td(
+        $c,
+        'pc_menu' => (
+            server,
+            server->keyword_channel->unread_lines,
+        )
+    );
+}
+
 sub make_response {
     my ( $c, $out ) = @_;
 
