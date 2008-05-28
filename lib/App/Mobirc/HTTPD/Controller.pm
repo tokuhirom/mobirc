@@ -118,7 +118,7 @@ sub dispatch_keyword {
 
     my $channel = server->keyword_channel;
 
-    my $res = render_td(
+    render_td(
         $c,
         'mobile/keyword' => {
             mobile_agent => $c->req->mobile_agent,
@@ -132,8 +132,6 @@ sub dispatch_keyword {
     );
 
     $channel->clear_unread;
-
-    return $res;
 }
 
 sub dispatch_show_channel {
@@ -164,7 +162,7 @@ sub dispatch_show_channel {
     sub dispatch_ajax_base {
         my ($class, $c) = @_;
 
-        return render_td(
+        render_td(
             $c,
             'ajax_base' => (
                 $c->req->mobile_agent,
@@ -177,7 +175,7 @@ sub dispatch_show_channel {
         my ($class, $c, $channel_name) = @_;
 
         my $channel = server->get_channel($channel_name);
-        my $res = render_td(
+        render_td(
             $c,
             'ajax_channel' => (
                 $channel,
@@ -185,7 +183,6 @@ sub dispatch_show_channel {
             )
         );
         $channel->clear_unread();
-        return $res;
     }
 
     sub post_dispatch_ajax_channel {
@@ -216,7 +213,7 @@ sub dispatch_show_channel {
     sub dispatch_ajax_keyword {
         my ($class, $c ) = @_;
 
-        my $res = render_td(
+        render_td(
             $c,
             'ajax_keyword' => (
                 server,
@@ -224,7 +221,6 @@ sub dispatch_show_channel {
             )
         );
         server->keyword_channel->clear_unread();
-        $res;
     }
 }
 
