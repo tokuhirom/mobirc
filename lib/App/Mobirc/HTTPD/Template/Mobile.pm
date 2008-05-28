@@ -73,7 +73,7 @@ template 'mobile/keyword' => sub {
         div { attr { class => 'ttlLv1' } 'keyword' };
 
         for my $row ( @$rows ) {
-            show 'keyword_line', $row, $irc_nick;
+            show '../keyword_line', $row, $irc_nick;
         }
 
         show 'footer';
@@ -150,11 +150,10 @@ template 'mobile/recent' => sub {
         };
     };
 
-    ul {
-        for my $message ($channel->recent_log) {
-            li { show 'irc_message', $message; };
-        }
-    };
+    for my $message ($channel->recent_log) {
+        show 'irc_message', $message;
+        br { };
+    }
 
     if ($args{has_next_page}) {
         outs_raw '&#xE6E7;';
@@ -190,39 +189,36 @@ private template 'mobile/menu' => sub {
         },
     );
 
-    ul {
-        li {
-            outs_raw '&#xE6EB;';
-            a { attr { href => '/#top', accesskey => 0 }
-                'refresh list'
-            };
-        };
-        if ($args{exists_recent_entries}) {
-            li {
-                span { '*' }
-                a { attr { href => '/recent', accesskey => '*' }
-                    'recent'
-                }
-            }
+    outs_raw '&#xE6EB;';
+    a { attr { href => '/#top', accesskey => 0 }
+        'refresh list'
+    };
+    br { };
+
+    if ($args{exists_recent_entries}) {
+        span { '*' }
+        a { attr { href => '/recent', accesskey => '*' }
+            'recent'
         }
-        li {
-            a { attr { href => '/topics', accesskey => '#' }
-                'topics'
-            }
-        }
-        li {
-            a { attr { 'href' => '/keyword' }
-                'keyword'
-            };
-        }
-        li {
-            outs_raw '&#xE6EA;';
-            a {
-                attr { href => '/clear_all_unread', accesskey => '9' }
-                'clear_all_unread'
-            }
-        }
+        br { }
     }
+    a { attr { href => '/topics', accesskey => '#' }
+        'topics'
+    }
+    br { };
+
+    a { attr { 'href' => '/keyword' }
+        'keyword'
+    };
+    br { };
+
+    outs_raw '&#xE6EA;';
+    a {
+        attr { href => '/clear_all_unread', accesskey => '9' }
+        'clear_all_unread'
+    }
+    br { };
+
 };
 
 1;
