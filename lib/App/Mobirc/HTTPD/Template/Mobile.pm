@@ -45,10 +45,16 @@ private template 'mobile/footer' => sub {
 };
 
 template 'mobile/topics' => sub {
-    my ($self, $mobile_agent, $server) = @_;
+    my $self = shift;
+    my %args = validate(
+        @_ => {
+            mobile_agent => 1,
+            channels     => 1,
+        }
+    );
 
-    show 'wrapper_mobile', $mobile_agent, sub {
-        for my $channel ( $server->channels ) {
+    show 'wrapper_mobile', $args{mobile_agent}, sub {
+        for my $channel ( @{ $args{channels} } ) {
             div { attr { class => 'OneTopic' }
 
                 a { attr { href => sprintf('/channels/%s', uri_escape($channel->name)) }

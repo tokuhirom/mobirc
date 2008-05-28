@@ -17,7 +17,11 @@ my $c = App::Mobirc->new(
 my $server = App::Mobirc::Model::Server->new();
 $server->get_channel(U '#tester');
 
-my $got = App::Mobirc::HTTPD::View->show('mobile/topics', HTTP::MobileAgent->new('PC'), $server);
+my $got = App::Mobirc::HTTPD::View->show(
+    'mobile/topics',
+    mobile_agent => HTTP::MobileAgent->new('PC'),
+    channels     => scalar($server->channels),
+);
 
 my $expected = <<'...';
 <?xml version=" 1.0 " encoding="UTF-8"?>

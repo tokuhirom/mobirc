@@ -62,7 +62,10 @@ sub dispatch_topics {
 
     render_td(
         $c => (
-            'mobile/topics', $c->req->mobile_agent, App::Mobirc->context->server
+            'mobile/topics' => {
+                mobile_agent => $c->req->mobile_agent,
+                channels     => scalar( server->channels ),
+            }
         )
     );
 }
