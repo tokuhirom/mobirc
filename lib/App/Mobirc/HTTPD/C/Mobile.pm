@@ -2,6 +2,8 @@ package App::Mobirc::HTTPD::C::Mobile;
 use Moose;
 use App::Mobirc::HTTPD::C;
 use App::Mobirc::Util;
+use URI::Escape qw/uri_escape/;
+use Encode;
 
 sub dispatch_index {
     my ($class, $c) = @_;
@@ -81,10 +83,8 @@ sub post_dispatch_show_channel {
 
     my $root = context->config->{httpd}->{root};
     $root =~ s!/$!!;
-    my $path = $c->req->uri->path;
-    $path =~ s/#/%23/;
 
-    $c->res->redirect( $root . $path . '?time=' . time );
+    $c->res->redirect( $root . $c->req->uri->path . '?time=' . time );
 }
 
 sub dispatch_keyword {
