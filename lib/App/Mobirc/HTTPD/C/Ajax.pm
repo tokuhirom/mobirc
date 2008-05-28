@@ -55,15 +55,15 @@ sub dispatch_ajax_menu {
     );
 }
 
-sub dispatch_ajax_keyword {
+sub dispatch_keyword {
     my ($class, $c ) = @_;
 
     render_td(
         $c,
-        'ajax_keyword' => (
-            server,
-            irc_nick,
-        )
+        'ajax/keyword' => {
+            logs     => scalar(server->keyword_channel->message_log),
+            irc_nick => irc_nick,
+        }
     );
     server->keyword_channel->clear_unread();
 }

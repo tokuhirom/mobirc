@@ -98,12 +98,18 @@ private template 'channel_list' => sub {
     }
 };
 
-template 'ajax_keyword' => sub {
-    my ($self, $server, $irc_nick) = @_;
+template 'ajax/keyword' => sub {
+    my $self = shift;
+    my %args = validate(
+        @_ => {
+            logs     => 1,
+            irc_nick => 1,
+        },
+    );
 
     div {
-        for my $row ( @{ $server->keyword_channel->message_log } ) {
-            show 'keyword_line', $row, $irc_nick;
+        for my $row ( @{ $args{logs} } ) {
+            show '../keyword_line', $row, $args{irc_nick};
         }
     }
 };

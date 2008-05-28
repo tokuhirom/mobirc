@@ -45,7 +45,7 @@ sub route {
         return 'Ajax', 'ajax_menu';
     }
     elsif ($uri eq '/ajax/keyword') {
-        return 'Ajax', 'ajax_keyword';
+        return 'Ajax', 'keyword';
     }
     elsif ($uri eq '/jquery.js') {
         return 'Static', 'deliver', 'jquery.js', 'application/javascript';
