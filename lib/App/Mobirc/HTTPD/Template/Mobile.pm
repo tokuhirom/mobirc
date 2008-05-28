@@ -109,23 +109,20 @@ template 'mobile/top' => sub {
             };
         }
 
-        ul {
-            for my $channel (@{$args{channels}}) {
-                li {
-                    outs_raw '&#xE6F0;';
-                    a {
-                        href is ('/channels/' . uri_escape($channel->name));
-                        $channel->name
-                    };
-                    if ($channel->unread_lines) {
-                        a {
-                            href is ('/channels/' . uri_escape($channel->name) . '?recent_mode=on');
-                            $channel->unread_lines
-                        }
-                    }
+        for my $channel (@{$args{channels}}) {
+            outs_raw '&#xE6F0;';
+            a {
+                href is ('/channels/' . uri_escape($channel->name));
+                $channel->name
+            };
+            if ($channel->unread_lines) {
+                a {
+                    href is ('/channels/' . uri_escape($channel->name) . '?recent_mode=on');
+                    $channel->unread_lines
                 }
             }
-        };
+            br { };
+        }
         hr { };
         show 'menu' => (
             exists_recent_entries => $args{exists_recent_entries}
