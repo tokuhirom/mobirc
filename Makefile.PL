@@ -8,7 +8,7 @@ license  'gpl';
 requires 'Moose'               => '0.45';
 
 # http-engine
-requires 'HTTP::Engine'        => '0.0.8';
+requires 'HTTP::Engine'        => '0.0.9';
 
 # poe
 requires 'POE'                         => '1.0002';
