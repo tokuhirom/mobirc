@@ -27,7 +27,6 @@ requires 'Template::Provider::Encoding' => '0.10';
 requires 'Template::Declare'  => '0.28';
 
 # utilities
-requires 'Sub::Name';
 requires 'CGI'                => '3.37';
 requires 'Carp'               => '1.04';
 requires 'Encode'             => '2.25';

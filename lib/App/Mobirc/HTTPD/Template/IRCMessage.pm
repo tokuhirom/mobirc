@@ -6,10 +6,9 @@ use Template::Declare::Tags;
 use Params::Validate ':all';
 use List::Util qw/first/;
 use HTML::Entities qw/encode_entities/;
-use Sub::Name qw/subname/;
 use App::Mobirc::HTTPD::View;
 
-template 'irc_message' => subname 'irc_message' => sub {
+template 'irc_message' => sub {
     my ($self, $message, $my_nick) = validate_pos(@_, OBJECT, { isa => 'App::Mobirc::Model::Message' }, SCALAR);
 
     # i want to strip spaces. cellphone hates spaces.
