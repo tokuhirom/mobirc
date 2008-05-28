@@ -143,23 +143,21 @@ sub dispatch_show_channel {
 
     my $channel = context->get_channel($channel_name);
 
-    my $out = render(
+    render_td(
         $c,
-        'show_channel' => {
-            channel     => $channel,
-            recent_mode => $c->req->params->{recent_mode},
-            msg         => decode_utf8( $c->req->params->{msg} ), # XXX maybe wrong?
+        'mobile/channel' => {
+            mobile_agent        => $c->req->mobile_agent,
+            channel             => $channel,
+            recent_mode         => $c->req->params->{recent_mode},
             channel_page_option => [
-                map { $_->( $channel, $c ) } @{
-                    context->get_hook_codes('channel_page_option')
-                  }
+                map { $_->( $channel, $c ) }
+                  @{ context->get_hook_codes('channel_page_option') }
             ],
+            irc_nick            => irc_nick,
         }
     );
 
     $channel->clear_unread;
-
-    return $out;
 }
 
 {
@@ -256,45 +254,6 @@ sub make_response {
     }
 }
 
-sub render {
-    my ( $c, $name, $args ) = @_;
-
-    croak "invalid args : $args" unless ref $args eq 'HASH';
-
-    DEBUG "rendering template";
-
-    # set default vars
-    $args = {
-        docroot              => $c->{config}->{httpd}->{root},
-        render_line          => sub { render_line( $c, @_ ) },
-        user_agent           => $c->{user_agent},
-        mobile_agent         => $c->req->mobile_agent,
-        title                => $c->{config}->{httpd}->{title},
-        version              => $App::Mobirc::VERSION,
-        now                  => time(),
-
-        %$args,
-    };
-
-    my $tmpl_dir = 'mobile';
-    DEBUG "tmpl_dir: $tmpl_dir";
-
-    my $tt = Template->new(
-        LOAD_TEMPLATES => [
-            Template::Provider::Encoding->new(
-                ABSOLUTE => 1,
-                INCLUDE_PATH => dir( context->config->{global}->{assets_dir}, 'tmpl', $tmpl_dir, )->stringify,
-            )
-        ],
-    );
-    $tt->process("$name.html", $args, \my $out)
-        or die $tt->error;
-
-    DEBUG "rendering done";
-
-    return make_response($c, $out);
-}
-
 sub dispatch_static {
     my ($class, $c, $file_name, $content_type) = @_;
 
@@ -319,16 +278,6 @@ sub render_td {
     my ($c, @args) = @_;
     my $html = App::Mobirc::HTTPD::View->show(@args);
     make_response($c, $html);
-}
-
-sub render_line {
-    my $c   = shift;
-    my $message = shift;
-
-    return "" unless $message;
-    croak "must be object: $message" unless ref $message eq 'App::Mobirc::Model::Message';
-
-    App::Mobirc::HTTPD::View->show('irc_message', $message, $c->{irc_nick});
 }
 
 1;

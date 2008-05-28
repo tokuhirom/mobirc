@@ -17,6 +17,7 @@ has recent_log => (
     is      => 'rw',
     isa     => 'ArrayRef',
     default => sub { +[] },
+    auto_deref => 1,
 );
 
 has topic => (

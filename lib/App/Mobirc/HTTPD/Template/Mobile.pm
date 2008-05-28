@@ -232,4 +232,67 @@ private template 'mobile/menu' => sub {
 
 };
 
+template 'mobile/channel' => sub {
+    my $self = shift;
+    my %args = validate(
+        @_ => {
+            mobile_agent        => 1,
+            channel             => 1,
+            channel_page_option => 1,
+            irc_nick            => 1,
+            recent_mode         => 1,
+        }
+    );
+    my $channel = $args{channel};
+
+    show 'wrapper_mobile', $args{mobile_agent}, sub {
+        form {
+            attr { action => '/channels/' . uri_escape($channel->name), method => 'post' };
+            input {
+                unless ($args{mobile_agent}->is_non_mobile) {
+                    size is 10;
+                }
+                type is 'text';
+                name is 'msg';
+            };
+            input { attr { type => "submit", accesskey => "1",  value => "OK", } };
+        };
+
+        for my $html (@{$args{channel_page_option}}) {
+            outs_raw $html;
+        }
+        br { };
+
+        if ($channel) {
+            if (@{$channel->message_log} > 0) {
+                if ($args{recent_mode}) {
+                    for my $message (reverse $channel->recent_log) {
+                        show '../irc_message', $message, $args{irc_nick};
+                        br { };
+                    }
+                    hr { };
+                    outs_raw '&#xE6E6;';
+                    a {
+                        attr { 'accesskey' => 5, href => '/channels/' . uri_escape($channel->name) };
+                        'more'
+                    };
+                } else {
+                    for my $message (reverse $channel->message_log) {
+                        show '../irc_message', $message, $args{irc_nick};
+                        br { };
+                    }
+                }
+            } else {
+                p { 'no message here yet' };
+            }
+        } else {
+            p { 'no such channel.' };
+        }
+
+        hr { };
+
+        show 'go_to_top';
+    }
+};
+
 1;
