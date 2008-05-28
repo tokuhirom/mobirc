@@ -53,13 +53,7 @@ body   : YAY<>
 time   : 1211726004
 class  : public
 --- expected
-<span class="time">
- <span class="hour">23</span>
- <span class="colon">:</span>
- <span class="minute">33</span>
-</span>
-<span class="nick_normal">&#40;yappo&#41;</span>
-<span class="public">YAY&lt;&gt;</span>
+<span class="time"><span class="hour">23</span><span class="colon">:</span><span class="minute">33</span></span><span class="nick_normal">&#40;yappo&#41;</span><span class="public">YAY&lt;&gt;</span>
 
 === mine
 --- input
@@ -69,13 +63,7 @@ time: 1211726004
 who: tokuhirom
 body: uh*aww
 --- expected
-<span class="time">
- <span class="hour">23</span>
- <span class="colon">:</span>
- <span class="minute">33</span>
-</span>
-<span class="nick_myself">&#40;tokuhirom&#41;</span>
-<span class="public">uh*aww</span>
+<span class="time"><span class="hour">23</span><span class="colon">:</span><span class="minute">33</span></span><span class="nick_myself">&#40;tokuhirom&#41;</span><span class="public">uh*aww</span>
 
 === XSS check
 --- input
@@ -85,13 +73,7 @@ time: 212
 who: tokuhirom<
 body: uh*aww<
 --- expected
-<span class="time">
- <span class="hour">09</span>
- <span class="colon">:</span>
- <span class="minute">03</span>
-</span>
-<span class="nick_normal">&#40;tokuhirom&lt;&#41;</span>
-<span class="public&lt;">uh*aww&lt;</span>
+<span class="time"><span class="hour">09</span><span class="colon">:</span><span class="minute">03</span></span><span class="nick_normal">&#40;tokuhirom&lt;&#41;</span><span class="public&lt;">uh*aww&lt;</span>
 
 === groups
 --- input
@@ -101,11 +83,5 @@ time: 212
 who: jagayama
 body: uh*aww
 --- expected
-<span class="time">
- <span class="hour">09</span>
- <span class="colon">:</span>
- <span class="minute">03</span>
-</span>
-<span class="nick_initialJ">&#40;jagayama&#41;</span>
-<span class="public">uh*aww</span>
+<span class="time"><span class="hour">09</span><span class="colon">:</span><span class="minute">03</span></span><span class="nick_initialJ">&#40;jagayama&#41;</span><span class="public">uh*aww</span>
 
