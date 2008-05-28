@@ -252,7 +252,7 @@ sub make_response {
     $c->res->body( $content );
 
     for my $code (@{context->get_hook_codes('response_filter')}) {
-        $code->($c, $c->res); # XXX TODO: FIX ME
+        $code->($c);
     }
 }
 
