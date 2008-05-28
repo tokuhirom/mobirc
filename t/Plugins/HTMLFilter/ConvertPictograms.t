@@ -4,6 +4,19 @@ use App::Mobirc::Plugin::HTMLFilter::ConvertPictograms;
 use HTTP::MobileAgent;
 use Test::Base;
 
+{
+    package DummyContext;
+    sub new {
+        my ($class, $agent) = @_;
+        bless { agent => $agent }, $class;
+    }
+    sub req {
+        my $self = shift;
+        bless { %$self }, 'DummyContext';
+    }
+    sub mobile_agent { shift->{agent} }
+}
+
 filters {
     input => [qw/yaml convert/],
 };
@@ -12,7 +25,7 @@ sub convert {
     my $x = shift;
     my $agent = HTTP::MobileAgent->new($x->{ua});
     App::Mobirc::Plugin::HTMLFilter::ConvertPictograms::_html_convert_pictograms(
-        { mobile_agent => $agent }, $x->{src} );
+        DummyContext->new($agent), $x->{src} );
 }
 
 __END__
