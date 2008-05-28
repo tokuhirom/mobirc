@@ -15,7 +15,7 @@ sub _html_convert_pictograms {
     my ($c, $content) = @_;
 
     convert_pictogram_entities(
-        mobile_agent => $c->{mobile_agent},
+        mobile_agent => $c->req->mobile_agent,
         html         => $content,
     );
 }

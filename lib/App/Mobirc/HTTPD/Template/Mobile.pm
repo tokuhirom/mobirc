@@ -8,7 +8,7 @@ use List::Util qw/first/;
 use HTML::Entities qw/encode_entities/;
 use URI::Escape qw/uri_escape/;
 
-template 'wrapper_mobile' => sub {
+template 'mobile/wrapper_mobile' => sub {
     my ($self, $mobile_agent, $code, $subtitle) = @_;
     my $encoding = $mobile_agent->can_display_utf8 ? 'UTF-8' : 'Shift_JIS';
     outs_raw qq{<?xml version=" 1.0 " encoding="$encoding"?>};
@@ -30,12 +30,13 @@ template 'wrapper_mobile' => sub {
             }
         }
         body {
+            a { name is 'top' };
             $code->()
         }
     };
 };
 
-template 'footer' => sub {
+private template 'mobile/footer' => sub {
     hr { };
     outs_raw '&#xE6E9;'; # TODO: pictogram::docomo { '8' }
     a { attr { 'accesskey' => "8", 'href' => "/"}
@@ -43,7 +44,7 @@ template 'footer' => sub {
     }
 };
 
-template 'topics' => sub {
+template 'mobile/topics' => sub {
     my ($self, $mobile_agent, $server) = @_;
 
     show 'wrapper_mobile', $mobile_agent, sub {
@@ -62,7 +63,7 @@ template 'topics' => sub {
     }, 'topics';
 };
 
-template 'mobile_keyword' => sub {
+template 'mobile/keyword' => sub {
     my ($self, $mobile_agent, $rows, $irc_nick) = @_;
 
     show 'wrapper_mobile', $mobile_agent, sub {
@@ -77,6 +78,151 @@ template 'mobile_keyword' => sub {
 
         show 'footer';
     }, 'keyword';
+};
+
+template 'mobile/top' => sub {
+    my $self = shift;
+    my %args = validate(
+        @_ => {
+            exists_recent_entries => 1,
+            keyword_recent_num    => 1,
+            channels              => 1,
+            mobile_agent          => 1,
+        }
+    );
+
+    show 'wrapper_mobile', $args{mobile_agent}, sub {
+        if ($args{keyword_recent_num} > 0) {
+            div {
+                class is 'keyword_recent_notice';
+                a {
+                    href is '/keyword?recent_mode=on';
+                    "Keyword($args{keyword_recent_num})"
+                }
+            };
+        }
+
+        ul {
+            for my $channel (@{$args{channels}}) {
+                li {
+                    outs_raw '&#xE6F0;';
+                    a {
+                        href is ('/channels/' . uri_escape($channel->name));
+                        $channel->name
+                    };
+                    if ($channel->unread_lines) {
+                        a {
+                            href is ('/channels/' . uri_escape($channel->name) . '?recent_mode=on');
+                            $channel->unread_lines
+                        }
+                    }
+                }
+            }
+        };
+        hr { };
+        show 'menu' => (
+            exists_recent_entries => $args{exists_recent_entries}
+        );
+        hr { };
+        show '../parts/version_info'
+    };
+};
+
+template 'mobile/recent' => sub {
+    my $self = shift;
+    my %args = validate(
+        @_ => {
+            channel       => 1,
+            has_next_page => 1,
+        }
+    );
+    my $channel = $args{channel};
+
+    div {
+        class => 'ChannelHeader';
+        a {
+            class is 'ChannelName';
+            $channel->name;
+        };
+        a {
+            href is '/channels/' . uri_escape($channel->name);
+            'more...';
+        };
+    };
+
+    ul {
+        for my $message ($channel->recent_log) {
+            li { show 'irc_message', $message; };
+        }
+    };
+
+    if ($args{has_next_page}) {
+        outs_raw '&#xE6E7;';
+        a {
+            href is '/recent';
+            accesskey is '6';
+            'next';
+        }
+    }
+
+    hr { };
+
+    show 'go_to_top';
+};
+
+private template 'mobile/go_to_top' => sub {
+    div {
+        class is 'GoToTop';
+        outs_raw '&#xE6E9;';
+        a {
+            accesskey is "8";
+            href is "/";
+            'ch list'
+        };
+    };
+};
+
+private template 'mobile/menu' => sub {
+    my $self = shift;
+    my %args = validate(
+        @_ => {
+            exists_recent_entries => 1,
+        },
+    );
+
+    ul {
+        li {
+            outs_raw '&#xE6EB;';
+            a { attr { href => '/#top', accesskey => 0 }
+                'refresh list'
+            };
+        };
+        if ($args{exists_recent_entries}) {
+            li {
+                span { '*' }
+                a { attr { href => '/recent', accesskey => '*' }
+                    'recent'
+                }
+            }
+        }
+        li {
+            a { attr { href => '/topics', accesskey => '#' }
+                'topics'
+            }
+        }
+        li {
+            a { attr { 'href' => '/keyword' }
+                'keyword'
+            };
+        }
+        li {
+            outs_raw '&#xE6EA;';
+            a {
+                attr { href => '/clear_all_unread', accesskey => '9' }
+                'clear_all_unread'
+            }
+        }
+    }
 };
 
 1;

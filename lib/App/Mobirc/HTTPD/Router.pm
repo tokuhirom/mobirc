@@ -5,13 +5,15 @@ use Carp;
 use HTTP::Response;
 use URI::Escape;
 use App::Mobirc::Util;
+use Encode;
 
 sub route {
-    my ($class, $c, $uri) = @_;
-    croak 'uri missing' unless $uri;
+    my ($class, $req,) = @_;
 
-    my $root = $c->{config}->{httpd}->{root};
+    my $root = App::Mobirc->context->config->{httpd}->{root};
     $root =~ s!/$!!;
+    my $uri = $req->uri->path;
+    warn "URI: $uri, " . $req->uri;
     $uri =~ s!^$root!!;
     # FIXME: it's for DoCoMoGUID. it may be too ugly.
     $uri =~ s/\?guid=on$//i;
@@ -26,50 +28,43 @@ sub route {
     }
     elsif ($uri =~ m{^/ajax/channel/([^?]+)}) {
         my $channel_name = $1;
-        return 'ajax_channel', uri_unescape($channel_name);
+        return 'ajax_channel', decode_utf8(uri_unescape($channel_name));
     }
     elsif ( $uri eq '/topics' ) {
         return 'topics';
     }
-    elsif ( $uri =~ m{^/recent(?:\?t=\d+)?$} ) {
+    elsif ( $uri eq '/recent' ) {
         return 'recent';
     }
-    elsif ( $uri =~ m{^/keyword(-recent)?(?:\?time=\d+)?$} ) {
+    elsif ( $uri eq '/keyword' ) {
         return 'keyword', $1 ? true : false;
     }
-    elsif ($uri =~ m{^/channels(-recent)?/([^?]+)}) {
-        my $recent_mode = $1 ? true : false;
-        my $channel_name = $2;
-        return 'show_channel', $recent_mode, uri_unescape($channel_name);
+    elsif ($uri =~ m{^/channels/(.+)}) {
+        my $channel_name = $1;
+        return 'show_channel', decode_utf8(uri_unescape($channel_name));
     }
     elsif ($uri eq '/clear_all_unread') {
         return 'clear_all_unread';
     }
-    elsif ($uri =~ m{^/ajax/menu(?:\?time=\d+)?$}) {
+    elsif ($uri eq '/ajax/menu') {
         return 'ajax_menu';
     }
     elsif ($uri eq '/ajax/keyword') {
         return 'ajax_keyword';
     }
-    elsif ($uri =~ '/jquery.js') {
+    elsif ($uri eq '/jquery.js') {
         return 'static', 'jquery.js', 'application/javascript';
     }
-    elsif ($uri =~ '/mobirc.js') {
+    elsif ($uri eq '/mobirc.js') {
         return 'static', 'mobirc.js', 'application/javascript';
     }
-    elsif ($uri =~ '/style.css') {
-        return 'static', 'style.css', 'text/css';
-    } 
     elsif ($uri =~ m{^/(pc|mobirc|mobile).css}) {
         return 'static', "$1.css", 'text/css';
     }
-    elsif ($uri =~ '/mobile.css') {
-        return 'static', 'mobile.css', 'text/css';
-    }
     else {
         # hook by plugins
-        for my $code (@{$c->{global_context}->get_hook_codes('httpd')}) {
-            my $response = $code->($c, $uri);
+        for my $code (@{App::Mobirc->context->get_hook_codes('httpd')}) {
+            my $response = $code->($uri); # XXX broken
             if ($response) {
                 return $response;
             }

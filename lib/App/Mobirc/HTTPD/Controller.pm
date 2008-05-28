@@ -26,21 +26,19 @@ sub call {
     $class->$method(@args);
 }
 
-sub server () { App::Mobirc->context->server } ## no critic.
+sub context () { App::Mobirc->context } ## no critic
+sub server  () { context->server } ## no critic.
 
 # this module contains MVC's C.
 
 sub dispatch_index {
     my ($class, $c) = @_;
 
-    return render(
+    return render_td(
         $c,
-        'index' => {
-            exists_recent_entries => (
-                grep( $_->unread_lines, server->channels )
-                ? true
-                : false
-            ),
+        'mobile/top' => {
+            exists_recent_entries => scalar( grep { $_->unread_lines } server->channels ),
+            mobile_agent       => $c->req->mobile_agent,
             keyword_recent_num => server->keyword_channel->unread_lines(),
             channels           => scalar( server->channels_sorted ),
         }
@@ -51,63 +49,37 @@ sub dispatch_index {
 sub dispatch_recent {
     my ($class, $c) = @_;
 
-    my @target_channels;
-    my $log_counter = 0;
-    my $has_next_page = false;
-
     my @unread_channels =
       grep { $_->unread_lines }
-      $c->{global_context}->channels;
+      context->channels;
 
-    DEBUG "SCALAR " . scalar @unread_channels;
-
-    for my $channel (@unread_channels) {
-        push @target_channels, $channel;
-        $log_counter += scalar @{ $channel->recent_log };
-
-        if ($log_counter >= $c->{config}->{httpd}->{recent_log_per_page}) {
-            $has_next_page = true; # FIXME: BUGGY
-            last;
-        }
-    }
-
-    my $out = render(
+    my $out = render_td(
         $c,
-        'recent' => {
-            target_channels => \@target_channels,
-            has_next_page   => $has_next_page,
+        'mobile/recent' => {
+            channel       => $unread_channels[0],
+            has_next_page => (scalar(@unread_channels) >= 2 ? 1 : 0),
         },
     );
 
     # reset counter.
-    for my $channel ( @target_channels ) {
+    if (my $channel = $unread_channels[0]) {
         $channel->clear_unread;
     }
 
     return $out;
 }
 
+    # SHOULD USE http://example.com/ INSTEAD OF http://example.com:portnumber/
+    # because au phone returns '400 Bad Request' when redrirect to http://example.com:portnumber/
 sub dispatch_clear_all_unread {
     my ($class, $c) = @_;
 
-    for my $channel ($c->{global_context}->channels) {
+    for my $channel (context->channels) {
         $channel->clear_unread;
     }
 
-    my $response = HTTP::Response->new(302);
-    my $root = $c->{config}->{httpd}->{root};
-
-    # SHOULD USE http://example.com/ INSTEAD OF http://example.com:portnumber/
-    # because au phone returns '400 Bad Request' when redrirect to http://example.com:portnumber/
-    $response->push_header(
-        'Location' => (
-                'http://'
-              . ($c->{config}->{httpd}->{host} || $c->{req}->header('Host'))
-              . $root
-        )
-    );
-
-    return $response;
+    my $root = context->config->{httpd}->{root};
+    $c->res->redirect($root);
 }
 
 # topic on every channel
@@ -116,53 +88,38 @@ sub dispatch_topics {
 
     render_td(
         $c => (
-            'topics', $c->{mobile_agent}, App::Mobirc->context->server
+            'mobile/topics', $c->req->mobile_agent, App::Mobirc->context->server
         )
     );
 }
 
 sub post_dispatch_show_channel {
-    my ( $class, $c, $recent_mode, $channel) = @_;
+    my ( $class, $c, $channel) = @_;
 
-    $channel = decode('utf8', $channel); # maybe $channel is not flagged utf8.
-
-    my $r       = CGI->new( $c->{req}->content );
-    my $message = $r->param('msg');
-    $message = decode( $c->{mobile_agent}->encoding, $message );
+    my $message = decode( $c->req->mobile_agent->encoding, $c->req->params->{'msg'} );
 
     DEBUG "POST MESSAGE $message";
 
-    $c->{global_context}->get_channel($channel)->post_command($message);
+    context->get_channel($channel)->post_command($message);
 
-    my $response = HTTP::Response->new(302);
-    my $root = $c->{config}->{httpd}->{root};
+    my $root = context->config->{httpd}->{root};
     $root =~ s!/$!!;
-    my $path = $c->{req}->uri;
+    my $path = $c->req->uri->path;
     $path =~ s/#/%23/;
 
-    $response->push_header(
-        'Location' => (
-                'http://'
-            . ($c->{config}->{httpd}->{host} || $c->{req}->header('Host'))
-            . $root
-            . $path
-            . '?time='
-            . time
-        )
-    );
-    return $response;
+    $c->res->redirect( $root . $path . '?time=' . time );
 }
 
 sub dispatch_keyword {
-    my ($class, $c, $recent_mode) = @_;
+    my ($class, $c, ) = @_;
 
     my $channel = server->keyword_channel;
 
     my $res = render_td(
         $c,
-        'mobile_keyword' => (
-            $c->{mobile_agent},
-            ($recent_mode ? $channel->recent_log : $channel->message_log),
+        'mobile/keyword' => (
+            $c->req->mobile_agent,
+            ($c->req->params->{recent_mode} ? $channel->recent_log : $channel->message_log),
             $c->{irc_nick},
         ),
     );
@@ -173,28 +130,24 @@ sub dispatch_keyword {
 }
 
 sub dispatch_show_channel {
-    my ($class, $c, $recent_mode, $channel_name, $render) = @_;
+    my ($class, $c, $channel_name,) = @_;
 
     DEBUG "show channel page: $channel_name";
-    $channel_name = decode('utf8', $channel_name); # maybe $channel_name is not flagged utf8.
 
-    my $channel = $c->{global_context}->get_channel($channel_name);
+    my $channel = context->get_channel($channel_name);
 
     my $out = render(
         $c,
         'show_channel' => {
             channel     => $channel,
-            recent_mode => $recent_mode,
-            render_ajax    => $render,
-            msg         => decode(
-                'utf8', +{ URI->new( $c->{req}->uri )->query_form }->{msg}
-            ),
+            recent_mode => $c->req->params->{recent_mode},
+            msg         => decode_utf8( $c->req->params->{msg} ), # XXX maybe wrong?
             channel_page_option => [
                 map { $_->( $channel, $c ) } @{
-                    $c->{global_context}->get_hook_codes('channel_page_option')
+                    context->get_hook_codes('channel_page_option')
                   }
             ],
-          }
+        }
     );
 
     $channel->clear_unread;
@@ -209,7 +162,7 @@ sub dispatch_show_channel {
         return render_td(
             $c,
             'ajax_base' => (
-                $c->{mobile_agent},
+                $c->req->mobile_agent,
                 ($c->{config}->{httpd}->{root} || '/'),
             )
         );
@@ -218,7 +171,7 @@ sub dispatch_show_channel {
     sub dispatch_ajax_channel {
         my ($class, $c, $channel_name) = @_;
 
-        my $channel = server->get_channel(U $channel_name);
+        my $channel = server->get_channel($channel_name);
         my $res = render_td(
             $c,
             'ajax_channel' => (
@@ -233,17 +186,14 @@ sub dispatch_show_channel {
     sub post_dispatch_ajax_channel {
         my ( $class, $c, $channel) = @_;
 
-        my $r       = CGI->new( $c->{req}->content );
-        my $message = $r->param('msg');
-        $message = decode( $c->{mobile_agent}->encoding, $message );
+        my $message = $c->req->parameters->{'msg'};
+        $message = decode( $c->req->mobile_agent->encoding, $message );
 
         DEBUG "POST MESSAGE $message";
 
-        server->get_channel(decode_utf8 $channel)->post_command($message);
+        server->get_channel($channel)->post_command($message);
 
-        my $response = HTTP::Response->new(200);
-        $response->content('ok');
-        return $response;
+        $c->res->body('ok');
     }
 
     sub dispatch_ajax_menu {
@@ -277,14 +227,14 @@ sub make_response {
     my ( $c, $out ) = @_;
 
     $out = _html_filter($c, $out);
-    my $content = encode( $c->{mobile_agent}->encoding, $out);
+    my $content = encode( $c->req->mobile_agent->encoding, $out);
 
     # change content type for docomo
     # FIXME: hmm... should be in the plugin?
     my $content_type = $c->{config}->{httpd}->{content_type};
-    $content_type= 'application/xhtml+xml' if $c->{mobile_agent}->is_docomo;
+    $content_type= 'application/xhtml+xml' if $c->req->mobile_agent->is_docomo;
     unless ( $content_type ) {
-        if ( $c->{mobile_agent}->can_display_utf8 ) {
+        if ( $c->req->mobile_agent->can_display_utf8 ) {
             $content_type = 'text/html; charset=UTF-8';
         } else {
             $content_type = 'text/html; charset=Shift_JIS';
@@ -297,7 +247,7 @@ sub make_response {
 
     $response->content( $content );
 
-    for my $code (@{$c->{global_context}->get_hook_codes('response_filter')}) {
+    for my $code (@{context->get_hook_codes('response_filter')}) {
         $code->($c, $response);
     }
 
@@ -316,7 +266,7 @@ sub render {
         docroot              => $c->{config}->{httpd}->{root},
         render_line          => sub { render_line( $c, @_ ) },
         user_agent           => $c->{user_agent},
-        mobile_agent         => $c->{mobile_agent},
+        mobile_agent         => $c->req->mobile_agent,
         title                => $c->{config}->{httpd}->{title},
         version              => $App::Mobirc::VERSION,
         now                  => time(),
@@ -331,7 +281,7 @@ sub render {
         LOAD_TEMPLATES => [
             Template::Provider::Encoding->new(
                 ABSOLUTE => 1,
-                INCLUDE_PATH => dir( $c->{config}->{global}->{assets_dir}, 'tmpl', $tmpl_dir, )->stringify,
+                INCLUDE_PATH => dir( context->config->{global}->{assets_dir}, 'tmpl', $tmpl_dir, )->stringify,
             )
         ],
     );
@@ -346,7 +296,7 @@ sub render {
 sub dispatch_static {
     my ($class, $c, $file_name, $content_type) = @_;
 
-    my $file = file($c->{config}->{global}->{assets_dir},'static', $file_name);
+    my $file = file(context->{config}->{global}->{assets_dir},'static', $file_name);
     my $content = $file->slurp;
 
     my $response = HTTP::Response->new(200);
@@ -362,7 +312,7 @@ sub _html_filter {
     my $c = shift;
     my $content = shift;
 
-    for my $code (@{$c->{global_context}->get_hook_codes('html_filter')}) {
+    for my $code (@{context->get_hook_codes('html_filter')}) {
         $content = $code->($c, $content);
     }
 

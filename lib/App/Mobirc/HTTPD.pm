@@ -25,61 +25,59 @@ use App::Mobirc;
 use App::Mobirc::Util;
 use App::Mobirc::HTTPD::Controller;
 use App::Mobirc::HTTPD::Router;
-
-our $GLOBAL_CONFIG;                      # TODO: should use HEAP.
+use HTTP::Engine;
 
 sub init {
     my ( $class, $config, $global_context ) = @_;
 
-    my $session_id = POE::Component::Server::TCP->new(
-        Alias        => 'mobirc_httpd',
-        Address      =>($config->{httpd}->{address} || '0.0.0.0'),
-        Port         => $config->{httpd}->{port},
-        ClientFilter => 'POE::Filter::HTTPD',
-        ClientInput  => \&on_web_request,
-        Error        => sub {
-            die( "$$: " . 'Server ',
-                $_[SESSION]->ID, " got $_[ARG0] error $_[ARG1] ($_[ARG2])\n" );
+    HTTP::Engine->new(
+        interface => {
+            module => 'POE',
+            args => {
+                host => ($config->{httpd}->{address} || '0.0.0.0'),
+                port => ($config->{httpd}->{port} || 80),
+            },
+            request_handler => \&on_web_request,
         }
-    );
+    )->run;
 
-    $GLOBAL_CONFIG = $config;
+    # TODO: use MobileAttribute...
+    do {
+        my $meta = HTTP::Engine::Request->meta;
+        $meta->make_mutable;
+        $meta->add_attribute(
+            mobile_agent => (
+                is      => 'ro',
+                isa     => 'Object',
+                lazy    => 1,
+                default => sub {
+                    my $self = shift;
+                    $self->{mobile_agent} = HTTP::MobileAgent->new( $self->headers );
+                },
+            )
+        );
+        $meta->make_immutable;
+    };
 }
 
 sub on_web_request {
-    my $poe        = sweet_args;
-    my $request    = $poe->args->[0];
+    my $c = shift;
 
-    my $config = $GLOBAL_CONFIG or die "config missing";
+    my $request = $c->req->as_http_request();
 
-    if ( $ENV{DEBUG} ) {
-        require Module::Reload;
-        Module::Reload->check;
-    }
-
-    # Filter::HTTPD sometimes generates HTTP::Response objects.
-    # They indicate (and contain the response for) errors that occur
-    # while parsing the client's HTTP request.  It's easiest to send
-    # the responses as they are and finish up.
-    if ( $request->isa('HTTP::Response') ) {
-        $poe->heap->{client}->put($request);
-        $poe->kernel->yield('shutdown');
-        return;
-    }
-
-    my $user_agent = $request->{_headers}->{'user-agent'};
-    my $c = {
-        config     => $config,
-        req        => $request,
-        user_agent => $user_agent,
-        mobile_agent => HTTP::MobileAgent->new($user_agent),
-        irc_nick     => $poe->kernel->alias_resolve('irc_session')->get_heap->{irc}->nick_name,
-        global_context => App::Mobirc->context,
-    };
+    my $user_agent = $c->req->user_agent;
+#   my $c = {
+#       config     => $config,
+#       req        => $request,
+#       user_agent => $user_agent,
+#       mobile_agent => HTTP::MobileAgent->new($user_agent),
+#       irc_nick     => POE::Kernel->alias_resolve('irc_session')->get_heap->{irc}->nick_name,
+#       global_context => App::Mobirc->context,
+#   };
 
     # authorization phase
     my $authorized_fg = 0;
-    for my $code (@{$c->{global_context}->get_hook_codes('authorize')}) {
+    for my $code (@{App::Mobirc->context->get_hook_codes('authorize')}) {
         if ($code->($c)) {
             $authorized_fg++;
             last; # authorization succeeded.
@@ -87,25 +85,20 @@ sub on_web_request {
     }
 
     if ($authorized_fg) {
-        my $response = process_request($c, $request->uri);
-        $poe->heap->{client}->put($response);
-        $poe->kernel->yield('shutdown');
+        my $response = process_request($c);
+        if ($response && blessed $response && $response->isa('HTTP::Response')) {
+            $c->res->set_http_response($response);
+        }
     } else {
-        my $response = HTTP::Response->new(401);
-        $response->push_header(
-            WWW_Authenticate => qq(Basic Realm="mobirc") );
-        $response->content( "authorization required" );
-        $poe->heap->{client}->put($response);
-        $poe->kernel->yield('shutdown');
-        return;
+        $c->res->status(401);
+        $c->res->header('WWW-Authenticate' => qq(Basic Realm="mobirc"));
     }
 }
 
 sub process_request {
-    my ($c, $uri) = @_;
-    croak 'uri missing' unless $uri;
+    my ($c, ) = @_;
 
-    my ($meth, @args) = App::Mobirc::HTTPD::Router->route($c, $uri);
+    my ($meth, @args) = App::Mobirc::HTTPD::Router->route($c->req);
 
     if (blessed $meth && $meth->isa('HTTP::Response')) {
         return $meth;
