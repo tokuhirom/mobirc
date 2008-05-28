@@ -73,7 +73,7 @@ features(
     ],
 );
 
-tests 't/*.t t/*/*.t t/*/*/*.t';
+tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t';
 test_requires 'Test::More';
 test_requires 'Text::Diff';
 test_requires 'Test::Exception';
