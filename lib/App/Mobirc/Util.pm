@@ -15,7 +15,7 @@ sub U ($) { decode('utf-8', shift) } ## no critic.
 
 sub DEBUG($) { ## no critic.
     my $txt = shift;
-    print "$txt\n" if $ENV{DEBUG};
+    print STDERR "$txt\n" if $ENV{DEBUG};
 }
 
 # -------------------------------------------------------------------------

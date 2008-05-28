@@ -50,11 +50,11 @@ sub dispatch_recent {
 sub dispatch_clear_all_unread {
     my ($class, $c) = @_;
 
-    for my $channel (context->channels) {
+    for my $channel (server->channels) {
         $channel->clear_unread;
     }
 
-    my $root = context->config->{httpd}->{root};
+    my $root = context->config->{httpd}->{root}; # XXX move to filter
     $c->res->redirect($root);
 }
 
