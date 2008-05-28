@@ -142,39 +142,42 @@ template 'mobile/recent' => sub {
             channel       => 1,
             has_next_page => 1,
             irc_nick      => 1,
+            mobile_agent  => 1,
         }
     );
     my $channel = $args{channel};
 
-    div {
-        class is 'ChannelHeader';
-        a {
-            class is 'ChannelName';
-            $channel->name;
+    show 'wrapper_mobile', $args{mobile_agent}, sub {
+        div {
+            class is 'ChannelHeader';
+            a {
+                class is 'ChannelName';
+                $channel->name;
+            };
+            a {
+                href is '/channels/' . uri_escape($channel->name);
+                'more...';
+            };
         };
-        a {
-            href is '/channels/' . uri_escape($channel->name);
-            'more...';
-        };
-    };
 
-    for my $message (@{$channel->recent_log}) {
-        show '../irc_message', $message, $args{irc_nick};
-        br { };
-    }
-
-    if ($args{has_next_page}) {
-        outs_raw '&#xE6E7;';
-        a {
-            href is '/recent';
-            accesskey is '6';
-            'next';
+        for my $message (@{$channel->recent_log}) {
+            show '../irc_message', $message, $args{irc_nick};
+            br { };
         }
-    }
 
-    hr { };
+        if ($args{has_next_page}) {
+            outs_raw '&#xE6E7;';
+            a {
+                href is '/recent';
+                accesskey is '6';
+                'next';
+            }
+        }
 
-    show 'go_to_top';
+        hr { };
+
+        show 'go_to_top';
+    };
 };
 
 private template 'mobile/go_to_top' => sub {

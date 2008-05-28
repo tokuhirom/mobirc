@@ -60,6 +60,7 @@ sub dispatch_recent {
             channel       => $unread_channels[0],
             has_next_page => (scalar(@unread_channels) >= 2 ? 1 : 0),
             irc_nick      => irc_nick,
+            mobile_agent  => $c->req->mobile_agent,
         },
     );
 
