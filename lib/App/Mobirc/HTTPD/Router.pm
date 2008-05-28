@@ -32,7 +32,7 @@ sub route {
         return 'Mobile', 'recent';
     }
     elsif ( $uri eq '/keyword' ) {
-        return 'Mobile', 'keyword', $1 ? true : false;
+        return 'Mobile', 'keyword';
     }
     elsif ($uri =~ m{^/channels/(.+)}) {
         my $channel_name = $1;
