@@ -13,14 +13,9 @@ sub route {
     my $root = App::Mobirc->context->config->{httpd}->{root};
     $root =~ s!/$!!;
     my $uri = $req->uri->path;
-    warn "URI: $uri, " . $req->uri;
     $uri =~ s!^$root!!;
-    # FIXME: it's for DoCoMoGUID. it may be too ugly.
-    $uri =~ s/\?guid=on$//i;
-    $uri =~ s!\&?guid=on\&?!!i; 
-    $uri =~ s/\?.+//i;
 
-    if ( $uri eq '/' ) {
+    if ( $uri eq '/'  || $uri eq '' ) {
         return 'index';
     }
     elsif ( $uri eq '/ajax/' ) {
