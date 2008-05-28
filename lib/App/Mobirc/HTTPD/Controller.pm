@@ -339,10 +339,7 @@ sub render_line {
     return "" unless $message;
     croak "must be object: $message" unless ref $message eq 'App::Mobirc::Model::Message';
 
-    my $out = App::Mobirc::HTTPD::View->show('irc_message', $message, $c->{irc_nick});
-    $out =~ s/^ //smg;
-    $out =~ s/\n//g;
-    $out;
+    App::Mobirc::HTTPD::View->show('irc_message', $message, $c->{irc_nick});
 }
 
 1;
