@@ -27,6 +27,7 @@ function load_menu () {
             $('#menu .channel a').click(function () {
                 contents_load(docroot + 'ajax/channel/' + encodeURIComponent($(this).text()), $(this).text());
                 $(this).parent().removeClass('unread');
+                return false;
             });
 
             var keyword_cb = function () {
