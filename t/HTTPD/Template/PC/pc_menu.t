@@ -9,20 +9,18 @@ use App::Mobirc::Model::Server;
 use App::Mobirc::Util;
 
 # init.
-do {
-    my $c = App::Mobirc->new(
-        {
-            httpd => { port => 3333, title => 'mobirc', lines => 40 },
-            global => { keywords => [qw/foo/], stopwords => [qw/foo31/] },
-        }
-    );
+my $c = App::Mobirc->new(
+    {
+        httpd => { port => 3333, title => 'mobirc', lines => 40 },
+        global => { keywords => [qw/foo/], stopwords => [qw/foo31/] },
+    }
+);
 
-    my $server = App::Mobirc::Model::Server->new();
-    $server->get_channel(U '#tester');
-};
+my $server = App::Mobirc::Model::Server->new();
+$server->get_channel(U '#tester');
 
 my $got = do {
-    local $_ = App::Mobirc::HTTPD::View->show('pc_menu', $server, 3);
+    local $_ = App::Mobirc::HTTPD::View->show('ajax_menu', $server, 3);
     s/^\n//;
     $_;
 };
