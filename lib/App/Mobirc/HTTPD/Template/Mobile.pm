@@ -64,16 +64,23 @@ template 'mobile/topics' => sub {
 };
 
 template 'mobile/keyword' => sub {
-    my ($self, $mobile_agent, $rows, $irc_nick) = @_;
+    my $self = shift;
+    my %args = validate(
+        @_ => {
+            mobile_agent => 1,
+            rows         => 1,
+            irc_nick     => 1,
+        }
+    );
 
-    show 'wrapper_mobile', $mobile_agent, sub {
+    show 'wrapper_mobile', $args{mobile_agent}, sub {
         a { attr { name => "1" } }
         a { attr { accesskey => '7', href => '#1' } };
 
         div { attr { class => 'ttlLv1' } 'keyword' };
 
-        for my $row ( @$rows ) {
-            show '../keyword_line', $row, $irc_nick;
+        for my $row ( @{$args{rows}} ) {
+            show '../keyword_line', $row, $args{irc_nick};
         }
 
         show 'footer';
@@ -134,12 +141,13 @@ template 'mobile/recent' => sub {
         @_ => {
             channel       => 1,
             has_next_page => 1,
+            irc_nick      => 1,
         }
     );
     my $channel = $args{channel};
 
     div {
-        class => 'ChannelHeader';
+        class is 'ChannelHeader';
         a {
             class is 'ChannelName';
             $channel->name;
@@ -150,8 +158,8 @@ template 'mobile/recent' => sub {
         };
     };
 
-    for my $message ($channel->recent_log) {
-        show 'irc_message', $message;
+    for my $message (@{$channel->recent_log}) {
+        show '../irc_message', $message, $args{irc_nick};
         br { };
     }
 

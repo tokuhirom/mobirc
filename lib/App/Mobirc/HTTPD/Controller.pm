@@ -28,6 +28,7 @@ sub call {
 
 sub context () { App::Mobirc->context } ## no critic
 sub server  () { context->server } ## no critic.
+sub irc_nick () { POE::Kernel->alias_resolve('irc_session')->get_heap->{irc}->nick_name } ## no critic
 
 # this module contains MVC's C.
 
@@ -58,6 +59,7 @@ sub dispatch_recent {
         'mobile/recent' => {
             channel       => $unread_channels[0],
             has_next_page => (scalar(@unread_channels) >= 2 ? 1 : 0),
+            irc_nick      => irc_nick,
         },
     );
 
@@ -117,11 +119,15 @@ sub dispatch_keyword {
 
     my $res = render_td(
         $c,
-        'mobile/keyword' => (
-            $c->req->mobile_agent,
-            ($c->req->params->{recent_mode} ? $channel->recent_log : $channel->message_log),
-            $c->{irc_nick},
-        ),
+        'mobile/keyword' => {
+            mobile_agent => $c->req->mobile_agent,
+            rows         => (
+                  $c->req->params->{recent_mode}
+                ? scalar($channel->recent_log)
+                : scalar($channel->message_log)
+            ),
+            irc_nick => irc_nick,
+        },
     );
 
     $channel->clear_unread;
