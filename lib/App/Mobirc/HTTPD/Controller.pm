@@ -304,15 +304,9 @@ sub dispatch_static {
     my ($class, $c, $file_name, $content_type) = @_;
 
     my $file = file(context->{config}->{global}->{assets_dir},'static', $file_name);
-    my $content = $file->slurp;
 
-    my $response = HTTP::Response->new(200);
-    $response->push_header( 'Content-type' => $content_type );
-    $response->push_header('Content-Length' => length($content) );
-
-    $response->content( $content );
-
-    return $response;
+    $c->res->content_type( $content_type );
+    $c->res->body( $file->openr );
 }
 
 sub _html_filter {
