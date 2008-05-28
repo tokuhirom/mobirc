@@ -238,7 +238,7 @@ sub make_response {
 
     # change content type for docomo
     # FIXME: hmm... should be in the plugin?
-    my $content_type = $c->{config}->{httpd}->{content_type};
+    my $content_type = context->config->{httpd}->{content_type};
     $content_type= 'application/xhtml+xml' if $c->req->mobile_agent->is_docomo;
     unless ( $content_type ) {
         if ( $c->req->mobile_agent->can_display_utf8 ) {
@@ -248,17 +248,12 @@ sub make_response {
         }
     }
 
-    my $response = HTTP::Response->new(200);
-    $response->push_header( 'Content-type' => encode('utf8', $content_type) );
-    $response->push_header('Content-Length' => length($content) );
-
-    $response->content( $content );
+    $c->res->content_type(encode('utf8', $content_type));
+    $c->res->body( $content );
 
     for my $code (@{context->get_hook_codes('response_filter')}) {
-        $code->($c, $response);
+        $code->($c, $c->res); # XXX TODO: FIX ME
     }
-
-    return $response;
 }
 
 sub render {

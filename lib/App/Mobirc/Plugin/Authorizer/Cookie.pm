@@ -16,7 +16,7 @@ sub register {
         'authorize' => sub { my $c = shift;  _authorize($c, $conf) },
     );
     $global_context->register_hook(
-        'response_filter' => sub { my ($c, $res) = @_;  _set_cookie($c, $res, $conf) },
+        'response_filter' => sub { my ($c, ) = @_;  _set_cookie($c, $conf) },
     );
 }
 
@@ -49,18 +49,14 @@ sub _authorize {
 }
 
 sub _set_cookie {
-    my ($c, $response, $conf) = @_;
+    my ($c, $conf) = @_;
 
     my $password = $conf->{password} or croak "conf->{password} missing";
-    my $cookie = CGI::Cookie->new(
+
+    $c->res->cookies->{mobirc_key} = CGI::Cookie->new(
         -name    => 'mobirc_key',
         -value   => _calc_digest($password),
         -expires => $conf->{expires} || '+7d',
-    );
-    my $cookie_str = $cookie->as_string;
-    $cookie_str = Encode::is_utf8($cookie_str) ? encode('utf8', $cookie_str) : $cookie_str; ## BK
-    $response->push_header(
-        'Set-Cookie' => $cookie_str
     );
 }
 
