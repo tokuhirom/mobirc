@@ -19,11 +19,11 @@ sub route {
         return 'Mobile', 'index';
     }
     elsif ( $uri eq '/ajax/' ) {
-        return 'Ajax', 'ajax_base';
+        return 'Ajax', 'base';
     }
     elsif ($uri =~ m{^/ajax/channel/([^?]+)}) {
         my $channel_name = $1;
-        return 'Ajax', 'ajax_channel', decode_utf8(uri_unescape($channel_name));
+        return 'Ajax', 'channel', decode_utf8(uri_unescape($channel_name));
     }
     elsif ( $uri eq '/topics' ) {
         return 'Mobile', 'topics';
@@ -42,7 +42,7 @@ sub route {
         return 'Mobile', 'clear_all_unread';
     }
     elsif ($uri eq '/ajax/menu') {
-        return 'Ajax', 'ajax_menu';
+        return 'Ajax', 'menu';
     }
     elsif ($uri eq '/ajax/keyword') {
         return 'Ajax', 'keyword';

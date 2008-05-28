@@ -4,7 +4,7 @@ use App::Mobirc::HTTPD::C;
 use App::Mobirc::Util;
 use Encode;
 
-sub dispatch_ajax_base {
+sub dispatch_base {
     my ($class, $c) = @_;
 
     render_td(
@@ -16,7 +16,7 @@ sub dispatch_ajax_base {
     );
 }
 
-sub dispatch_ajax_channel {
+sub dispatch_channel {
     my ($class, $c, $channel_name) = @_;
 
     my $channel = server->get_channel($channel_name);
@@ -30,7 +30,7 @@ sub dispatch_ajax_channel {
     $channel->clear_unread();
 }
 
-sub post_dispatch_ajax_channel {
+sub post_dispatch_channel {
     my ( $class, $c, $channel) = @_;
 
     my $message = $c->req->parameters->{'msg'};
@@ -43,7 +43,7 @@ sub post_dispatch_ajax_channel {
     $c->res->body('ok');
 }
 
-sub dispatch_ajax_menu {
+sub dispatch_menu {
     my ($class, $c ) = @_;
 
     render_td(
