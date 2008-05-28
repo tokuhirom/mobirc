@@ -16,45 +16,45 @@ sub route {
     $uri =~ s!^$root!!;
 
     if ( $uri eq '/'  || $uri eq '' ) {
-        return 'index';
+        return 'Mobile', 'index';
     }
     elsif ( $uri eq '/ajax/' ) {
-        return 'ajax_base';
+        return 'Ajax', 'ajax_base';
     }
     elsif ($uri =~ m{^/ajax/channel/([^?]+)}) {
         my $channel_name = $1;
-        return 'ajax_channel', decode_utf8(uri_unescape($channel_name));
+        return 'Ajax', 'ajax_channel', decode_utf8(uri_unescape($channel_name));
     }
     elsif ( $uri eq '/topics' ) {
-        return 'topics';
+        return 'Mobile', 'topics';
     }
     elsif ( $uri eq '/recent' ) {
-        return 'recent';
+        return 'Mobile', 'recent';
     }
     elsif ( $uri eq '/keyword' ) {
-        return 'keyword', $1 ? true : false;
+        return 'Mobile', 'keyword', $1 ? true : false;
     }
     elsif ($uri =~ m{^/channels/(.+)}) {
         my $channel_name = $1;
-        return 'show_channel', decode_utf8(uri_unescape($channel_name));
+        return 'Mobile', 'show_channel', decode_utf8(uri_unescape($channel_name));
     }
     elsif ($uri eq '/clear_all_unread') {
-        return 'clear_all_unread';
+        return 'Mobile', 'clear_all_unread';
     }
     elsif ($uri eq '/ajax/menu') {
-        return 'ajax_menu';
+        return 'Ajax', 'ajax_menu';
     }
     elsif ($uri eq '/ajax/keyword') {
-        return 'ajax_keyword';
+        return 'Ajax', 'ajax_keyword';
     }
     elsif ($uri eq '/jquery.js') {
-        return 'static', 'jquery.js', 'application/javascript';
+        return 'Static', 'deliver', 'jquery.js', 'application/javascript';
     }
     elsif ($uri eq '/mobirc.js') {
-        return 'static', 'mobirc.js', 'application/javascript';
+        return 'Static', 'deliver', 'mobirc.js', 'application/javascript';
     }
     elsif ($uri =~ m{^/(pc|mobirc|mobile).css}) {
-        return 'static', "$1.css", 'text/css';
+        return 'Static', 'deliver', "$1.css", 'text/css';
     }
     else {
         # hook by plugins

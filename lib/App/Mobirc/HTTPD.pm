@@ -23,7 +23,9 @@ use HTTP::MobileAgent::Plugin::Charset;
 
 use App::Mobirc;
 use App::Mobirc::Util;
-use App::Mobirc::HTTPD::Controller;
+use App::Mobirc::HTTPD::C::Mobile;
+use App::Mobirc::HTTPD::C::Ajax;
+use App::Mobirc::HTTPD::C::Static;
 use App::Mobirc::HTTPD::Router;
 use HTTP::Engine;
 
@@ -98,16 +100,20 @@ sub on_web_request {
 sub process_request {
     my ($c, ) = @_;
 
-    my ($meth, @args) = App::Mobirc::HTTPD::Router->route($c->req);
+    my ($controller, $meth, @args) = App::Mobirc::HTTPD::Router->route($c->req);
 
-    if (blessed $meth && $meth->isa('HTTP::Response')) {
-        return $meth;
+    if (blessed $controller && $controller->isa('HTTP::Response')) {
+        return $controller;
     }
 
-    if ( $c->{req}->method =~ /POST/i && App::Mobirc::HTTPD::Controller->can("post_dispatch_$meth")) {
-        return App::Mobirc::HTTPD::Controller->call("post_dispatch_$meth", $c, @args);
+    $controller = "App::Mobirc::HTTPD::C::$controller";
+
+    my $post_meth = "post_dispatch_$meth";
+    my $get_meth  = "dispatch_$meth";
+    if ( $c->req->method =~ /POST/i && $controller->can($post_meth)) {
+        return $controller->$post_meth($c, @args);
     } else {
-        return App::Mobirc::HTTPD::Controller->call("dispatch_$meth", $c, @args);
+        return $controller->$get_meth($c, @args);
     }
 }
 
