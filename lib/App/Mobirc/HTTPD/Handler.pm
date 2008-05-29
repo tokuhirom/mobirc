@@ -10,10 +10,18 @@ use App::Mobirc::HTTPD::C::Static;
 
 sub handler {
     my $c = shift;
+
+    for my $code (@{App::Mobirc->context->get_hook_codes('request_filter')}) {
+        $code->($c);
+    }
+
     if (authorize($c)) {
         my $response = process_request($c);
         if ($response && blessed $response && $response->isa('HTTP::Response')) { # TODO: remove this feature
             $c->res->set_http_response($response);
+        }
+        for my $code (@{App::Mobirc->context->get_hook_codes('response_filter')}) {
+            $code->($c);
         }
     } else {
         $c->res->status(401);

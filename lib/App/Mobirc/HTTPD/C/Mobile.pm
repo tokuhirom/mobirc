@@ -54,8 +54,7 @@ sub dispatch_clear_all_unread {
         $channel->clear_unread;
     }
 
-    my $root = context->config->{httpd}->{root}; # XXX move to filter
-    $c->res->redirect($root);
+    $c->res->redirect('/');
 }
 
 # topic on every channel
@@ -81,10 +80,7 @@ sub post_dispatch_show_channel {
 
     context->get_channel($channel)->post_command($message);
 
-    my $root = context->config->{httpd}->{root};
-    $root =~ s!/$!!;
-
-    $c->res->redirect( $root . $c->req->uri->path . '?time=' . time );
+    $c->res->redirect( $c->req->uri->path . '?time=' . time );
 }
 
 sub dispatch_keyword {

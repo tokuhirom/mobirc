@@ -10,10 +10,7 @@ use Encode;
 sub route {
     my ($class, $req,) = @_;
 
-    my $root = App::Mobirc->context->config->{httpd}->{root};
-    $root =~ s!/$!!;
     my $uri = $req->uri->path;
-    $uri =~ s!^$root!!;
 
     if ( $uri eq '/'  || $uri eq '' ) {
         return 'Mobile', 'index';
