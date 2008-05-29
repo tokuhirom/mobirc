@@ -79,7 +79,9 @@ sub _html_filter_docroot {
         $elem->setAttribute(href => $root . $elem->getAttribute('href'));
     }
     for my $elem ($doc->findnodes('//script')) {
-        $elem->setAttribute(src => $root . $elem->getAttribute('src'));
+        if ($elem->hasAttribute('src')) {
+            $elem->setAttribute(src => $root . $elem->getAttribute('src'));
+        }
     }
 
     my $html = $doc->toStringHTML;
