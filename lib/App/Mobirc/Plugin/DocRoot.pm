@@ -52,6 +52,7 @@ sub _html_filter_docroot {
     my ($c, $content, $conf) = @_;
 
     DEBUG "FILTER DOCROOT";
+    DEBUG "CONTENT IS UTF* : " . Encode::is_utf8($content);
 
     my $root = $conf->{root};
     $root =~ s!/$!!;
@@ -87,7 +88,7 @@ sub _html_filter_docroot {
     my $html = $doc->toStringHTML;
     $html =~ s{<!DOCTYPE[^>]*>\s*}{};
 
-    decode($doc->encoding | "UTF-8", $html);
+    decode($doc->encoding || "UTF-8", $html);
 }
 
 1;
