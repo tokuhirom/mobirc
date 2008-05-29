@@ -23,7 +23,6 @@ requires 'HTML::Entities::ConvertPictogramMobileJp' => '0.06';
 
 # template engine
 requires 'Template' => 2.16;                # new 'uri' is supported from 2.16
-requires 'Template::Provider::Encoding' => '0.10';
 requires 'Template::Declare'  => '0.28';
 
 # utilities
@@ -70,6 +69,10 @@ features(
     'Authorizer::Cookie support' => [
         -default => 0,
         recommends('CGI::Cookie', '1.29'),
+    ],
+    'DocRoot' => [
+        -default => 0,
+        recommends('XML::LibXML', '1.66'),
     ],
 );
 
