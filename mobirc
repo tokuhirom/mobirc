@@ -13,9 +13,6 @@ use lib catfile( $FindBin::Bin, 'lib');
 use App::Mobirc;
 use App::Mobirc::Util;
 
-if ($ENV{STACKTRACE}) {
-    $SIG{__DIE__} = \&Carp::confess;
-}
 $SIG{INT} = sub { die "SIGINT!\n" };
 
 my $daemonize_fg = false;
