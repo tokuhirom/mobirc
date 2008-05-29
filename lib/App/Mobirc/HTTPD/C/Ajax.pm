@@ -9,7 +9,7 @@ sub dispatch_base {
 
     render_td(
         $c,
-        'ajax_base' => (
+        'ajax/base' => (
             $c->req->mobile_agent,
             ($c->{config}->{httpd}->{root} || '/'),
         )
@@ -22,7 +22,7 @@ sub dispatch_channel {
     my $channel = server->get_channel($channel_name);
     render_td(
         $c,
-        'ajax_channel' => (
+        'ajax/channel' => (
             $channel,
             irc_nick
         )
@@ -48,7 +48,7 @@ sub dispatch_menu {
 
     render_td(
         $c,
-        'ajax_menu' => (
+        'ajax/menu' => (
             server,
             server->keyword_channel->unread_lines,
         )

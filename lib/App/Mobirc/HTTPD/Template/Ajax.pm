@@ -7,7 +7,7 @@ use Params::Validate ':all';
 use HTML::Entities qw/encode_entities/;
 use App::Mobirc;
 
-private template 'wrapper_ajax' => sub {
+private template 'ajax/wrapper_ajax' => sub {
     my ($self, $mobile_agent, $code, $subtitle) = @_;
 
     xml_decl { 'xml', version => 1.0, encoding => 'UTF-8' };
@@ -37,7 +37,7 @@ private template 'wrapper_ajax' => sub {
     }
 };
 
-template 'ajax_base' => sub {
+template 'ajax/base' => sub {
     my ($self, $mobile_agent, $docroot) = validate_pos(@_, OBJECT, OBJECT, SCALAR);
     show 'wrapper_ajax', $mobile_agent, sub {
         div {
@@ -64,12 +64,12 @@ template 'ajax_base' => sub {
     };
 };
 
-template 'ajax_menu' => sub {
+template 'ajax/menu' => sub {
     my ($self, $server, $keyword_recent_num) = validate_pos(@_, OBJECT, { isa => 'App::Mobirc::Model::Server' }, SCALAR);
 
     div {
-        show 'keyword_channel', $keyword_recent_num;
-        show 'channel_list', $server;
+        show '../keyword_channel', $keyword_recent_num;
+        show '../channel_list', $server;
     };
 };
 
@@ -114,11 +114,11 @@ template 'ajax/keyword' => sub {
     }
 };
 
-template 'ajax_channel' => sub {
+template 'ajax/channel' => sub {
     my ($self, $channel, $irc_nick) = @_;
     div {
         for my $message ($channel->message_log) {
-            show 'irc_message', $message, $irc_nick;
+            show '../irc_message', $message, $irc_nick;
             br { };
         }
     }
