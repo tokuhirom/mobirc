@@ -95,7 +95,7 @@ private template 'irc_body' => sub {
     my $c = App::Mobirc->context;
     my $codes = $c->get_hook_codes('message_body_filter') || [];
 
-    $body = encode_entities($body);
+    $body = encode_entities($body, q{<>&"'});
     for my $filter ( @{ $codes } ) {
         $body = $filter->($body);
     }
