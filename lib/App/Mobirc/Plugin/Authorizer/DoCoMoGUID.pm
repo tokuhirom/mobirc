@@ -38,7 +38,7 @@ sub _html_filter_docomo_guid {
     my ($c, $content) = @_;
 
     DEBUG "Filter DoCoMoGUID";
-    return $content unless $c->{mobile_agent}->is_docomo;
+    return $content unless $c->req->mobile_agent->is_docomo;
 
     return HTML::StickyQuery::DoCoMoGUID->new()->sticky( scalarref => \$content, );
 }
