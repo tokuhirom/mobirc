@@ -23,7 +23,7 @@ sub _html_filter_docomocss {
     my $content = shift;
 
     DEBUG "FILTER DOCOMO CSS";
-    return $content unless $c->{mobile_agent}->is_docomo;
+    return $content unless $c->req->mobile_agent->is_docomo;
 
     # escape Numeric character reference.
     $content =~ s/&#(x[\dA-Fa-f]{4}|\d+);/HTMLCSSINLINERESCAPE$1::::::::/g;
