@@ -16,26 +16,9 @@ use App::Mobirc::HTTPD::Handler;
 use HTTP::Engine middlewares => [
     qw/
         +App::Mobirc::HTTPD::Middleware::Encoding
+        +App::Mobirc::HTTPD::Middleware::MobileAgent
     /
 ];
-
-# TODO: use MobileAttribute...
-do {
-    my $meta = HTTP::Engine::Request->meta;
-    $meta->make_mutable;
-    $meta->add_attribute(
-        mobile_agent => (
-            is      => 'ro',
-            isa     => 'Object',
-            lazy    => 1,
-            default => sub {
-                my $self = shift;
-                $self->{mobile_agent} = HTTP::MobileAgent->new( $self->headers );
-            },
-        )
-    );
-    $meta->make_immutable;
-};
 
 sub init {
     my ( $class, $config, $global_context ) = @_;
