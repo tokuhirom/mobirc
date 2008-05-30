@@ -27,6 +27,7 @@ requires 'Template::Declare'  => '0.28';
 
 # utilities
 requires 'Data::Visitor::Encode' => '0.09';
+requires 'HTTPx::Dispatcher'  => '0.04';
 requires 'CGI'                => '3.37';
 requires 'Carp'               => '1.04';
 requires 'Encode'             => '2.25';

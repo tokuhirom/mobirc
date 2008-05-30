@@ -2,7 +2,7 @@ package App::Mobirc::HTTPD::C::Mobile;
 use Moose;
 use App::Mobirc::HTTPD::C;
 use App::Mobirc::Util;
-use URI::Escape qw/uri_escape/;
+use URI::Escape qw/uri_escape uri_unescape/;
 use Encode;
 
 sub dispatch_index {
@@ -72,7 +72,9 @@ sub dispatch_topics {
 }
 
 sub post_dispatch_show_channel {
-    my ( $class, $c, $channel) = @_;
+    my ( $class, $c, $args) = @_;
+
+    my $channel = uri_unescape $args->{channel};
 
     my $message = $c->req->params->{'msg'};
 
@@ -105,8 +107,9 @@ sub dispatch_keyword {
 }
 
 sub dispatch_show_channel {
-    my ($class, $c, $channel_name,) = @_;
+    my ($class, $c, $args, ) = @_;
 
+    my $channel_name = uri_unescape $args->{channel};
     DEBUG "show channel page: $channel_name";
 
     my $channel = context->get_channel($channel_name);

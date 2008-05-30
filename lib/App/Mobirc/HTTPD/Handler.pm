@@ -7,6 +7,9 @@ use App::Mobirc::HTTPD::Router;
 use App::Mobirc::HTTPD::C::Mobile;
 use App::Mobirc::HTTPD::C::Ajax;
 use App::Mobirc::HTTPD::C::Static;
+use Data::Visitor::Encode;
+
+my $dve = Data::Visitor::Encode->new;
 
 sub handler {
     my $c = shift;
@@ -43,9 +46,9 @@ sub authorize {
 sub process_request {
     my ($c, ) = @_;
 
-    my ($controller, $meth, @args) = App::Mobirc::HTTPD::Router->route($c->req);
+    my $rule = App::Mobirc::HTTPD::Router->match($c->req);
 
-    unless ($controller) {
+    unless ($rule) {
         # hook by plugins
         for my $code (@{App::Mobirc->context->get_hook_codes('httpd')}) {
             my $finished = $code->($c, $c->req->uri->path);
@@ -59,20 +62,23 @@ sub process_request {
         do {
             my $uri = $c->req->uri->path;
             warn "dan the 404 not found: $uri" if $uri ne '/favicon.ico';
+            # TODO: use $c->res->status(404)
             my $response = HTTP::Response->new(404);
             $response->content("Dan the 404 not found: $uri");
             return $response;
         };
     }
 
-    $controller = "App::Mobirc::HTTPD::C::$controller";
+    my $controller = "App::Mobirc::HTTPD::C::$rule->{controller}";
 
+    my $meth = $rule->{action};
     my $post_meth = "post_dispatch_$meth";
     my $get_meth  = "dispatch_$meth";
+    my $args = $dve->decode( $c->req->mobile_agent->encoding, $rule->{args} );
     if ( $c->req->method =~ /POST/i && $controller->can($post_meth)) {
-        return $controller->$post_meth($c, @args);
+        return $controller->$post_meth($c, $args);
     } else {
-        return $controller->$get_meth($c, @args);
+        return $controller->$get_meth($c, $args);
     }
 }
 
