@@ -2,7 +2,6 @@ package App::Mobirc::HTTPD::Router;
 use strict;
 use warnings;
 use Carp;
-use HTTP::Response;
 use URI::Escape;
 use App::Mobirc::Util;
 use Encode;
