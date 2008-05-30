@@ -9,6 +9,7 @@ use URI;
 use URI::Escape;
 use Geo::Coordinates::Converter;
 use UNIVERSAL::require;
+use String::TT ':all';
 
 sub register {
     my ($class, $global_context, $conf) = @_;
@@ -17,14 +18,8 @@ sub register {
         channel_page_option => sub {
             my ($channel, $global_context) = @_;
 
-            my $tt = Template->new;
-            # TODO: split template string to assets dir.
-            $tt->process(
-                \qq{<a href="/channel/[% channel.name | uri %]/gps?time=[% time %]e">gps</a>},
-                { channel => $channel, time => time() },
-                \my $out
-            ) or warn $tt->error;
-            return $out;
+            my $time = time();
+            return tt qq{<a href="/channel/[% channel.name | uri %]/gps?time=[% time | html %]">gps</a>};
         },
     );
 
@@ -32,33 +27,36 @@ sub register {
         httpd => sub {
             my ($c, $uri) = @_;
 
-            if ($uri =~ m{^/channel/([^/]+)/gps\?time=}) {
+            if ($uri =~ m{^/channel/([^/]+)/gps$}) {
                 my $channel_name = $1;
 
-                my $path = File::Spec->catfile($c->{config}->{global}->{assets_dir}, 'plugin', 'GPS', 'measure.tt2');
+                my $config = App::Mobirc->context->config;
+                my $path = File::Spec->catfile($config->{global}->{assets_dir}, 'plugin', 'GPS', 'measure.tt2');
 
                 local %ENV;
-                if (my $devcap_multimedia = $c->{req}->header('X-UP-DEVCAP-MULTIMEDIA')) {
+                if (my $devcap_multimedia = $c->req->header('X-UP-DEVCAP-MULTIMEDIA')) {
                     $ENV{HTTP_X_UP_DEVCAP_MULTIMEDIA} = $devcap_multimedia;
                 }
 
-                my $response = HTTP::Response->new(200);
-                $response->push_header( 'Content-type' => encode('utf8', 'text/html; charset=Shift_JIS') );
                 my $tt = Template->new(ABSOLUTE => 1);
                 $tt->process(
                     $path,
                     {
-                        request      => $c->{request},
-                        req          => $c->{req},
+                        request      => $c->request,
+                        req          => $c->req,
                         channel_name => $channel_name,
-                        mobile_agent => $c->{mobile_agent},
-                        docroot      => $c->{config}->{httpd}->{root},
-                        port         => $c->{config}->{httpd}->{port},
+                        mobile_agent => $c->req->mobile_agent,
+                        docroot      => $config->{httpd}->{root},
+                        port         => $config->{httpd}->{port},
                     },
                     \my $out
                 ) or warn $tt->error;
-                $response->content($out);
-                return $response;
+
+                $c->res->content_type(encode('utf8', 'text/html; charset=Shift_JIS'));
+                $c->res->body($out);
+                return 1;
+            } else {
+                return 0;
             }
         },
     );
@@ -67,19 +65,22 @@ sub register {
         httpd => sub {
             my ($c, $uri) = @_;
 
-            if ($uri =~ m{^/channel/([^/]+)/gps_do}) {
-                my $channel_name = $1;
+            if ($uri =~ m{^/channel/([^/]+)/gps_do$}) {
+                my $channel_name = uri_unescape $1;
                 my $inv_geocoder = $conf->{inv_geocoder} || 'EkiData';
 
-                my $point = $c->{mobile_agent}->get_location( +{ URI->new($uri)->query_form } );
+                my $point = $c->req->mobile_agent->get_location( $c->req->query_params );
 
                 "App::Mobirc::Plugin::GPS::InvGeocoder::$inv_geocoder"->use or die $@;
                 my $msg = "App::Mobirc::Plugin::GPS::InvGeocoder::$inv_geocoder"->inv_geocoder($point);
+                   $msg = uri_escape encode($c->req->mobile_agent->encoding, $msg);
 
-                my $res = HTTP::Response->new(302);
-                my $abs_uri = 'http://' . $c->{req}->header('Host') . $c->{config}->{httpd}->{root} . "channels/$channel_name?msg=" . uri_escape(encode('utf8', "L:$msg"));
-                $res->header('Location' => $abs_uri);
-                $res;
+                my $time = time();
+                my $redirect = tt "/channels/[% channel_name | uri %]?msg=L:[% msg %]&t=[% time | uri %]";
+                $c->res->redirect($redirect);
+                return 1;
+            } else {
+                return 0;
             }
         },
     );

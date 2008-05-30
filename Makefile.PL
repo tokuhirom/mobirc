@@ -26,6 +26,7 @@ requires 'Template' => 2.16;                # new 'uri' is supported from 2.16
 requires 'Template::Declare'  => '0.28';
 
 # utilities
+requires 'Data::Visitor::Encode' => '0.09';
 requires 'CGI'                => '3.37';
 requires 'Carp'               => '1.04';
 requires 'Encode'             => '2.25';

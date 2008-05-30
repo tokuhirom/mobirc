@@ -45,8 +45,24 @@ sub process_request {
 
     my ($controller, $meth, @args) = App::Mobirc::HTTPD::Router->route($c->req);
 
-    if (blessed $controller && $controller->isa('HTTP::Response')) {
-        return $controller;
+    unless ($controller) {
+        # hook by plugins
+        for my $code (@{App::Mobirc->context->get_hook_codes('httpd')}) {
+            my $finished = $code->($c, $c->req->uri->path);
+            if ($finished) {
+                # XXX we should use html filter?
+                return;
+            }
+        }
+
+        # doesn't match.
+        do {
+            my $uri = $c->req->uri->path;
+            warn "dan the 404 not found: $uri" if $uri ne '/favicon.ico';
+            my $response = HTTP::Response->new(404);
+            $response->content("Dan the 404 not found: $uri");
+            return $response;
+        };
     }
 
     $controller = "App::Mobirc::HTTPD::C::$controller";

@@ -74,7 +74,7 @@ sub dispatch_topics {
 sub post_dispatch_show_channel {
     my ( $class, $c, $channel) = @_;
 
-    my $message = decode( $c->req->mobile_agent->encoding, $c->req->params->{'msg'} );
+    my $message = $c->req->params->{'msg'};
 
     DEBUG "POST MESSAGE $message";
 
@@ -117,6 +117,7 @@ sub dispatch_show_channel {
             mobile_agent        => $c->req->mobile_agent,
             channel             => $channel,
             recent_mode         => $c->req->params->{recent_mode},
+            message             => $c->req->params->{'msg'} || '',
             channel_page_option => [
                 map { $_->( $channel, $c ) }
                   @{ context->get_hook_codes('channel_page_option') }

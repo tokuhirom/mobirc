@@ -54,19 +54,7 @@ sub route {
         return 'Static', 'deliver', "$1.css", 'text/css';
     }
     else {
-        # hook by plugins
-        for my $code (@{App::Mobirc->context->get_hook_codes('httpd')}) {
-            my $response = $code->($uri); # XXX broken
-            if ($response) {
-                return $response;
-            }
-        }
-
-        # doesn't match.
-        warn "dan the 404 not found: $uri" if $uri ne '/favicon.ico';
-        my $response = HTTP::Response->new(404);
-        $response->content("Dan the 404 not found: $uri");
-        return $response;
+        return ();
     }
 }
 

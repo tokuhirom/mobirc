@@ -1,4 +1,4 @@
 - HTTPD::Template の中身はけっして req, res に関する情報を知ってはいけない。
 -- module の独立性をたもつため
-- Template の中で ajax_keyword などとしている部分は ajax/keyword にすべて変更する
 - C からよばれる Template はすべて validate() をつかう
+

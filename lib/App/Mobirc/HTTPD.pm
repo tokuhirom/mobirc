@@ -13,7 +13,11 @@ use App::Mobirc;
 use App::Mobirc::Util;
 use App::Mobirc::HTTPD::Handler;
 
-use HTTP::Engine;
+use HTTP::Engine middlewares => [
+    qw/
+        +App::Mobirc::HTTPD::Middleware::Encoding
+    /
+];
 
 # TODO: use MobileAttribute...
 do {

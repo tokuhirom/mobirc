@@ -244,6 +244,7 @@ template 'mobile/channel' => sub {
             channel_page_option => 1,
             irc_nick            => 1,
             recent_mode         => 1,
+            message             => 1,
         }
     );
     my $channel = $args{channel};
@@ -254,6 +255,9 @@ template 'mobile/channel' => sub {
             input {
                 unless ($args{mobile_agent}->is_non_mobile) {
                     size is 10;
+                }
+                if ($args{message}) {
+                    value is $args{message};
                 }
                 type is 'text';
                 name is 'msg';
