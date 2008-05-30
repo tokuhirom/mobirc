@@ -10,7 +10,21 @@ sub register {
     $global_context->register_hook(
         'html_filter' => \&_html_filter
     );
+    $global_context->register_hook(
+        response_filter => sub { _response_filter($conf, @_) },
+    );
 }
+
+sub _response_filter {
+    my ($conf, $c) = @_;
+
+    if ($c->res->redirect) {
+        my $uri  = URI->new($path);
+        $uri->query_form( $uri->query_form, t => time() );
+        return $c->res->redirect( $uri->as_string );
+    }
+}
+
 
 sub _html_filter {
     my ($c, $content) = @_;
