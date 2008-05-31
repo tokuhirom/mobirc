@@ -17,8 +17,8 @@ template 'mobile/wrapper_mobile' => sub {
             meta { attr { 'http-equiv' => 'Content-Type', 'content' => "text/html; charset=$encoding" } }
             meta { attr { 'http-equiv' => 'Cache-Control', content => 'max-age=0' } }
             meta { attr { name => 'robots', content => 'noindex, nofollow' } }
-            link { attr { rel => 'stylesheet', href => '/mobirc.css', type=> "text/css"} };
-            link { attr { rel => 'stylesheet', href => '/mobile.css', type=> "text/css"} };
+            link { attr { rel => 'stylesheet', href => '/static/mobirc.css', type=> "text/css"} };
+            link { attr { rel => 'stylesheet', href => '/static/mobile.css', type=> "text/css"} };
             if ($mobile_agent->user_agent =~ /(?:iPod|iPhone)/) {
                 meta { attr { name => 'viewport', content => 'width=device-width' } }
                 meta { attr { name => 'viewport', content => 'initial-scale=1.0, user-scalable=yes' } }

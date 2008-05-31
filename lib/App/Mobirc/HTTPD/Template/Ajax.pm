@@ -17,10 +17,10 @@ private template 'ajax/wrapper_ajax' => sub {
             meta { attr { 'http-equiv' => 'Content-Type', 'content' => "text/html; charset=UTF-8" } };
             meta { attr { 'http-equiv' => 'Cache-Control', 'content' => "max-age=0" } };
             meta { attr { name => 'robots', 'content' => 'noindex, nofollow' } };
-            link { attr { rel => 'stylesheet', href => '/pc.css', type=> "text/css"} };
-            link { attr { rel => 'stylesheet', href => '/mobirc.css', type=> "text/css"} };
-            script { src is "/jquery.js" };
-            script { src is "/mobirc.js" };
+            link { attr { rel => 'stylesheet', href => '/static/pc.css', type=> "text/css"} };
+            link { attr { rel => 'stylesheet', href => '/static/mobirc.css', type=> "text/css"} };
+            script { src is "/static/jquery.js" };
+            script { src is "/static/mobirc.js" };
             if ($mobile_agent->user_agent =~ /(?:iPod|iPhone)/) {
                 meta { attr { name => 'viewport', content => 'width=device-width' } }
                 meta { attr { name => 'viewport', content => 'initial-scale=1.0, user-scalable=yes' } }
