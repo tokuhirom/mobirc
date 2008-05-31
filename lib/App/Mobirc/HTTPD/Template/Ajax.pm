@@ -7,9 +7,14 @@ use Params::Validate ':all';
 use HTML::Entities qw/encode_entities/;
 use App::Mobirc;
 
-private template 'ajax/wrapper_ajax' => sub {
-    my ($self, $user_agent, $code, $subtitle) = @_;
-
+template 'ajax/base' => sub {
+#   my $self = shift;
+#   my %args = validate(
+#       @_ => {
+#           user_agent => 1,
+#       },
+#   );
+    my ($self, $user_agent, $docroot) = validate_pos(@_, OBJECT, OBJECT, SCALAR);
     xml_decl { 'xml', version => 1.0, encoding => 'UTF-8' };
     html {
         attr { lang => 'ja', 'xml:lang' => 'ja', xmlns => "http://www.w3.org/1999/xhtml" }
@@ -25,49 +30,33 @@ private template 'ajax/wrapper_ajax' => sub {
                 meta { attr { name => 'viewport', content => 'width=device-width' } }
                 meta { attr { name => 'viewport', content => 'initial-scale=1.0, user-scalable=yes' } }
             }
-            title {
-                my $title = $subtitle ? "$subtitle - " : '';
-                   $title .= "mobirc";
-                   $title;
-            }
+            title { 'mobirc' }
         }
         body {
-            $code->()
+            div {
+                id is 'body';
+                div {
+                    id is 'main';
+                    div { id is 'menu' }
+                    div { id is 'contents' }
+                }
+                div {
+                    id is 'footer';
+                    form {
+                        onsubmit is 'send_message();return false';
+                        input { attr { type => 'text', id => 'msg', name => 'msg', size => 30 } };
+                        input { attr { type => 'button', value => 'send', onclick => 'send_message();' } };
+                    }
+                    div { span { 'mobirc -'} span { class is 'version'; $App::Mobirc::VERSION } };
+                }
+            };
+
+            # TODO: move this part to Plugin::DocRoot
+            script { lang is 'javascript';
+                outs_raw qq{docroot = '$docroot';};
+            };
         }
     }
-};
-
-template 'ajax/base' => sub {
-#   my $self = shift;
-#   my %args = validate(
-#       @_ => {
-#           user_agent => 1,
-#       },
-#   );
-    my ($self, $user_agent, $docroot) = validate_pos(@_, OBJECT, OBJECT, SCALAR);
-    show 'wrapper_ajax', $user_agent, sub {
-        div {
-            id is 'body';
-            div {
-                id is 'main';
-                div { id is 'menu' }
-                div { id is 'contents' }
-            }
-            div {
-                id is 'footer';
-                form {
-                    onsubmit is 'send_message();return false';
-                    input { attr { type => 'text', id => 'msg', name => 'msg', size => 30 } };
-                    input { attr { type => 'button', value => 'send', onclick => 'send_message();' } };
-                }
-                div { span { 'mobirc -'} span { class is 'version'; $App::Mobirc::VERSION } };
-            }
-        };
-
-        script { lang is 'javascript';
-            outs_raw qq{docroot = '$docroot';};
-        };
-    };
 };
 
 template 'ajax/menu' => sub {
