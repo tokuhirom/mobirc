@@ -5,5 +5,9 @@
 ■etc.
 - HTTPD::Template の中身はけっして req, res に関する情報を知ってはいけない。
 -- module の独立性をたもつため
-- C からよばれる Template はすべて validate() をつかう
-- MooseX::Plaggerize をつかう
+
+■リリースサイクル
+- 0.99_1 でデベロッパーリリースを何度かする
+- 1.00 マデニヤルコト
+-- MooseX::Plaggerize べーすニ移行
+-- C からよばれる Template はすべて validate() をつかう

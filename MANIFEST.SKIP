@@ -14,6 +14,7 @@
 ^t/perlcritic
 ^tools/
 \.svn/
+\.sw[po]$
 ^[^/]+\.yaml$
 ^[^/]+\.pl$
 ^\.shipit$

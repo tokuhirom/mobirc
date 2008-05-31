@@ -7,7 +7,7 @@ use Text::Diff;
 use App::Mobirc;
 
 local $App::Mobirc::VERSION = 0.01;
-my $got = App::Mobirc::HTTPD::View->show('pc_top', HTTP::MobileAgent->new('PC'), '/');
+my $got = App::Mobirc::HTTPD::View->show('ajax/base', HTTP::MobileAgent->new('PC'), '/');
 
 my $expected = <<'...';
 <?xml version="1" encoding="UTF-8"?>
@@ -17,10 +17,10 @@ my $expected = <<'...';
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   <meta http-equiv="Cache-Control" content="max-age=0" />
   <meta name="robots" content="noindex, nofollow" />
-  <link rel="stylesheet" href="/pc.css" type="text/css" />
-  <link rel="stylesheet" href="/mobirc.css" type="text/css" />
-  <script src="/jquery.js"></script>
-  <script src="/mobirc.js"></script>
+  <link rel="stylesheet" href="/static/pc.css" type="text/css" />
+  <link rel="stylesheet" href="/static/mobirc.css" type="text/css" />
+  <script src="/static/jquery.js"></script>
+  <script src="/static/mobirc.js"></script>
   <title>mobirc</title>
  </head>
  <body>

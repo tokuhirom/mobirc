@@ -1,3 +1,13 @@
+0.99_01
+
+    - THIS IS DEVELOPER RELEASE!
+    - some feature is broken(e.g. DoCoMoCSS)
+    - this release makes more maintenable code, not feature enhancement release.
+    -- more mooooooooooooooooooooose
+    -- use HTTP::Engine
+    -- use HTTPx::Dispatcher
+    -- use Template::Declare
+
 0.11
 
     (no feature changes)
