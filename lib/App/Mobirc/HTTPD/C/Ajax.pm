@@ -49,8 +49,8 @@ sub dispatch_menu {
     render_td(
         $c,
         'ajax/menu' => (
-            server,
-            server->keyword_channel->unread_lines,
+            server             => server,
+            keyword_recent_num => server->keyword_channel->unread_lines,
         )
     );
 }

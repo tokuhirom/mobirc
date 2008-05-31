@@ -65,11 +65,17 @@ template 'ajax/base' => sub {
 };
 
 template 'ajax/menu' => sub {
-    my ($self, $server, $keyword_recent_num) = validate_pos(@_, OBJECT, { isa => 'App::Mobirc::Model::Server' }, SCALAR);
+    my $self = shift;
+    my %args = validate(
+        @_ => {
+            server             => { isa => 'App::Mobirc::Model::Server' },
+            keyword_recent_num => SCALAR,
+        },
+    );
 
     div {
-        show '../keyword_channel', $keyword_recent_num;
-        show '../channel_list', $server;
+        show '../keyword_channel', $args{keyword_recent_num};
+        show '../channel_list', $args{server};
     };
 };
 

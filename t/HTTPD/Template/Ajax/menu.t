@@ -20,7 +20,11 @@ my $server = App::Mobirc::Model::Server->new();
 $server->get_channel(U '#tester');
 
 my $got = do {
-    local $_ = App::Mobirc::HTTPD::View->show('ajax/menu', $server, 3);
+    local $_ = App::Mobirc::HTTPD::View->show(
+        'ajax/menu',
+        server             => $server,
+        keyword_recent_num => 3
+    );
     s/^\n//;
     $_;
 };
