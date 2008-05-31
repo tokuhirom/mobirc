@@ -1,4 +1,9 @@
+■コアコンセプト
+- 綺麗なコード
+- CPAN モジュールはいっぱいつかっていい
+
+■etc.
 - HTTPD::Template の中身はけっして req, res に関する情報を知ってはいけない。
 -- module の独立性をたもつため
 - C からよばれる Template はすべて validate() をつかう
-
+- MooseX::Plaggerize をつかう

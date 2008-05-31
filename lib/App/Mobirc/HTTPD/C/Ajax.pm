@@ -24,8 +24,8 @@ sub dispatch_channel {
     render_td(
         $c,
         'ajax/channel' => (
-            $channel,
-            irc_nick
+            channel  => $channel,
+            irc_nick => irc_nick,
         )
     );
     $channel->clear_unread();

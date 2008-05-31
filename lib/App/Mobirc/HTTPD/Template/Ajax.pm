@@ -115,10 +115,16 @@ template 'ajax/keyword' => sub {
 };
 
 template 'ajax/channel' => sub {
-    my ($self, $channel, $irc_nick) = @_;
+    my $self = shift;
+    my %args = validate(
+        @_ => {
+            channel  => 1,
+            irc_nick => 1,
+        },
+    );
     div {
-        for my $message ($channel->message_log) {
-            show '../irc_message', $message, $irc_nick;
+        for my $message ($args{channel}->message_log) {
+            show '../irc_message', $message, $args{irc_nick};
             br { };
         }
     }
