@@ -17,8 +17,8 @@ sub dispatch_base {
 }
 
 sub dispatch_channel {
-    my ($class, $c, $args) = @_;
-    my $channel_name = uri_unescape $args->{channel};
+    my ($class, $c,) = @_;
+    my $channel_name = $c->req->params->{channel};
 
     my $channel = server->get_channel($channel_name);
     render_td(
@@ -32,8 +32,8 @@ sub dispatch_channel {
 }
 
 sub post_dispatch_channel {
-    my ( $class, $c, $args) = @_;
-    my $channel = uri_unescape $args->{channel};
+    my ( $class, $c, ) = @_;
+    my $channel = $c->req->params->{channel};
 
     my $message = $c->req->parameters->{'msg'};
     $message = decode( $c->req->mobile_agent->encoding, $message );
