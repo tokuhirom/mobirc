@@ -8,7 +8,7 @@ use HTML::Entities qw/encode_entities/;
 use App::Mobirc;
 
 private template 'ajax/wrapper_ajax' => sub {
-    my ($self, $mobile_agent, $code, $subtitle) = @_;
+    my ($self, $user_agent, $code, $subtitle) = @_;
 
     xml_decl { 'xml', version => 1.0, encoding => 'UTF-8' };
     html {
@@ -21,7 +21,7 @@ private template 'ajax/wrapper_ajax' => sub {
             link { attr { rel => 'stylesheet', href => '/static/mobirc.css', type=> "text/css"} };
             script { src is "/static/jquery.js" };
             script { src is "/static/mobirc.js" };
-            if ($mobile_agent->user_agent =~ /(?:iPod|iPhone)/) {
+            if ($user_agent =~ /(?:iPod|iPhone)/) {
                 meta { attr { name => 'viewport', content => 'width=device-width' } }
                 meta { attr { name => 'viewport', content => 'initial-scale=1.0, user-scalable=yes' } }
             }
@@ -38,8 +38,14 @@ private template 'ajax/wrapper_ajax' => sub {
 };
 
 template 'ajax/base' => sub {
-    my ($self, $mobile_agent, $docroot) = validate_pos(@_, OBJECT, OBJECT, SCALAR);
-    show 'wrapper_ajax', $mobile_agent, sub {
+#   my $self = shift;
+#   my %args = validate(
+#       @_ => {
+#           user_agent => 1,
+#       },
+#   );
+    my ($self, $user_agent, $docroot) = validate_pos(@_, OBJECT, OBJECT, SCALAR);
+    show 'wrapper_ajax', $user_agent, sub {
         div {
             id is 'body';
             div {

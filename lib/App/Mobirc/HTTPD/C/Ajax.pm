@@ -10,7 +10,7 @@ sub dispatch_base {
     render_td(
         $c,
         'ajax/base' => (
-            $c->req->mobile_agent,
+            $c->req->user_agent,
             ($c->{config}->{httpd}->{root} || '/'),
         )
     );
