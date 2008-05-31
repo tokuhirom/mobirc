@@ -3,7 +3,8 @@ function ts() { return (new Date()).getTime(); }
 var load_url;
 
 function contents_load(url) {
-    $('#contents').load(url+'?time='+ts());
+    var joinner = (url.indexOf('?') == -1) ? '?' : '&';
+    $('#contents').load(url+joinner+'time='+ts());
     load_url = url;
     $('#msg').focus();
 }
