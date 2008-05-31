@@ -10,8 +10,8 @@ sub dispatch_base {
     render_td(
         $c,
         'ajax/base' => (
-            $c->req->user_agent,
-            ($c->{config}->{httpd}->{root} || '/'),
+            user_agent => $c->req->user_agent,
+            docroot    => (App::Mobirc->context->{config}->{httpd}->{root} || '/'),
         )
     );
 }

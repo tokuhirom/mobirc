@@ -7,7 +7,12 @@ use Text::Diff;
 use App::Mobirc;
 
 local $App::Mobirc::VERSION = 0.01;
-my $got = App::Mobirc::HTTPD::View->show('ajax/base', 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)', '/');
+my $got = App::Mobirc::HTTPD::View->show(
+    'ajax/base' => (
+        user_agent => 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)',
+        docroot    => '/'
+    )
+);
 
 my $expected = <<'...';
 <?xml version="1" encoding="UTF-8"?>

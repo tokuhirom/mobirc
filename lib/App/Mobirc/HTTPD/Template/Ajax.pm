@@ -8,13 +8,14 @@ use HTML::Entities qw/encode_entities/;
 use App::Mobirc;
 
 template 'ajax/base' => sub {
-#   my $self = shift;
-#   my %args = validate(
-#       @_ => {
-#           user_agent => 1,
-#       },
-#   );
-    my ($self, $user_agent, $docroot) = validate_pos(@_, OBJECT, OBJECT, SCALAR);
+    my $self = shift;
+    my %args = validate(
+        @_ => {
+            user_agent => 1,
+            docroot    => 1,
+        },
+    );
+
     xml_decl { 'xml', version => 1.0, encoding => 'UTF-8' };
     html {
         attr { lang => 'ja', 'xml:lang' => 'ja', xmlns => "http://www.w3.org/1999/xhtml" }
@@ -26,7 +27,7 @@ template 'ajax/base' => sub {
             link { attr { rel => 'stylesheet', href => '/static/mobirc.css', type=> "text/css"} };
             script { src is "/static/jquery.js" };
             script { src is "/static/mobirc.js" };
-            if ($user_agent =~ /(?:iPod|iPhone)/) {
+            if ($args{user_agent} =~ /(?:iPod|iPhone)/) {
                 meta { attr { name => 'viewport', content => 'width=device-width' } }
                 meta { attr { name => 'viewport', content => 'initial-scale=1.0, user-scalable=yes' } }
             }
@@ -53,7 +54,7 @@ template 'ajax/base' => sub {
 
             # TODO: move this part to Plugin::DocRoot
             script { lang is 'javascript';
-                outs_raw qq{docroot = '$docroot';};
+                outs_raw qq{docroot = '$args{docroot}';};
             };
         }
     }
