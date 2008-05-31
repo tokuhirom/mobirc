@@ -82,7 +82,7 @@ sub post_dispatch_show_channel {
 
     context->get_channel($channel)->post_command($message);
 
-    $c->res->redirect( $c->req->uri->path . '?time=' . time );
+    $c->res->redirect( $c->req->uri->path );
 }
 
 sub dispatch_keyword {
