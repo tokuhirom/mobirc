@@ -13,7 +13,7 @@ template 'irc_message' => sub {
 
     # i want to strip spaces. cellphone hates spaces.
     my $html = App::Mobirc::HTTPD::View->show( '_irc_message', $message, $my_nick );
-    $html =~ s/^ //smg;
+    $html =~ s/^\s+//smg;
     $html =~ s/\n//g;
     outs_raw $html;
 };
