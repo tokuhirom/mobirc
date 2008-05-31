@@ -4,7 +4,10 @@ use Test::More tests => 3;
 use HTTP::MobileAgent;
 use App::Mobirc;
 use App::Mobirc::Plugin::HTMLFilter::DoCoMoCSS;
+use HTTP::Engine::Context;
 
+my $c = HTTP::Engine::Context->new;
+$c->req->user_agent('DoCoMo/2.0 P2101V(c100)');
 my $global_context = App::Mobirc->new(
     {
         httpd  => { port     => 3333, title => 'mobirc', lines => 40 },
@@ -32,5 +35,5 @@ my $dst = <<'...';
 <a href="/" style="color:red;">foo</a>
 ...
 
-is $code->({mobile_agent => HTTP::MobileAgent->new('DoCoMo/2.0 P2101V(c100)')}, $src), $dst;
+is $code->($c, $src), $dst;
 
