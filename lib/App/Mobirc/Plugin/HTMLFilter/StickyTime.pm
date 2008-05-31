@@ -11,15 +11,15 @@ sub register {
         'html_filter' => \&_html_filter
     );
     $global_context->register_hook(
-        response_filter => sub { _response_filter($conf, @_) },
+        response_filter => sub { _response_filter(@_) },
     );
 }
 
 sub _response_filter {
-    my ($conf, $c) = @_;
+    my ($c, ) = @_;
 
     if ($c->res->redirect) {
-        my $uri  = URI->new($path);
+        my $uri  = URI->new($c->res->redirect);
         $uri->query_form( $uri->query_form, t => time() );
         return $c->res->redirect( $uri->as_string );
     }
