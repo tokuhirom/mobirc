@@ -34,9 +34,7 @@ sub dispatch_channel {
 sub post_dispatch_channel {
     my ( $class, $c, ) = @_;
     my $channel = $c->req->params->{channel};
-
     my $message = $c->req->parameters->{'msg'};
-    $message = decode( $c->req->mobile_agent->encoding, $message );
 
     DEBUG "POST MESSAGE $message";
 
