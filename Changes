@@ -1,3 +1,16 @@
+0.99_02
+
+    - THIS IS DEVELOPER RELEASE!
+    - Plugin::HTMLFilter::DoCoMoCSS was broken :(
+    - use MooseX::Plaggerize!
+    -- easy to write plugins.
+    -- maintenable plugins!
+    - Plugin::HTMLFilter::StickyTime was renamed to Plugin::StickyTime
+    -- and load automatically
+    - added many test cases.
+    - Plugin::Component::XMPP is no longer supported
+    -- you can use XIRCD!
+
 0.99_01
 
     - THIS IS DEVELOPER RELEASE!
