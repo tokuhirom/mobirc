@@ -1,8 +1,12 @@
 use strict;
 use warnings;
-use Test::More tests => 2;
+use Test::More;
 use App::Mobirc;
 use HTTP::Engine::Context;
+
+eval "use HTML::StickyQuery::DoCoMoGUID";
+plan skip_all => 'this test needs HTML::StickyQuery::DoCoMoGUID' if $@;
+plan tests => 2;
 
 my $mobirc = App::Mobirc->new(
     {
