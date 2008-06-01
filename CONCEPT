@@ -11,8 +11,6 @@
 - 1.00 マデニヤルコト
 -- DocRoot の完全分離
 --- ajax の script タグ
--- HTTPD::* => Web::*
--- hirose31's Groups => Hook.
 -- validate_hook を、もうちょいなんとかかっこよく実装したい。
 -- add more documents
 -- irssi support をまじめにやる

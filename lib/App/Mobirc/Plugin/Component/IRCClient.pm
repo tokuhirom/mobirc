@@ -42,11 +42,6 @@ has username => (
     default => 'mobirc user',
 );
 
-has groups => (
-    is  => 'ro',
-    isa => 'HashRef',
-);
-
 has desc => (
     is      => 'ro',
     isa     => 'Str',

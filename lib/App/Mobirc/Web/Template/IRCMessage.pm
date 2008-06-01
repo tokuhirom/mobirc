@@ -49,40 +49,7 @@ private template 'irc_time' => sub {
 private template 'irc_who' => sub {
     my ( $self, $who, $my_nick ) = validate_pos( @_, OBJECT, SCALAR, SCALAR );
 
-    my $who_class = do {
-        # this part is hacked by hirose31.
-        # TODO: This config should not be in IRCClient's config.
-        # TODO: shouldn't this feature be in core? Plugin::NickGroup?
-        my %groups = do {
-            require App::Mobirc;
-            my $g = {};
-            for my $p ( @{ App::Mobirc->context->config->{plugin} || [] } ) {
-                if ( $p->{module} =~ 'Component::IRCClient' ) {
-                    $g = $p->{config}->{groups} if exists $p->{config}->{groups};
-                    last;
-                }
-            }
-            %$g;
-        };
-
-        ### fixme store this hash to context and reuse it?
-        my %class_for;    # nick -> who_class ("nick_" + groupname)
-        while ( my ( $group, $nicks ) = each %groups ) {
-            for my $nick ( @{$nicks} ) {
-                push @{ $class_for{$nick} }, "nick_" . $group;
-            }
-        }
-
-        if ( $who eq $my_nick ) {
-            'nick_myself';
-        }
-        elsif ( my $nick = first { $who =~ /^$_/i } keys %class_for ) {
-            join( ' ', @{ $class_for{$nick} } );
-        }
-        else {
-            'nick_normal';
-        }
-    };
+    my $who_class = ( $who eq $my_nick ) ?  'nick_myself' : 'nick_normal';
 
     span { attr { class => $who_class };
         "($who)"

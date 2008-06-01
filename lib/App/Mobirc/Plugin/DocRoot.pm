@@ -53,7 +53,7 @@ hook html_filter => sub {
     my $doc = eval { XML::LibXML->new->parse_html_string($content) };
     if ($@) {
         warn "$content, orz.\n $@";
-        return $content;
+        return ($c, $content);
     }
     for my $elem ($doc->findnodes('//a')) {
         if (my $href = $elem->getAttribute('href')) {
