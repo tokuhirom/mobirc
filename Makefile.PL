@@ -76,6 +76,10 @@ features(
         -default => 0,
         recommends('XML::LibXML', '1.66'),
     ],
+    'DoCoMoGUID' => [
+        -default => 0,
+        recommends('HTML::StickyQuery::DoCoMoGUID', '1.66'),
+    ],
 );
 
 tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t';
