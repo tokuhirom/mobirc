@@ -9,33 +9,32 @@
 #     - tokuhirom31
 
 plugin:
-  - module: App::Mobirc::Plugin::HTMLFilter::DoCoMoCSS
-  - module: App::Mobirc::Plugin::IRCCommand::TiarraLog
-  - module: App::Mobirc::Plugin::Authorizer::Cookie
+  - module: HTMLFilter::DoCoMoCSS
+  - module: IRCCommand::TiarraLog
+  - module: Authorizer::Cookie
     config:
       password: 1152
-  - module: App::Mobirc::Plugin::Authorizer::BasicAuth
+  - module: Authorizer::BasicAuth
     config:
       username: netwatcher
       password: 0721
-  # - module: App::Mobirc::Plugin::Authorizer::EZSubscriberID
+  # - module: Authorizer::EZSubscriberID
   #   config:
   #     au_subscriber_id: 25253252_oe.ezweb.ne.jp
-  - module: App::Mobirc::Plugin::HTMLFilter::ConvertPictograms
-  - module: App::Mobirc::Plugin::MessageBodyFilter::Clickable
+  - module: HTMLFilter::ConvertPictograms
+  - module: MessageBodyFilter::Clickable
     config:
       au_pcsv: 0
       pocket_hatena: 1
       # http_link_string: $host$path
       # accept_schemes: [mailto, tel]
       # redirector: http://www.google.com/url?sa=D&q=
-  - module: App::Mobirc::Plugin::MessageBodyFilter::IRCColor
+  - module: MessageBodyFilter::IRCColor
     config:
       # no_decorate: 0
 
-  - module: App::Mobirc::Plugin::Component::IRCClient
+  - module: Component::IRCClient
     config:
-
       server: 127.0.0.1
       port: 252322
       nick: netwatcher
@@ -54,7 +53,7 @@ plugin:
           - jkondo
           - jagayama
 
-  # - module: App::Mobirc::Plugin::DocRoot
+  # - module: DocRoot
   #   config:
   #     root: /foo/
 

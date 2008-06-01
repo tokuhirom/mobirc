@@ -2,11 +2,20 @@ use strict;
 use warnings;
 use App::Mobirc::Plugin::HTMLFilter::StickyTime;
 use Test::Base;
+use App::Mobirc;
+
+my $global_context = App::Mobirc->new(
+    {
+        httpd  => { port     => 3333, title => 'mobirc', lines => 40 },
+        global => { keywords => [qw/foo/] }
+    }
+);
+$global_context->load_plugin( 'HTMLFilter::StickyTime' );
 
 plan tests => 1*blocks;
 
 filters {
-    input => [qw/compress/],
+    input => [qw/sticky/],
     expected => [qw/eval/],
 };
 
@@ -15,8 +24,11 @@ run {
     like $block->input, $block->expected;
 };
 
-sub compress {
-    App::Mobirc::Plugin::HTMLFilter::StickyTime::_html_filter(undef, shift);
+sub sticky {
+    my $html = shift;
+    my $c = undef;
+    ($c, $html) = $global_context->run_hook_filter('html_filter', $c, $html);
+    return $html;
 }
 
 __END__

@@ -1,26 +1,20 @@
-# vim:expandtab:
 package App::Mobirc::Plugin::IRCCommand::TiarraLog;
 use strict;
-use warnings;
+use MooseX::Plaggerize::Plugin;
 use Encode;
 use App::Mobirc::Util;
 
-sub register {
-    my ($class, $global_context, $conf) = @_;
+has sysmsg_prefix => (
+    is      => 'ro',
+    isa     => 'Str',
+    default => 'tiarra',
+);
 
-    $global_context->register_hook(
-        'on_irc_notice' => sub { _process(@_, $conf) },
-    );
-
-    $conf->{sysmsg_prefix} ||= q{tiarra};
-}
-
-sub _process {
-    my ($poe, $who, $channel, $msg, $conf) = @_;
-
+hook on_irc_notice => sub {
+    my ($self, $global_context, $poe, $who, $channel, $msg) = @_;
 
     # Tiarra Log::Recent Parser
-    if ($who && $who eq $conf->{sysmsg_prefix}) {
+    if ($who && $who eq $self->sysmsg_prefix) {
         # header: %H:%M:%S
         # header: %H:%M
         # の場合を想定。後者は Log::Recent のデフォルトだったはず
@@ -83,7 +77,7 @@ sub _process {
     }
 
     return false;
-}
+};
 
 1;
 __END__

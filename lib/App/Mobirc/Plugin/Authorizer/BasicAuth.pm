@@ -1,19 +1,11 @@
 package App::Mobirc::Plugin::Authorizer::BasicAuth;
 use strict;
-use warnings;
+use MooseX::Plaggerize::Plugin;
 use Carp;
 use App::Mobirc::Util;
 
-sub register {
-    my ($class, $global_context, $conf) = @_;
-
-    $global_context->register_hook(
-        'authorize' => sub { my $c = shift;  _authorize($c, $conf) },
-    );
-}
-
-sub _authorize {
-    my ( $c, $conf ) = @_;
+hook authorize => sub {
+    my ( $self, $global_context, $c, $conf ) = @_;
 
     DEBUG "Basic Auth...";
 
@@ -29,6 +21,6 @@ sub _authorize {
     else {
         return false;
     }
-}
+};
 
 1;

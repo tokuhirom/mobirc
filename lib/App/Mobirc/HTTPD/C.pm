@@ -20,7 +20,7 @@ sub render_td {
 sub _make_response {
     my ( $c, $out ) = @_;
 
-    $out = _html_filter($c, $out);
+    ($c, $out) = context->run_hook_filter('html_filter', $c, $out);
     my $content = encode( $c->req->mobile_agent->encoding, $out);
 
     # change content type for docomo
@@ -38,21 +38,7 @@ sub _make_response {
     $c->res->content_type(encode('utf8', $content_type));
     $c->res->body( $content );
 
-    for my $code (@{context->get_hook_codes('response_filter')}) {
-        $code->($c);
-    }
+    context->run_hook('response_filter', $c);
 }
-
-sub _html_filter {
-    my $c = shift;
-    my $content = shift;
-
-    for my $code (@{context->get_hook_codes('html_filter')}) {
-        $content = $code->($c, $content);
-    }
-
-    $content;
-}
-
 
 1;

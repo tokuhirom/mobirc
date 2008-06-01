@@ -1,29 +1,18 @@
 package App::Mobirc::Plugin::HTMLFilter::DoCoMoCSS;
 use strict;
-use warnings;
+use MooseX::Plaggerize::Plugin;
 use CSS::Tiny;
 use XML::LibXML;
 use HTML::Selector::XPath;
 use App::Mobirc::Util;
 use Encode;
 
-sub register {
-    my ($class, $global_context) = @_;
-
-    DEBUG "Register DoCoMoCSS";
-
-    $global_context->register_hook(
-        'html_filter' => \&_html_filter_docomocss,
-    );
-}
-
-# based from HTML::DoCoMoCSS
-sub _html_filter_docomocss {
-    my $c = shift;
-    my $content = shift;
+# some code copied from HTML::DoCoMoCSS
+hook 'html_filter' => sub {
+    my ($self, $global_context, $c, $content) = @_;
 
     DEBUG "FILTER DOCOMO CSS";
-    return $content unless $c->req->mobile_agent->is_docomo;
+    return ($c, $content) unless $c->req->mobile_agent->is_docomo;
 
     # escape Numeric character reference.
     $content =~ s/&#(x[\dA-Fa-f]{4}|\d+);/HTMLCSSINLINERESCAPE$1::::::::/g;
@@ -51,7 +40,7 @@ sub _html_filter_docomocss {
 
     $content =~ s{(<a[^>]+)/>}{$1></a>}gi;
 
-    return $pict_unescape->();
-}
+    return ($c, $pict_unescape->());
+};
 
 1;

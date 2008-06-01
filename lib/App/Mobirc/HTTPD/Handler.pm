@@ -11,21 +11,19 @@ use Data::Visitor::Encode;
 
 my $dve = Data::Visitor::Encode->new;
 
+sub context () { App::Mobirc->context } ## no critic
+
 sub handler {
     my $c = shift;
 
-    for my $code (@{App::Mobirc->context->get_hook_codes('request_filter')}) {
-        $code->($c);
-    }
+    context->run_hook('request_filter', $c);
 
     if (authorize($c)) {
         my $response = process_request($c);
         if ($response && blessed $response && $response->isa('HTTP::Response')) { # TODO: remove this feature
             $c->res->set_http_response($response);
         }
-        for my $code (@{App::Mobirc->context->get_hook_codes('response_filter')}) {
-            $code->($c);
-        }
+        context->run_hook('response_filter', $c);
     } else {
         $c->res->status(401);
         $c->res->header('WWW-Authenticate' => qq(Basic Realm="mobirc"));
@@ -34,13 +32,13 @@ sub handler {
 
 sub authorize {
     my $c = shift;
-    for my $code (@{App::Mobirc->context->get_hook_codes('authorize')}) {
-        if ($code->($c)) {
-            DEBUG "AUTHORIZATION SUCCEEDED";
-            return 1; # authorization succeeded.
-        }
+
+    if (context->run_hook_first('authorize', $c)) {
+        DEBUG "AUTHORIZATION SUCCEEDED";
+        return 1; # authorization succeeded.
+    } else {
+        return 0; # authorization failed
     }
-    return 0; # authorization failed
 }
 
 sub process_request {
@@ -50,12 +48,9 @@ sub process_request {
 
     unless ($rule) {
         # hook by plugins
-        for my $code (@{App::Mobirc->context->get_hook_codes('httpd')}) {
-            my $finished = $code->($c, $c->req->uri->path);
-            if ($finished) {
-                # XXX we should use html filter?
-                return;
-            }
+        if (context->run_hook_first( 'httpd', ( $c, $c->req->uri->path ) ) ) {
+            # XXX we should use html filter?
+            return;
         }
 
         # doesn't match.

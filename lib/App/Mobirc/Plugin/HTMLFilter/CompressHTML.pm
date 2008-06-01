@@ -1,19 +1,11 @@
 package App::Mobirc::Plugin::HTMLFilter::CompressHTML;
 # vim:expandtab:
 use strict;
-use warnings;
+use MooseX::Plaggerize::Plugin;
 use App::Mobirc::Util;
 
-sub register {
-    my ($class, $global_context) = @_;
-
-    $global_context->register_hook(
-        'html_filter' => \&_html_filter_compress
-    );
-}
-
-sub _html_filter_compress {
-    my ($c, $content) = @_;
+hook html_filter => sub {
+    my ($self, $global_context, $c, $content) = @_;
 
     my $bsize = length $content;
 
@@ -29,10 +21,8 @@ sub _html_filter_compress {
 
     DEBUG "Compress before->$bsize after->$asize $rate% packets->$packets";
 
-    return $content;
-}
-
-
+    return ( $c, $content);
+};
 
 1;
 __END__

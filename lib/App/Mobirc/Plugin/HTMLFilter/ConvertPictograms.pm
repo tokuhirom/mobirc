@@ -1,24 +1,25 @@
 package App::Mobirc::Plugin::HTMLFilter::ConvertPictograms;
 use strict;
-use warnings;
-use HTML::Entities::ConvertPictogramMobileJp;
+use MooseX::Plaggerize::Plugin;
+use HTML::Entities::ConvertPictogramMobileJp qw(convert_pictogram_entities);
+use Params::Validate ':all';
 
-sub register {
-    my ($class, $global_context) = @_;
-
-    $global_context->register_hook(
-        'html_filter' => \&_html_convert_pictograms
+hook html_filter => sub {
+    my ($self, $global_context, $c, $content) = validate_pos(@_,
+        { isa => __PACKAGE__ },
+        { isa => 'App::Mobirc' },
+        { isa => 'HTTP::Engine::Context' },
+        { type => SCALAR },
     );
-}
 
-sub _html_convert_pictograms {
-    my ($c, $content) = @_;
-
-    convert_pictogram_entities(
-        mobile_agent => $c->req->mobile_agent,
-        html         => $content,
+    return (
+        $c,
+        convert_pictogram_entities(
+            mobile_agent => $c->req->mobile_agent,
+            html         => $content,
+        )
     );
-}
+};
 
 1;
 __END__

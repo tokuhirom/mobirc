@@ -1,26 +1,23 @@
 package App::Mobirc::Plugin::MessageBodyFilter::IRCColor;
 use strict;
-use warnings;
+use MooseX::Plaggerize::Plugin;
 
-sub register {
-    my ($class, $global_context, $conf) = @_;
+has no_decorate => (
+    is      => 'ro',
+    isa     => 'Bool',
+    default => 0,
+);
 
-    $global_context->register_hook(
-        'message_body_filter' => sub { my $body = shift;  process($body, $conf) },
-    );
-}
+hook message_body_filter => sub {
+    my ( $self, $global_context, $text ) = @_;
 
-sub process {
-    my ( $text, $conf ) = @_;
-
-    return _decorate_irc_color($text, $conf->{no_decorate} || 0);
-}
+    return _decorate_irc_color($text, $self->no_decorate);
+};
 
 sub _decorate_irc_color {
     my ($src, $no_decorate) = @_;
 
     if ( $src !~ /[\x02\x03\x0f\x16\x1f]/ ) {
-
         # skip without colorcode
         return $src;
     }

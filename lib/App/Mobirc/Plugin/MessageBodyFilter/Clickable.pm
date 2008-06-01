@@ -1,25 +1,47 @@
 package App::Mobirc::Plugin::MessageBodyFilter::Clickable;
 # vim:expandtab:
 use strict;
-use warnings;
+use MooseX::Plaggerize::Plugin;
 use URI::Find;
 use URI::Escape;
 use HTML::Entities;
 use App::Mobirc::Util;
 @URI::tel::ISA = qw( URI );
 
-sub register {
-    my ($class, $global_context, $conf) = @_;
+has accept_schemes => (
+    is  => 'ro',
+    isa => 'ArrayRef',
+);
 
-    $global_context->register_hook(
-        'message_body_filter' => sub { my $body = shift;  process($body, $conf) },
-    );
-}
+has http_link_string => (
+    is  => 'ro',
+    isa => 'Str',
+);
 
-sub process {
-    my ( $text, $conf ) = @_;
+has redirector => (
+    is  => 'ro',
+    isa => 'Str',
+);
 
-    my $as = $conf->{accept_schemes};
+has au_pcsv => (
+    is  => 'ro',
+    isa => 'Bool',
+);
+
+has pocket_hatena => (
+    is  => 'ro',
+    isa => 'Bool',
+);
+
+has google_gwt => (
+    is  => 'ro',
+    isa => 'Bool',
+);
+
+hook message_body_filter => sub {
+    my ( $self, $global_context, $text ) = @_;
+
+    my $as = $self->accept_schemes;
 
     my $link_string_table = {};
 
@@ -41,25 +63,24 @@ sub process {
     URI::Find->new(
         sub {
             my ( $uri, $orig_uri ) = @_;
-            if ($conf->{accept_schemes} &&
+            if ($self->accept_schemes &&
                 !(grep { $_ eq $uri->scheme } @$as)) {
                 return $orig_uri;
             }
-            return (__PACKAGE__->can("process_" . $uri->scheme) ||
-                    \&process_default)->($conf, $uri, $orig_uri, $link_string_table);
+            return ($self->can("process_" . $uri->scheme) || \&process_default)->($self, $uri, $orig_uri, $link_string_table);
         }
     )->find( \$text );
 
     return $text;
-}
+};
 
 sub process_http {
-    my ( $conf, $uri, $orig_uri ) = @_;
+    my ( $self, $uri, $orig_uri ) = @_;
     my $out = "";
     my $link_string = $orig_uri;
 
-    if ( $conf->{http_link_string} ) {
-        $link_string =$conf->{http_link_string};
+    if ( $self->http_link_string ) {
+        $link_string =$self->http_link_string;
         $link_string =~ s{\$(\w+)}{
             $uri->$1;
         }eg
@@ -68,26 +89,26 @@ sub process_http {
     $link_string = encode_entities(uri_unescape($link_string),  q(<>&"));
     my $encoded_uri = encode_entities($uri, q(<>&"));
 
-    if ( $conf->{redirector} ) {
+    if ( $self->redirector ) {
         $out =
         sprintf(
             '<a href="%s%s" rel="nofollow" class="url">%s</a>',
-            encode_entities($conf->{redirector}, q(<>&")),
+            encode_entities($self->redirector, q(<>&")),
             $encoded_uri,
             $link_string );
     } else {
         $out = qq{<a href="$encoded_uri" rel="nofollow" class="url">$link_string</a>};
     }
-    if ( $conf->{au_pcsv} ) {
+    if ( $self->au_pcsv ) {
         $out .= qq{<a href="device:pcsiteviewer?url=$encoded_uri" rel="nofollow" class="au_pcsv">[PCSV]</a>};
     }
-    if ( $conf->{pocket_hatena} ) {
+    if ( $self->pocket_hatena ) {
         $out .=
         sprintf(
             '<a href="http://mgw.hatena.ne.jp/?url=%s;noimage=0;split=1" rel="nofollow" class="pocket_hatena">[ph]</a>',
             uri_escape($uri) );
     }
-    if ( $conf->{google_gwt} ) {
+    if ( $self->google_gwt ) {
         $out .=
         sprintf(
             '<a href="http://www.google.co.jp/gwt/n?u=%s;_gwt_noimg=0" rel="nofollow" class="google_gwt">[gwt]</a>',
@@ -97,7 +118,7 @@ sub process_http {
 }
 
 sub process_default {
-    my ( $conf, $uri, $orig_uri, $link_string_table ) = @_;
+    my ( $self, $uri, $orig_uri, $link_string_table ) = @_;
 
     my $link_string = $orig_uri;
     if ( $link_string_table->{$orig_uri} ) {

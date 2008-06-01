@@ -1,21 +1,17 @@
 use strict;
 use warnings;
-use App::Mobirc::Plugin::HTMLFilter::ConvertPictograms;
+use App::Mobirc;
 use HTTP::MobileAgent;
+use HTTP::Engine::Context;
 use Test::Base;
 
-{
-    package DummyContext;
-    sub new {
-        my ($class, $agent) = @_;
-        bless { agent => $agent }, $class;
+my $global_context = App::Mobirc->new(
+    {
+        httpd  => { port     => 3333, title => 'mobirc', lines => 40 },
+        global => { keywords => [qw/foo/] }
     }
-    sub req {
-        my $self = shift;
-        bless { %$self }, 'DummyContext';
-    }
-    sub mobile_agent { shift->{agent} }
-}
+);
+$global_context->load_plugin( 'HTMLFilter::ConvertPictograms' );
 
 filters {
     input => [qw/yaml convert/],
@@ -23,9 +19,10 @@ filters {
 
 sub convert {
     my $x = shift;
-    my $agent = HTTP::MobileAgent->new($x->{ua});
-    App::Mobirc::Plugin::HTMLFilter::ConvertPictograms::_html_convert_pictograms(
-        DummyContext->new($agent), $x->{src} );
+    my $c = HTTP::Engine::Context->new;
+    $c->req->user_agent( $x->{ua} );
+    ($c, $x->{src}) = $global_context->run_hook_filter( 'html_filter', $c, $x->{src} );
+    return $x->{src};
 }
 
 __END__

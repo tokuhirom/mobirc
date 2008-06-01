@@ -1,9 +1,17 @@
 use strict;
 use warnings;
 use utf8;
-use App::Mobirc::Plugin::DocRoot;
+use App::Mobirc;
 use Encode;
 use Test::Base;
+
+my $global_context = App::Mobirc->new(
+    {
+        httpd  => { port     => 3333, title => 'mobirc', lines => 40 },
+        global => { keywords => [qw/foo/] }
+    }
+);
+$global_context->load_plugin( {module => 'DocRoot', config => {root => '/foo/'}} );
 
 filters {
     input => [qw/convert/],
@@ -11,10 +19,11 @@ filters {
 
 sub convert {
     my $src = shift;
+    my $c = undef;
     ok Encode::is_utf8($src);
-    my $dst = App::Mobirc::Plugin::DocRoot::_html_filter_docroot(undef, $src, {root => '/foo/'});
-    ok Encode::is_utf8($dst);
-    $dst;
+    my ($cdst, $htmldst, ) = $global_context->run_hook_filter( 'html_filter', $c, $src );
+    ok Encode::is_utf8($htmldst);
+    $htmldst;
 }
 
 __END__

@@ -1,6 +1,6 @@
 package App::Mobirc;
 use Moose;
-with 'App::Mobirc::Role::Pluggable', 'App::Mobirc::Role::Context';
+with 'App::Mobirc::Role::Context', 'MooseX::Plaggerize', 'MooseX::Plaggerize::PluginLoader';
 use 5.00800;
 use Scalar::Util qw/blessed/;
 use POE;
@@ -32,18 +32,25 @@ around 'new' => sub {
     my $config = App::Mobirc::ConfigLoader->load($config_stuff); # TODO: use coercing
 
     my $self = $next->( $class, config => $config );
-    $self->load_plugins;
+
+    $self->_load_plugins();
 
     return $self;
 };
+
+sub _load_plugins {
+    my $self = shift;
+    for my $plugin (@{ $self->config->{plugin} }) {
+        $plugin->{module} =~ s/^App::Mobirc::Plugin:://;
+        $self->load_plugin( $plugin );
+    }
+}
 
 sub run {
     my $self = shift;
     die "this is instance method" unless blessed $self;
 
-    for my $code (@{$self->get_hook_codes('run_component')}) {
-        $code->($self);
-    }
+    $self->run_hook('run_component');
 
     App::Mobirc::HTTPD->init($self->config);
 
@@ -88,26 +95,6 @@ run server
 =item register_hook
 
 register hook
-
-=item get_hook_codes
-
-get hook codes
-
-=item add_channel
-
-register channel object
-
-=item channels
-
-get a channel objects.
-
-=item get_channel
-
-get a channel
-
-=item delete_channel
-
-delete channel
 
 =back
 

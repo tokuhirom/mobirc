@@ -1,44 +1,36 @@
 package App::Mobirc::Plugin::Authorizer::Cookie;
 use strict;
-use warnings;
+use MooseX::Plaggerize::Plugin;
 use App::Mobirc::Util;
 use Carp;
 use CGI::Cookie;
 use Digest::MD5 ();
 use Encode;
+use App::Mobirc::Validator;
 
-our $SALT = 'CSS Nite';
+has password => (
+    is       => 'ro',
+    isa      => 'Str',
+    required => 1,
+);
 
-sub register {
-    my ($class, $global_context, $conf) = @_;
+has expires => (
+    is      => 'ro',
+    isa     => 'Str',
+    default => '+7d',
+);
 
-    $global_context->register_hook(
-        'authorize' => sub { my $c = shift;  _authorize($c, $conf) },
-    );
-    $global_context->register_hook(
-        'response_filter' => sub { my ($c, ) = @_;  _set_cookie($c, $conf) },
-    );
-}
+hook authorize => sub {
+    my ( $self, $global_context, $c, ) = validate_hook('authorize', @_);
 
-# comfort
-sub _calc_digest {
-    my ($password, ) = @_;
-
-    return Digest::MD5::md5_hex( "$password,$SALT" );
-}
-
-sub _authorize {
-    my ( $c, $conf ) = @_;
-
-    my $cookie_str = $c->{req}->header('Cookie');
+    my $cookie_str = $c->req->header('Cookie');
     unless ($cookie_str) {
         DEBUG "cookie header is empty";
         return false;
     }
 
-    my %cookie = CGI::Cookie->parse($cookie_str);
-    if ( $cookie{mobirc_key} && $cookie{mobirc_key}->value eq _calc_digest($conf->{password}) )
-    {
+    my %cookie = CGI::Cookie->parse($cookie_str); # TODO: use HTTP::Engine::Request's stuff!
+    if ( $cookie{mobirc_key} && $cookie{mobirc_key}->value eq _calc_digest($self->password) ) {
         DEBUG "cookie auth succeeded";
         return true;
     }
@@ -46,18 +38,22 @@ sub _authorize {
         DEBUG "invalid cookie? $cookie{mobirc_key}";
         return false;
     }
-}
+};
 
-sub _set_cookie {
-    my ($c, $conf) = @_;
-
-    my $password = $conf->{password} or croak "conf->{password} missing";
+hook response_filter => sub {
+    my ($self, $global_context, $c) = validate_hook('response_filter', @_);
 
     $c->res->cookies->{mobirc_key} = CGI::Cookie->new(
         -name    => 'mobirc_key',
-        -value   => _calc_digest($password),
-        -expires => $conf->{expires} || '+7d',
+        -value   => _calc_digest($self->password),
+        -expires => $self->expires,
     );
+};
+
+our $SALT = 'CSS Nite'; 
+sub _calc_digest {
+    my ($password, ) = @_;
+    return Digest::MD5::md5_hex( "$password,$SALT" );
 }
 
 1;

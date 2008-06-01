@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Test::Base;
-use App::Mobirc::Plugin::MessageBodyFilter::Clickable;
+use App::Mobirc;
 
 plan tests => 1*blocks;
 
@@ -11,7 +11,15 @@ filters {
 
 sub clickable {
     my $x = shift;
-    App::Mobirc::Plugin::MessageBodyFilter::Clickable::process( $x->{text}, $x->{conf} );
+    my $global_context = App::Mobirc->new(
+        {
+            httpd  => { port     => 3333, title => 'mobirc', lines => 40 },
+            global => { keywords => [qw/foo/] }
+        }
+    );
+    $global_context->load_plugin( { module => 'MessageBodyFilter::Clickable', config => $x->{conf} } );
+    my ($res, ) = $global_context->run_hook_filter('message_body_filter', $x->{text});
+    $res;
 }
 
 run_is input => 'expected';
@@ -78,27 +86,27 @@ conf: ~
 --- input
 text: http://d.hatena.ne.jp/
 conf:
-  pocket_hatena: true
+  pocket_hatena: 1
 --- expected: <a href="http://d.hatena.ne.jp/" rel="nofollow" class="url">http://d.hatena.ne.jp/</a><a href="http://mgw.hatena.ne.jp/?url=http%3A%2F%2Fd.hatena.ne.jp%2F;noimage=0;split=1" rel="nofollow" class="pocket_hatena">[ph]</a>
 
 === au_pcsv
 --- input
 text: http://d.hatena.ne.jp/
 conf:
-  au_pcsv: true
+  au_pcsv: 1
 --- expected: <a href="http://d.hatena.ne.jp/" rel="nofollow" class="url">http://d.hatena.ne.jp/</a><a href="device:pcsiteviewer?url=http://d.hatena.ne.jp/" rel="nofollow" class="au_pcsv">[PCSV]</a>
 
 === au_pcsv with amp
 --- input
 text: http://www.google.co.jp/search?hl=ja&q=foo
 conf:
-  au_pcsv: true
+  au_pcsv: 1
 --- expected: <a href="http://www.google.co.jp/search?hl=ja&amp;q=foo" rel="nofollow" class="url">http://www.google.co.jp/search?hl=ja&amp;q=foo</a><a href="device:pcsiteviewer?url=http://www.google.co.jp/search?hl=ja&amp;q=foo" rel="nofollow" class="au_pcsv">[PCSV]</a>
 
 === google_gwt
 --- input
 text: http://d.hatena.ne.jp/
 conf:
-  google_gwt: true
+  google_gwt: 1
 --- expected: <a href="http://d.hatena.ne.jp/" rel="nofollow" class="url">http://d.hatena.ne.jp/</a><a href="http://www.google.co.jp/gwt/n?u=http%3A%2F%2Fd.hatena.ne.jp%2F;_gwt_noimg=0" rel="nofollow" class="google_gwt">[gwt]</a>
 

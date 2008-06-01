@@ -13,9 +13,13 @@ my $c = App::Mobirc->new(
         global => { keywords => [qw/foo/], stopwords => [qw/foo31/] },
         plugin => [
             {
-                module => 'App::Mobirc::Plugin::Component::IRCClient',
-                config =>
-                  { groups => { initialJ => [qw(jknaoya jkondo jagayam)] }, },
+                module => 'Component::IRCClient',
+                config => {
+                    groups => { initialJ => [qw(jknaoya jkondo jagayam)] },
+                    nick   => 'foo',
+                    port   => 3333,
+                    server => '127.0.0.1',
+                },
             },
         ]
     }

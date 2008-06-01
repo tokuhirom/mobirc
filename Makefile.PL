@@ -6,6 +6,7 @@ license  'gpl';
 
 # moooooose
 requires 'Moose'               => '0.48';
+requires 'MooseX::Plaggerize'  => '0.03';
 
 # http-engine
 requires 'HTTP::Engine'        => '0.0.9';

@@ -121,10 +121,7 @@ sub dispatch_show_channel {
             channel             => $channel,
             recent_mode         => $c->req->params->{recent_mode},
             message             => $c->req->params->{'msg'} || '',
-            channel_page_option => [
-                map { $_->( $channel, $c ) }
-                  @{ context->get_hook_codes('channel_page_option') }
-            ],
+            channel_page_option => context->run_hook('channel_page_option', $channel, $c),
             irc_nick            => irc_nick,
         }
     );

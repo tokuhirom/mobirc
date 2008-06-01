@@ -2,13 +2,27 @@ use strict;
 use warnings;
 use App::Mobirc::Plugin::HTMLFilter::CompressHTML;
 use Test::Base;
+use App::Mobirc;
+
+my $global_context = App::Mobirc->new(
+    {
+        httpd  => { port     => 3333, title => 'mobirc', lines => 40 },
+        global => { keywords => [qw/foo/] }
+    }
+);
+$global_context->load_plugin( 'HTMLFilter::CompressHTML' );
 
 filters {
     input => [qw/compress/],
 };
 
+run_is input => 'expected';
+
 sub compress {
-    App::Mobirc::Plugin::HTMLFilter::CompressHTML::_html_filter_compress(undef, shift);
+    my $html = shift;
+    my $c = undef;
+    ($c, $html) = $global_context->run_hook_filter('html_filter', $c, $html);
+    $html;
 }
 
 __END__

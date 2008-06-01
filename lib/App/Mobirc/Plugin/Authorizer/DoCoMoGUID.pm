@@ -1,46 +1,34 @@
 package App::Mobirc::Plugin::Authorizer::DoCoMoGUID;
 use strict;
-use warnings;
+use MooseX::Plaggerize::Plugin;
 use Carp;
 use App::Mobirc::Util;
-
 use HTML::StickyQuery::DoCoMoGUID;
-sub register {
-    my ($class, $global_context, $conf) = @_;
 
-    $global_context->register_hook(
-        'authorize' => sub { my $c = shift;  _authorize($c, $conf) }
-    );
-    $global_context->register_hook(
-        'html_filter' => \&_html_filter_docomo_guid,
-    );
-}
+has docomo_guid => (
+    is       => 'ro',
+    isa      => 'Str',
+    required => 1,
+);
 
-sub _authorize {
-    my ( $c, $conf ) = @_;
+hook authorize => sub {
+    my ( $self, $global_context, $c, ) = @_;
 
-    DEBUG __PACKAGE__;
-
-    unless ($conf->{docomo_guid}) {
-        croak "missing docomo_guid";
-    }
-
-    my $subno = $c->{req}->header('x-dcmguid');
-    if ( $subno && $subno eq $conf->{docomo_guid} ) {
+    my $subno = $c->req->header('x-dcmguid');
+    if ( $subno && $subno eq $self->docomo_guid ) {
         DEBUG "SUCESS AT DocomoGUID";
         return true;
     } else {
         return false;
     }
-}
+};
 
-sub _html_filter_docomo_guid {
-    my ($c, $content) = @_;
+hook 'html_filter' => sub {
+    my ($self, $global_context, $c, $content) = @_;
 
     DEBUG "Filter DoCoMoGUID";
     return $content unless $c->req->mobile_agent->is_docomo;
-
-    return HTML::StickyQuery::DoCoMoGUID->new()->sticky( scalarref => \$content, );
-}
+    return ($c, HTML::StickyQuery::DoCoMoGUID->new()->sticky( scalarref => \$content, ));
+};
 
 1;

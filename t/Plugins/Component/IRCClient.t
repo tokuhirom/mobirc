@@ -15,19 +15,6 @@ plan tests => 6;
 my $PORT = 9999;
 
 my $config = {
-    plugin => [
-        {
-            module => 'App::Mobirc::Plugin::Component::IRCClient',
-            config => {
-                nick     => 'testee',
-                port     => $PORT,
-                incode   => 'utf8',
-                username => 'test man',
-                desc     => 'hoge',
-                server   => 'localhost',
-            },
-        }
-    ],
     httpd => {
         port  => 88888,
         lines => 50,
@@ -37,7 +24,20 @@ my $config = {
 $SIG{INT} = sub { die };
 
 my $global_context = App::Mobirc->new($config);
-$_->($global_context) for @{$global_context->get_hook_codes('run_component')};
+$global_context->load_plugin(
+    {
+        module => 'Component::IRCClient',
+        config => {
+            nick     => 'testee',
+            port     => $PORT,
+            incode   => 'utf8',
+            username => 'test man',
+            desc     => 'hoge',
+            server   => 'localhost',
+        },
+    }
+);
+$global_context->run_hook('run_component');
 POE::Session->create(
     package_states => [
         main => [qw/_start test/],

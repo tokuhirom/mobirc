@@ -101,10 +101,7 @@ sub clear_unread {
 sub post_command {
     my ($self, $command) = @_;
 
-    for my $code (@{$self->{global_context}->get_hook_codes('process_command')}) {
-        my $ret = $code->($self->{global_context}, $command, $self);
-        last if $ret;
-    }
+    $self->{global_context}->run_hook_first('process_command', $command, $self);
 }
 
 sub recent_log_count {

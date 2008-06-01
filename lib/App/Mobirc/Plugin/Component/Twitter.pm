@@ -1,6 +1,6 @@
 package App::Mobirc::Plugin::Component::Twitter;
 use strict;
-use warnings;
+use MooseX::Plaggerize::Plugin;
 use POE::Component::Client::Twitter;
 use App::Mobirc::Model::Channel;
 use App::Mobirc::Util;
@@ -8,31 +8,51 @@ use POE;
 use POE::Sugar::Args;
 use Encode;
 
-sub register {
-    my ($class, $global_context, $conf) = @_;
+has channel => (
+    is => 'ro',
+    isa => 'Str',
+    default => U('#twitter'),
+);
 
-    DEBUG "register twitter client component";
-    $global_context->register_hook(
-        'run_component' => sub { _init($conf, shift) },
-    );
-    $global_context->register_hook(
-        'process_command' => sub { my ($global_context, $command, $channel) = @_;  _process_command($conf, $global_context, $command, $channel) },
-    );
+has 'alias' => (
+    is      => 'ro',
+    isa     => 'Str',
+    default => 'twitter',
+);
 
-    $conf->{channel} ||= U '#twitter';
-    $conf->{alias} ||= 'twitter';
-    $conf->{screenname} ||= $conf->{username};
-    $conf->{friend_timeline_interval} ||= 60;
-}
+has screenname => (
+    is      => 'ro',
+    isa     => 'Str',
+    lazy    => 1,
+    default => { shift->username },
+);
 
-sub _process_command {
-    my ($conf, $global_context, $command, $channel) = @_;
+has username => (
+    is       => 'ro',
+    isa      => 'Str',
+    required => 1,
+);
 
-    if ($conf->{channel} eq $channel->name) {
-        $poe_kernel->post( $conf->{alias}, 'update', encode('utf-8', $command) );
+has password => (
+    is       => 'ro',
+    isa      => 'Str',
+    required => 1,
+);
+
+has friend_timeline_interval => (
+    is      => 'ro',
+    isa     => 'Int',
+    default => 60,
+);
+
+hook 'process_command' => sub {
+    my ($self, $global_context, $command, $channel) = @_;
+
+    if ($self->channel eq $channel->name) {
+        $poe_kernel->post( $self->alias, 'update', encode('utf-8', $command) );
         $channel->add_message(
             App::Mobirc::Model::Message->new(
-                who => $conf->{screenname},
+                who   => $self->screenname,
                 body  => $command,
                 class => 'public',
             )
@@ -40,16 +60,12 @@ sub _process_command {
         return true;
     }
     return false;
-}
+};
 
-sub _init {
-    my ( $conf, $global_context ) = @_;
+hook 'run_component' => sub {
+    my ( $sself $global_context ) = @_;
 
-    my $twitter = POE::Component::Client::Twitter->spawn( %{ $conf } );
-
-    $global_context->add_channel(
-        App::Mobirc::Model::Channel->new( $global_context, $conf->{channel}, ),
-    );
+    my $twitter = POE::Component::Client::Twitter->spawn( %{ $self } );
 
     POE::Session->create(
         inline_states => {
@@ -61,12 +77,12 @@ sub _init {
             delay_friend_timeline => sub {
                 my $poe = sweet_args;
                 $twitter->yield('friend_timeline');
-                $poe->kernel->delay( 'delay_friend_timeline' => $conf->{friend_timeline_interval} );
+                $poe->kernel->delay( 'delay_friend_timeline' => $self->friend_timeline_interval );
             },
             'twitter.friend_timeline_success' => sub {
                 my $poe = sweet_args;
                 my $ret = $poe->args->[0] || [];
-                my $channel = $global_context->get_channel( $conf->{channel} );
+                my $channel = $global_context->get_channel( $self->channel );
                 DEBUG "twitter friend timeline SUCCESSS!!";
                 DEBUG "got lines: " . scalar(@$ret);
                 for my $line ( reverse @{$ret} ) {
@@ -75,7 +91,7 @@ sub _init {
 
                     DEBUG "GOT STATUS IS: $body($who)";
 
-                    next if $conf->{screenname} eq $who;
+                    next if $self->screenname eq $who;
 
                     $channel->add_message(
                         App::Mobirc::Model::Message->new(
@@ -88,7 +104,7 @@ sub _init {
             },
         }
     );
-}
+};
 
 1;
 __END__

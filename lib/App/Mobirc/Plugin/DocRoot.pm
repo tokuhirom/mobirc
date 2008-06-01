@@ -1,60 +1,53 @@
 package App::Mobirc::Plugin::DocRoot;
 use strict;
-use warnings;
+use MooseX::Plaggerize::Plugin;
 use App::Mobirc::Util;
 use XML::LibXML;
 use Encode;
+use Params::Validate ':all';
 
-sub register {
-    my ($class, $global_context, $conf) = @_;
+has root => (
+    is       => 'ro',
+    isa      => 'Str',
+    required => 1,
+);
 
-    DEBUG "Rewrite Document Root";
-
-    $global_context->register_hook(
-        request_filter => sub { _request_filter($conf, @_) },
+hook request_filter => sub {
+    my ($self, $global_context, $c) = validate_pos(@_,
+        { isa => __PACKAGE__ },
+        { isa => 'App::Mobirc' },
+        { isa => 'HTTP::Engine::Context' },
     );
-    $global_context->register_hook(
-        response_filter => sub { _response_filter($conf, @_) },
-    );
-    $global_context->register_hook(
-        'html_filter' => sub { _html_filter_docroot($_[0], $_[1], $conf) },
-    );
-}
 
-sub _request_filter {
-    my ($conf, $c) = @_;
-
-    my $root = $conf->{root};
+    my $root = $self->root;
     $root =~ s!/$!!;
 
     my $path = $c->req->uri->path;
-    DEBUG "BEFORE : " . $c->req->uri;
     $path =~ s!^$root!!;
     $c->req->uri->path($path);
-    DEBUG "AFTER  : " . $c->req->uri;
-}
+};
 
-sub _response_filter {
-    my ($conf, $c) = @_;
+hook response_filter => sub {
+    my ($self, $global_context, $c) = @_;
 
     if ($c->res->redirect) {
         DEBUG "REWRITE REDIRECT : " . $c->res->redirect;
 
-        my $root = $conf->{root};
+        my $root = $self->root;
         $root =~ s!/$!!;
         $c->res->redirect( $root . $c->res->redirect );
 
         DEBUG "FINISHED: " . $c->res->redirect;
     }
-}
+};
 
-sub _html_filter_docroot {
-    my ($c, $content, $conf) = @_;
+hook html_filter => sub {
+    my ($self, $global_context, $c, $content, ) = @_;
 
     DEBUG "FILTER DOCROOT";
     DEBUG "CONTENT IS UTF* : " . Encode::is_utf8($content);
 
-    my $root = $conf->{root};
+    my $root = $self->root;
     $root =~ s!/$!!;
 
     my $doc = eval { XML::LibXML->new->parse_html_string($content) };
@@ -88,8 +81,8 @@ sub _html_filter_docroot {
     my $html = $doc->toStringHTML;
     $html =~ s{<!DOCTYPE[^>]*>\s*}{};
 
-    decode($doc->encoding || "UTF-8", $html);
-}
+    return ($c, decode($doc->encoding || "UTF-8", $html));
+};
 
 1;
 __END__

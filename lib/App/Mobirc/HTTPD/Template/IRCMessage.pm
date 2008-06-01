@@ -57,7 +57,7 @@ private template 'irc_who' => sub {
             require App::Mobirc;
             my $g = {};
             for my $p ( @{ App::Mobirc->context->config->{plugin} || [] } ) {
-                if ( $p->{module} eq 'App::Mobirc::Plugin::Component::IRCClient' ) {
+                if ( $p->{module} =~ 'Component::IRCClient' ) {
                     $g = $p->{config}->{groups} if exists $p->{config}->{groups};
                     last;
                 }
@@ -92,13 +92,8 @@ private template 'irc_who' => sub {
 private template 'irc_body' => sub {
     my ( $self, $class, $body ) = validate_pos( @_, OBJECT, SCALAR, SCALAR );
 
-    my $c = App::Mobirc->context;
-    my $codes = $c->get_hook_codes('message_body_filter') || [];
-
     $body = encode_entities($body, q{<>&"'});
-    for my $filter ( @{ $codes } ) {
-        $body = $filter->($body);
-    }
+    ($body, ) = App::Mobirc->context->run_hook_filter('message_body_filter', $body);
 
     span { attr { class => $class }
         outs_raw $body
