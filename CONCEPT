@@ -12,8 +12,8 @@
 -- App::Mobirc::Plugin::Component::XMPP を復活させる
 -- DocRoot の完全分離
 --- ajax の script タグ
--- and preload StickyTime plugin.
 -- HTTPD::* => Web::*
 -- hirose31's Groups => Hook.
 -- validate_hook を、もうちょいなんとかかっこよく実装したい。
+-- add more documents
 

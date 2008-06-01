@@ -52,7 +52,7 @@ sub run {
 
     $self->run_hook('run_component');
 
-    App::Mobirc::HTTPD->init($self->config);
+    App::Mobirc::HTTPD->init($self->config, $self);
 
     $poe_kernel->run();
 }

@@ -33,6 +33,8 @@ sub init {
             request_handler => \&App::Mobirc::HTTPD::Handler::handler,
         }
     )->run;
+
+    $global_context->load_plugin('StickyTime');
 }
 
 1;
