@@ -1,6 +1,5 @@
 use strict;
 use warnings;
-use App::Mobirc::Plugin::HTMLFilter::StickyTime;
 use Test::Base;
 use App::Mobirc;
 
@@ -10,7 +9,7 @@ my $global_context = App::Mobirc->new(
         global => { keywords => [qw/foo/] }
     }
 );
-$global_context->load_plugin( 'HTMLFilter::StickyTime' );
+$global_context->load_plugin( 'StickyTime' );
 
 plan tests => 1*blocks;
 

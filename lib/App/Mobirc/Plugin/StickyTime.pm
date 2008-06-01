@@ -1,4 +1,4 @@
-package App::Mobirc::Plugin::HTMLFilter::StickyTime;
+package App::Mobirc::Plugin::StickyTime;
 use strict;
 use MooseX::Plaggerize::Plugin;
 use App::Mobirc::Util;
