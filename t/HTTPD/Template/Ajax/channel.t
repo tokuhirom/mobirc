@@ -8,6 +8,8 @@ use App::Mobirc;
 use App::Mobirc::Model::Server;
 use App::Mobirc::Util;
 
+local $ENV{TZ} = 'Asia/Tokyo';
+
 # init.
 my $c = App::Mobirc->new(
     {
