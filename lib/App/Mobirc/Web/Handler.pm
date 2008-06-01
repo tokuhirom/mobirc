@@ -1,12 +1,12 @@
-package App::Mobirc::HTTPD::Handler;
+package App::Mobirc::Web::Handler;
 use Moose;
 use Scalar::Util qw/blessed/;
 use App::Mobirc;
 use App::Mobirc::Util;
-use App::Mobirc::HTTPD::Router;
-use App::Mobirc::HTTPD::C::Mobile;
-use App::Mobirc::HTTPD::C::Ajax;
-use App::Mobirc::HTTPD::C::Static;
+use App::Mobirc::Web::Router;
+use App::Mobirc::Web::C::Mobile;
+use App::Mobirc::Web::C::Ajax;
+use App::Mobirc::Web::C::Static;
 use Data::Visitor::Encode;
 
 my $dve = Data::Visitor::Encode->new;
@@ -19,10 +19,7 @@ sub handler {
     context->run_hook('request_filter', $c);
 
     if (authorize($c)) {
-        my $response = process_request($c);
-        if ($response && blessed $response && $response->isa('HTTP::Response')) { # TODO: remove this feature
-            $c->res->set_http_response($response);
-        }
+        process_request($c);
         context->run_hook('response_filter', $c);
     } else {
         $c->res->status(401);
@@ -44,7 +41,7 @@ sub authorize {
 sub process_request {
     my ($c, ) = @_;
 
-    my $rule = App::Mobirc::HTTPD::Router->match($c->req);
+    my $rule = App::Mobirc::Web::Router->match($c->req);
 
     unless ($rule) {
         # hook by plugins
@@ -64,7 +61,7 @@ sub process_request {
         };
     }
 
-    my $controller = "App::Mobirc::HTTPD::C::$rule->{controller}";
+    my $controller = "App::Mobirc::Web::C::$rule->{controller}";
 
     my $meth = $rule->{action};
     my $post_meth = "post_dispatch_$meth";

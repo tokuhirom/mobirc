@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use App::Mobirc::HTTPD::View;
+use App::Mobirc::Web::View;
 use Test::More tests => 1;
 use HTTP::MobileAgent;
 use Text::Diff;
@@ -32,7 +32,7 @@ $channel->add_message(
 );
 
 my $got = do {
-    local $_ = App::Mobirc::HTTPD::View->show(
+    local $_ = App::Mobirc::Web::View->show(
         'ajax/channel',
         channel  => $channel,
         irc_nick => 'tokuhirom'

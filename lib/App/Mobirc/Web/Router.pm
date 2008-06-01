@@ -1,4 +1,4 @@
-package App::Mobirc::HTTPD::Router;
+package App::Mobirc::Web::Router;
 use strict;
 use warnings;
 use HTTPx::Dispatcher;

@@ -1,6 +1,6 @@
-package App::Mobirc::HTTPD::C::Ajax;
+package App::Mobirc::Web::C::Ajax;
 use Moose;
-use App::Mobirc::HTTPD::C;
+use App::Mobirc::Web::C;
 use App::Mobirc::Util;
 use Encode;
 

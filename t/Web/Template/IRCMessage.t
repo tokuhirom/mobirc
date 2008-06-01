@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use App::Mobirc::HTTPD::View;
+use App::Mobirc::Web::View;
 use App::Mobirc;
 use Test::Base;
 plan tests => 1*blocks;
@@ -39,7 +39,7 @@ sub message {
 
 sub render {
     my $msg = shift;
-    App::Mobirc::HTTPD::View->show('irc_message', $msg, 'tokuhirom');
+    App::Mobirc::Web::View->show('irc_message', $msg, 'tokuhirom');
 }
 
 sub strip {

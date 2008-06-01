@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use App::Mobirc::HTTPD::View;
+use App::Mobirc::Web::View;
 use Test::More tests => 1;
 use HTTP::MobileAgent;
 use Text::Diff;
@@ -20,7 +20,7 @@ my $server = App::Mobirc::Model::Server->new();
 $server->get_channel(U '#tester');
 
 my $got = do {
-    local $_ = App::Mobirc::HTTPD::View->show(
+    local $_ = App::Mobirc::Web::View->show(
         'ajax/menu',
         server             => $server,
         keyword_recent_num => 3

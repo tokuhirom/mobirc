@@ -11,7 +11,7 @@ use_ok 'App::Mobirc::Model::Channel';
 use_ok 'App::Mobirc::Plugin::Component::IRCClient';
 
 use_ok 'App::Mobirc::HTTPD';
-use_ok 'App::Mobirc::HTTPD::Router';
+use_ok 'App::Mobirc::Web::Router';
 
 use_ok 'App::Mobirc::Plugin::Authorizer::BasicAuth';
 use_ok 'App::Mobirc::Plugin::Authorizer::Cookie';

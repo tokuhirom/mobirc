@@ -35,7 +35,6 @@ requires 'Exporter'           => '5.62';
 requires 'File::Spec'         => '3.2701';
 requires 'FindBin'            => '1.47';
 requires 'HTML::Entities'     => '1.35';
-requires 'HTTP::Response'     => '5.811';
 requires 'Path::Class'        => '0.16';
 requires 'Proc::Daemon'       => '0.03';
 requires 'Params::Validate'   => '0.91';

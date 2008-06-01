@@ -11,12 +11,12 @@ use HTTP::MobileAgent::Plugin::Charset;
 
 use App::Mobirc;
 use App::Mobirc::Util;
-use App::Mobirc::HTTPD::Handler;
+use App::Mobirc::Web::Handler;
 
 use HTTP::Engine middlewares => [
     qw/
-        +App::Mobirc::HTTPD::Middleware::Encoding
-        +App::Mobirc::HTTPD::Middleware::MobileAgent
+        +App::Mobirc::Web::Middleware::Encoding
+        +App::Mobirc::Web::Middleware::MobileAgent
     /
 ];
 
@@ -30,7 +30,7 @@ sub init {
                 host => ($config->{httpd}->{address} || '0.0.0.0'),
                 port => ($config->{httpd}->{port} || 80),
             },
-            request_handler => \&App::Mobirc::HTTPD::Handler::handler,
+            request_handler => \&App::Mobirc::Web::Handler::handler,
         }
     )->run;
 

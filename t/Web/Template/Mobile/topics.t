@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use App::Mobirc::HTTPD::View;
+use App::Mobirc::Web::View;
 use Test::More tests => 1;
 use HTTP::MobileAgent;
 use Text::Diff;
@@ -17,7 +17,7 @@ my $c = App::Mobirc->new(
 my $server = App::Mobirc::Model::Server->new();
 $server->get_channel(U '#tester');
 
-my $got = App::Mobirc::HTTPD::View->show(
+my $got = App::Mobirc::Web::View->show(
     'mobile/topics',
     mobile_agent => HTTP::MobileAgent->new('PC'),
     channels     => scalar($server->channels),

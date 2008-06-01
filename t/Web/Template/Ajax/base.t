@@ -1,13 +1,13 @@
 use strict;
 use warnings;
-use App::Mobirc::HTTPD::View;
+use App::Mobirc::Web::View;
 use Test::More tests => 1;
 use HTTP::MobileAgent;
 use Text::Diff;
 use App::Mobirc;
 
 local $App::Mobirc::VERSION = 0.01;
-my $got = App::Mobirc::HTTPD::View->show(
+my $got = App::Mobirc::Web::View->show(
     'ajax/base' => (
         user_agent => 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)',
         docroot    => '/'

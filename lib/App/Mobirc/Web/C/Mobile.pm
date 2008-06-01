@@ -1,6 +1,6 @@
-package App::Mobirc::HTTPD::C::Mobile;
+package App::Mobirc::Web::C::Mobile;
 use Moose;
-use App::Mobirc::HTTPD::C;
+use App::Mobirc::Web::C;
 use App::Mobirc::Util;
 use URI::Escape qw/uri_escape uri_unescape/;
 use Encode;

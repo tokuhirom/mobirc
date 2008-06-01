@@ -3,7 +3,7 @@ use warnings;
 use Test::More;
 use App::Mobirc;
 use HTTP::Engine middlewares => [
-    qw/ +App::Mobirc::HTTPD::Middleware::MobileAgent /
+    qw/ +App::Mobirc::Web::Middleware::MobileAgent /
 ];
 
 eval "use HTML::StickyQuery::DoCoMoGUID";

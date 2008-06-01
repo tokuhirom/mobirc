@@ -1,4 +1,4 @@
-package App::Mobirc::HTTPD::Template::Parts;
+package App::Mobirc::Web::Template::Parts;
 use strict;
 use warnings;
 use base qw(Template::Declare);

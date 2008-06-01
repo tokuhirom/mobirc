@@ -1,4 +1,4 @@
-package App::Mobirc::HTTPD::Middleware::MobileAgent;
+package App::Mobirc::Web::Middleware::MobileAgent;
 use Moose;
 
 sub setup {

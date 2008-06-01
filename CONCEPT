@@ -9,13 +9,11 @@
 ■リリースサイクル
 - 0.99_1 でデベロッパーリリースを何度かする
 - 1.00 マデニヤルコト
--- App::Mobirc::Plugin::Component::XMPP を復活させる
 -- DocRoot の完全分離
 --- ajax の script タグ
 -- HTTPD::* => Web::*
 -- hirose31's Groups => Hook.
 -- validate_hook を、もうちょいなんとかかっこよく実装したい。
 -- add more documents
--- DoCoMoCSS をどうにかする
 -- irssi support をまじめにやる
 

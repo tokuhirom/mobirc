@@ -1,4 +1,4 @@
-package App::Mobirc::HTTPD::Middleware::Encoding;
+package App::Mobirc::Web::Middleware::Encoding;
 use Moose;
 use Data::Visitor::Encode;
 

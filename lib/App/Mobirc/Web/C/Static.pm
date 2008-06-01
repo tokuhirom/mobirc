@@ -1,6 +1,6 @@
-package App::Mobirc::HTTPD::C::Static;
+package App::Mobirc::Web::C::Static;
 use Moose;
-use App::Mobirc::HTTPD::C;
+use App::Mobirc::Web::C;
 use App::Mobirc::Util;
 use Path::Class;
 

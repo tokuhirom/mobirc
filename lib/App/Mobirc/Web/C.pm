@@ -1,8 +1,8 @@
-package App::Mobirc::HTTPD::C;
+package App::Mobirc::Web::C;
 use strict;
 use warnings;
 use Exporter 'import';
-use App::Mobirc::HTTPD::View;
+use App::Mobirc::Web::View;
 use Encode;
 
 our @EXPORT = qw/context server irc_nick render_td/;
@@ -13,7 +13,7 @@ sub irc_nick () { POE::Kernel->alias_resolve('irc_session')->get_heap->{irc}->ni
 
 sub render_td {
     my ($c, @args) = @_;
-    my $html = App::Mobirc::HTTPD::View->show(@args);
+    my $html = App::Mobirc::Web::View->show(@args);
     _make_response($c, $html);
 }
 

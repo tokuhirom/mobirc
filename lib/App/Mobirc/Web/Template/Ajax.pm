@@ -1,4 +1,4 @@
-package App::Mobirc::HTTPD::Template::Ajax;
+package App::Mobirc::Web::Template::Ajax;
 use strict;
 use warnings;
 use base qw(Template::Declare);

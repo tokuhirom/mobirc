@@ -1,4 +1,4 @@
-package App::Mobirc::HTTPD::Template::IRCMessage;
+package App::Mobirc::Web::Template::IRCMessage;
 use strict;
 use warnings;
 use base qw(Template::Declare);
@@ -6,13 +6,13 @@ use Template::Declare::Tags;
 use Params::Validate ':all';
 use List::Util qw/first/;
 use HTML::Entities qw/encode_entities/;
-use App::Mobirc::HTTPD::View;
+use App::Mobirc::Web::View;
 
 template 'irc_message' => sub {
     my ($self, $message, $my_nick) = validate_pos(@_, OBJECT, { isa => 'App::Mobirc::Model::Message' }, SCALAR);
 
     # i want to strip spaces. cellphone hates spaces.
-    my $html = App::Mobirc::HTTPD::View->show( '_irc_message', $message, $my_nick );
+    my $html = App::Mobirc::Web::View->show( '_irc_message', $message, $my_nick );
     $html =~ s/^\s+//smg;
     $html =~ s/\n//g;
     outs_raw $html;
