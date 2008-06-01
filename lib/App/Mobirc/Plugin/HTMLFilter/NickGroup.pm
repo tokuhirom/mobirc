@@ -32,7 +32,7 @@ has class_for => (
 hook 'html_filter' => sub {
     my ($self, $global_context, $c, $html) = @_;
 
-    my $doc = eval { XML::LibXML->new->parse_string($html); };
+    my $doc = eval { XML::LibXML->new->parse_html_string($html); };
     if ($@) {
         warn $@;
         return ($c, $html);
