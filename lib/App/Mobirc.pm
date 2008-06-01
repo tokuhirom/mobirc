@@ -1,6 +1,6 @@
 package App::Mobirc;
 use Moose;
-with 'App::Mobirc::Role::Context', 'MooseX::Plaggerize', 'MooseX::Plaggerize::PluginLoader';
+with 'App::Mobirc::Role::Context', 'MooseX::Plaggerize';
 use 5.00800;
 use Scalar::Util qw/blessed/;
 use POE;
