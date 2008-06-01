@@ -6,6 +6,7 @@ use XML::LibXML;
 use HTML::Selector::XPath;
 use App::Mobirc::Util;
 use Encode;
+use Path::Class;
 
 # some code copied from HTML::DoCoMoCSS
 hook 'html_filter' => sub {
@@ -19,10 +20,7 @@ hook 'html_filter' => sub {
     # unescape Numeric character reference.
     my $pict_unescape = sub { $content =~ s/HTMLCSSINLINERESCAPE(x[\dA-Z-a-z]{4}|\d+)::::::::/&#$1;/g; return $content; };
 
-    $content =~ s{<style type="text/css">(.+)</style>}{}sm;
-    my $css_text = $1 or return $pict_unescape->();
-
-    my $css = CSS::Tiny->read_string($css_text);
+    my $css = CSS::Tiny->read_string($self->css_text($global_context));
     my $doc = eval { XML::LibXML->new->parse_string($content); };
     $@ and return $pict_unescape->();
 
@@ -42,5 +40,11 @@ hook 'html_filter' => sub {
 
     return ($c, $pict_unescape->());
 };
+
+sub css_text {
+    my ($self, $global_context) = @_;
+    my $root = dir($global_context->config->{global}->{assets_dir}, 'static');
+    $root->file('mobirc.css')->slurp . "\n" . $root->file('mobile.css')->slurp;
+}
 
 1;
