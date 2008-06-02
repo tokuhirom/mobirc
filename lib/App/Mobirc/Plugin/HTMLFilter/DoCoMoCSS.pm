@@ -22,7 +22,7 @@ hook 'html_filter' => sub {
 
     my $css = CSS::Tiny->read_string($self->css_text($global_context));
     my $doc = eval { XML::LibXML->new->parse_string($content); };
-    $@ and return $pict_unescape->();
+    $@ and return ($c, $pict_unescape->());
 
     # apply inline css
     while (my($selector, $style) = each %{ $css }) {
