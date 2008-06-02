@@ -35,13 +35,15 @@ __END__
 
 =head1 NAME
 
-App::Mobirc::Plugin::HTMLFilter::StickyTime - f*cking au cache
+App::Mobirc::Plugin::StickyTime - f*cking au cache
 
 =head1 DESCRIPTION
 
 au phone cache very strongly like IE's Ajax.
 
 this filer appends ?t=time() to `a' tag.
+
+this module load to core automatically.
 
 =head1 AUTHOR
 
