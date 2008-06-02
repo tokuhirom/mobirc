@@ -1,3 +1,10 @@
+0.99_03
+
+    - THIS IS DEVELOPER RELEASE!
+    - nick group feature was moved core to Plugin::HTMLFilter::NickGroup
+    - App::Mobirc::HTTPD::* => App::Mobirc::Web::*
+    - HTMLFilter::DoCoMoCSS is now works well
+
 0.99_02
 
     - THIS IS DEVELOPER RELEASE!

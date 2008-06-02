@@ -54,6 +54,7 @@ lib/App/Mobirc/Plugin/GPS/InvGeocoder/Null.pm
 lib/App/Mobirc/Plugin/HTMLFilter/CompressHTML.pm
 lib/App/Mobirc/Plugin/HTMLFilter/ConvertPictograms.pm
 lib/App/Mobirc/Plugin/HTMLFilter/DoCoMoCSS.pm
+lib/App/Mobirc/Plugin/HTMLFilter/NickGroup.pm
 lib/App/Mobirc/Plugin/IRCCommand/TiarraLog.pm
 lib/App/Mobirc/Plugin/MessageBodyFilter/Clickable.pm
 lib/App/Mobirc/Plugin/MessageBodyFilter/IRCColor.pm
@@ -93,6 +94,7 @@ t/Plugins/GPS.t
 t/Plugins/HTMLFilter/CompressHTML.t
 t/Plugins/HTMLFilter/ConvertPictograms.t
 t/Plugins/HTMLFilter/DoCoMoCSS.t
+t/Plugins/HTMLFilter/NickGroup.t
 t/Plugins/StickyTime.t
 t/Role/Context.t
 t/Web/Template/Ajax/base.t
