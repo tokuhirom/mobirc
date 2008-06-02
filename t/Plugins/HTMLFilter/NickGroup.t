@@ -16,9 +16,12 @@ $mobirc->load_plugin(
     },
 );
 
-is get('<a class="nick_normal">jknaoya</a>'), '<a class="nick_initialJ">jknaoya</a>';
-is get('<a class="nick_normal">tokuhirom</a>'), q{<a class="nick_normal">tokuhirom</a>};
-is get('<a class="nick_normal">miyagawa</a>'), q{<a class="nick_subtech">miyagawa</a>};
+is get('<span class="nick_normal">(jknaoya)</span>'),
+  q{<html><body><span class="nick_initialJ">(jknaoya)</span></body></html>};
+is get('<span class="nick_normal">(tokuhirom)</span>'),
+  q{<html><body><span class="nick_normal">(tokuhirom)</span></body></html>};
+is get('<span class="nick_normal">(miyagawa)</span>'),
+  q{<html><body><span class="nick_subtech">(miyagawa)</span></body></html>};
 
 sub get {
     my $nick = shift;

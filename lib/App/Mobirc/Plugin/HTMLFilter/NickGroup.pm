@@ -38,8 +38,10 @@ hook 'html_filter' => sub {
         return ($c, $html);
     }
 
-    for my $elem ($doc->findnodes(q{//a[@class='nick_normal']})) {
-        if (my $who = $elem->findvalue('//text()')) {
+    for my $elem ($doc->findnodes(q{//span[@class='nick_normal']})) {
+        if (my $who = $elem->findvalue('./text()')) {
+            $who =~ s!^\((.+)\)$!$1!; # (who) => who
+
             if (my $new_class = $self->_class($who)) {
                 $elem->setAttribute(class => $new_class);
             }
