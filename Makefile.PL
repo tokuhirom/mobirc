@@ -27,26 +27,26 @@ requires 'Template' => 2.16;                # new 'uri' is supported from 2.16
 requires 'Template::Declare'  => '0.28';
 
 # utilities
-requires 'Data::Visitor::Encode' => '0.09';
-requires 'HTTPx::Dispatcher'  => '0.04';
-requires 'Carp'               => '1.04';
-requires 'Encode'             => '2.25';
-requires 'Exporter'           => '5.62';
-requires 'File::Spec'         => '3.2701';
-requires 'FindBin'            => '1.47';
-requires 'HTML::Entities'     => '1.35';
-requires 'Path::Class'        => '0.16';
-requires 'Proc::Daemon'       => '0.03';
-requires 'Params::Validate'   => '0.91';
-requires 'Scalar::Util'       => '0.19';
-requires 'URI'                => '1.36';
-requires 'URI::Find'          => '0.16';
-requires 'YAML'               => '0.66';
-requires 'UNIVERSAL::require' => '0.11';
-requires 'Storable'           => '2.18';
-requires 'List::MoreUtils'    => '0.22';
-requires 'Module::Find'       => '0.06';
 
+requires 'Carp'                  => '1.04';
+requires 'Data::Visitor::Encode' => '0.09';
+requires 'Encode'                => '2.25';
+requires 'Exporter'              => '5.62';
+requires 'File::Spec'            => '3.2701';
+requires 'FindBin'               => '1.47';
+requires 'HTML::Entities'        => '1.35';
+requires 'HTTPx::Dispatcher'     => '0.04';
+requires 'List::MoreUtils'       => '0.22';
+requires 'Module::Find'          => '0.06';
+requires 'Params::Validate'      => '0.91';
+requires 'Path::Class'           => '0.16';
+requires 'Proc::Daemon'          => '0.03';
+requires 'Scalar::Util'          => '0.19';
+requires 'Storable'              => '2.18';
+requires 'UNIVERSAL::require'    => '0.11';
+requires 'URI'                   => '1.36';
+requires 'URI::Find'             => '0.16';
+requires 'YAML'                  => '0.66';
 # Note.
 #  follow modules are contained by other module.
 #  - URI::Escape                 => URI
