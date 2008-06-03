@@ -42,6 +42,16 @@ sub dispatch_channel {
     }
 }
 
+sub post_dispatch_channel {
+    my ( $class, $c, $args) = @_;
+    my $channel = $c->req->params->{'channel'};
+    my $message = $c->req->params->{'msg'};
+
+    context->get_channel($channel)->post_command($message);
+
+    $c->res->body('ok');
+}
+
 #   sub dispatch_recent {
 #       my ($class, $c) = @_;
 #       $c->res->body('');

@@ -72,6 +72,7 @@ template 'mobile-ajax/index' => sub {
 
         form {
             onsubmit is 'return Mobirc.onSubmit()';
+            action is '/mobirc-ajax/channel';
             method is 'post';
 
             if ($args{mobile_agent}->user_agent =~ /(?:iPod|iPhone)/) {
