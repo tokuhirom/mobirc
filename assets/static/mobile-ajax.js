@@ -46,7 +46,6 @@ var SubmitUtil = {
         var form = doc.createElement('form');
         form.acceptCharset = "Shift_JIS";
         form.action = Mobirc.docroot + 'mobile-ajax/channel?channel=' + encodeURIComponent(channelEsc);
-        alert(form.action);
         form.method = 'POST';
         var input = doc.createElement('input');
         input.name = 'msg';
