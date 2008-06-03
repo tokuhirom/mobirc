@@ -148,7 +148,7 @@ template 'mobile/recent' => sub {
             mobile_agent  => 1,
         }
     );
-    my $channel = $args{channel};
+    my $channel = $args{channel} or die 'missing channel';
 
     show 'wrapper_mobile', $args{mobile_agent}, sub {
         div {

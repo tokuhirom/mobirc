@@ -29,6 +29,7 @@ requires 'Template::Declare'  => '0.28';
 # utilities
 
 requires 'Carp'                  => '1.04';
+requires 'JSON'                  => '2.09';
 requires 'Data::Visitor::Encode' => '0.09';
 requires 'Encode'                => '2.25';
 requires 'Exporter'              => '5.62';

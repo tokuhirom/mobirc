@@ -26,3 +26,38 @@ controller: Mobile
 action: index
 args: {}
 
+===
+--- input: /mobile-ajax/
+--- expected
+controller: MobileAjax
+action: index
+args: {}
+
+===
+--- input: /mobile-ajax/topics
+--- expected
+controller: MobileAjax
+action: topics
+args: {}
+
+===
+--- input: /mobile/topics
+--- expected
+controller: Mobile
+action: topics
+args: {}
+
+===
+--- input: /mobile-ajax/recent
+--- expected
+controller: MobileAjax
+action: recent
+args: {}
+
+===
+--- input: /mobile-ajax/channels?recent=1&channel=%23scon
+--- expected
+controller: MobileAjax
+action: channels
+args: {}
+

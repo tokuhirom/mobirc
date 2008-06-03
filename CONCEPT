@@ -5,6 +5,7 @@
 ■etc.
 - HTTPD::Template の中身はけっして req, res に関する情報を知ってはいけない。
 -- module の独立性をたもつため
+- 変更をする場合にはかならずその部分のテストをかくこと。テストない場合はリジェクトするかも
 
 ■リリースサイクル
 - 0.99_1 でデベロッパーリリースを何度かする
@@ -14,4 +15,6 @@
 -- validate_hook を、もうちょいなんとかかっこよく実装したい。
 -- add more documents
 -- irssi support をまじめにやる
+-- mobile-ajax の recent pain をなおす
+-- mobile-ajax を実機で動作確認する
 

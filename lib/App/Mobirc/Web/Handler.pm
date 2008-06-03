@@ -1,13 +1,12 @@
 package App::Mobirc::Web::Handler;
 use Moose;
 use Scalar::Util qw/blessed/;
+use Data::Visitor::Encode;
 use App::Mobirc;
 use App::Mobirc::Util;
 use App::Mobirc::Web::Router;
-use App::Mobirc::Web::C::Mobile;
-use App::Mobirc::Web::C::Ajax;
-use App::Mobirc::Web::C::Static;
-use Data::Visitor::Encode;
+use Module::Find;
+useall 'App::Mobirc::Web::C';
 
 my $dve = Data::Visitor::Encode->new;
 

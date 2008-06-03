@@ -7,7 +7,7 @@ use Path::Class;
 sub dispatch_deliver {
     my ($class, $c, $args) = @_;
     my $path = $args->{filename};
-    die "invalid path: $path" unless $path =~ m{^[a-z0-9]+\.(?:css|js)$};
+    die "invalid path: $path" unless $path =~ m{^[a-z0-9-]+\.(?:css|js)$};
 
     my $file = file(context->config->{global}->{assets_dir}, 'static', $path);
 
