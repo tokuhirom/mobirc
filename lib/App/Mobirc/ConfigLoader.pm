@@ -41,7 +41,6 @@ my $schema = {
                 host           => { type => 'str', },
                 root           => { type => 'str', },
                 echo           => { type => 'bool', },
-                recent_log_per_page => { type => 'int', },
             },
         },
         global => {
@@ -97,7 +96,6 @@ sub load {
     # set default vars.
     $config->{httpd}->{root}           ||= decode( 'utf8', '/' );
     $config->{httpd}->{echo} = true unless exists $config->{httpd}->{echo};
-    $config->{httpd}->{recent_log_per_page} ||= 30;
     $config->{global}->{assets_dir}    ||= File::Spec->catfile( $FindBin::Bin, 'assets' );
 
     return $config;
