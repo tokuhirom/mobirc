@@ -2,6 +2,7 @@ use strict;
 use warnings;
 use Test::More;
 use App::Mobirc;
+use HTTP::MobileAgent;
 use HTTP::Engine middlewares => [
     qw/ +App::Mobirc::Web::Middleware::MobileAgent /
 ];
@@ -12,7 +13,7 @@ plan tests => 1;
 
 my $mobirc = App::Mobirc->new(
     {
-        httpd  => { port     => 3333, title => 'mobirc', lines => 40 },
+        httpd  => { lines => 40 },
         global => { keywords => [qw/foo/] }
     }
 );

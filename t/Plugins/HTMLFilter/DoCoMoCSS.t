@@ -5,12 +5,15 @@ use HTTP::MobileAgent;
 use App::Mobirc;
 use App::Mobirc::Plugin::HTMLFilter::DoCoMoCSS;
 use HTTP::Engine::Context;
+use HTTP::Engine middlewares => [
+    '+App::Mobirc::Web::Middleware::MobileAgent'
+];
 
 my $c = HTTP::Engine::Context->new;
 $c->req->user_agent('DoCoMo/2.0 P2101V(c100)');
 my $global_context = App::Mobirc->new(
     {
-        httpd  => { port     => 3333, },
+        httpd  => { },
         global => { keywords => [qw/foo/], assets_dir => 'assets' }
     }
 );

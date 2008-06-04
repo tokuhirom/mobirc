@@ -1,10 +1,6 @@
-package App::Mobirc::HTTPD;
+package App::Mobirc::Plugin::Component::HTTPD;
 use strict;
-use warnings;
-
-use POE;
-use POE::Filter::HTTPD;
-use POE::Component::Server::TCP;
+use MooseX::Plaggerize::Plugin;
 
 use HTTP::MobileAgent;
 use HTTP::MobileAgent::Plugin::Charset;
@@ -20,21 +16,33 @@ use HTTP::Engine middlewares => [
     /
 ];
 
-sub init {
-    my ( $class, $config, $global_context ) = @_;
+has address => (
+    is      => 'ro',
+    isa     => 'Str',
+    default => '0.0.0.0',
+);
+
+has port => (
+    is      => 'ro',
+    isa     => 'Int',
+    default => 80,
+);
+
+hook run_component => sub {
+    my ( $self, $global_context ) = @_;
 
     HTTP::Engine->new(
         interface => {
             module => 'POE',
-            args => {
-                host => ($config->{httpd}->{address} || '0.0.0.0'),
-                port => ($config->{httpd}->{port} || 80),
+            args   => {
+                host => $self->address,
+                port => $self->port,
             },
             request_handler => \&App::Mobirc::Web::Handler::handler,
         }
     )->run;
 
     $global_context->load_plugin('StickyTime');
-}
+};
 
 1;

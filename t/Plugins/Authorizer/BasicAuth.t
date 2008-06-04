@@ -4,10 +4,11 @@ use Test::More tests => 2;
 use App::Mobirc;
 use App::Mobirc::Plugin::Authorizer::BasicAuth;
 use MIME::Base64 ();
+use HTTP::Engine::Context;
 
 my $mobirc = App::Mobirc->new(
     {
-        httpd  => { port     => 3333, title => 'mobirc', lines => 40 },
+        httpd  => { lines => 40 },
         global => { keywords => [qw/foo/] }
     }
 );

@@ -33,12 +33,6 @@ my $schema = {
             required => 1,
             mapping  => {
                 lines          => { type => 'int', },
-                address        => { type => 'str', },
-                port           => { type => 'int', required => 1, },
-                title          => { type => 'str', },
-                content_type   => { type => 'str', },
-                charset        => { type => 'str', },
-                host           => { type => 'str', },
                 root           => { type => 'str', },
                 echo           => { type => 'bool', },
             },
@@ -94,6 +88,7 @@ sub load {
     }
 
     # set default vars.
+    $config->{httpd}->{lines}          ||= 20;
     $config->{httpd}->{root}           ||= decode( 'utf8', '/' );
     $config->{httpd}->{echo} = true unless exists $config->{httpd}->{echo};
     $config->{global}->{assets_dir}    ||= File::Spec->catfile( $FindBin::Bin, 'assets' );

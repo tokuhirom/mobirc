@@ -6,7 +6,7 @@ use Scalar::Util qw/refaddr/;
 
 my $c = App::Mobirc->new(
     {
-        httpd => { port => 3333, title => 'mobirc', lines => 40 },
+        httpd => { lines => 40 },
         global => { keywords => [qw/foo/], stopwords => [qw/foo31/] }
     }
 );

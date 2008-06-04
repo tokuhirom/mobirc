@@ -57,12 +57,12 @@ plugin:
   #   config:
   #     root: /foo/
 
+  - module: Component::HTTPD
+    config:
+      port: 5678
+
+
 httpd:
-  port: 5785
-  title: mobirc
   lines: 40
   # root: /
-  # recent_log_per_page: 40
-  # charset: cp932
-  # content_type: text/html; charset=Shift_JIS
 

@@ -14,16 +14,13 @@ plan tests => 6;
 
 my $PORT = 9999;
 
-my $config = {
-    httpd => {
-        port  => 88888,
-        lines => 50,
-    },
-};
-
 $SIG{INT} = sub { die };
 
-my $global_context = App::Mobirc->new($config);
+my $global_context = App::Mobirc->new(
+    {
+        httpd => { },
+    }
+);
 $global_context->load_plugin(
     {
         module => 'Component::IRCClient',

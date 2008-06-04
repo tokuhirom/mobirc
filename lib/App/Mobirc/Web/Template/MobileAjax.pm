@@ -6,6 +6,7 @@ use Template::Declare::Tags;
 use Params::Validate ':all';
 use App::Mobirc;
 use Path::Class;
+use HTTP::MobileAgent::Plugin::Charset;
 
 private template 'mobile-ajax/wrapper_mobile' => sub {
     my ($self, $mobile_agent, $code) = @_;

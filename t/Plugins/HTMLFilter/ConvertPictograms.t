@@ -4,10 +4,13 @@ use App::Mobirc;
 use HTTP::MobileAgent;
 use HTTP::Engine::Context;
 use Test::Base;
+use HTTP::Engine middlewares => [
+    '+App::Mobirc::Web::Middleware::MobileAgent'
+];
 
 my $global_context = App::Mobirc->new(
     {
-        httpd  => { port     => 3333, title => 'mobirc', lines => 40 },
+        httpd  => { lines => 40 },
         global => { keywords => [qw/foo/] }
     }
 );

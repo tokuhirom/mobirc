@@ -1,5 +1,7 @@
 package App::Mobirc::Web::Middleware::MobileAgent;
 use Moose;
+use HTTP::MobileAgent;
+use HTTP::MobileAgent::Plugin::Charset;
 
 sub setup {
     my $meta = HTTP::Engine::Request->meta;

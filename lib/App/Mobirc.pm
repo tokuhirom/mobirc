@@ -6,7 +6,6 @@ use Scalar::Util qw/blessed/;
 use POE;
 use App::Mobirc::ConfigLoader;
 use App::Mobirc::Util;
-use App::Mobirc::HTTPD;
 use UNIVERSAL::require;
 use Carp;
 use App::Mobirc::Model::Server;
@@ -48,11 +47,9 @@ sub _load_plugins {
 
 sub run {
     my $self = shift;
-    die "this is instance method" unless blessed $self;
+    croak "this is instance method" unless blessed $self;
 
     $self->run_hook('run_component');
-
-    App::Mobirc::HTTPD->init($self->config, $self);
 
     $poe_kernel->run();
 }
