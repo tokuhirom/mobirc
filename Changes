@@ -1,3 +1,10 @@
+0.99_04
+
+    - THIS IS DEVELOPER RELEASE!
+    - App::Mobirc::HTTPD => App::Mobirc::Plugin::Component::HTTPD
+    - bug fixed around Authorizer::BasicAuth
+    - rebirth the mobile-ajax with T::D
+
 0.99_03
 
     - THIS IS DEVELOPER RELEASE!
