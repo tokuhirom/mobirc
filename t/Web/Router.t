@@ -22,6 +22,13 @@ __END__
 ===
 --- input: /
 --- expected
+controller: Root
+action: index
+args: {}
+
+===
+--- input: /mobile/
+--- expected
 controller: Mobile
 action: index
 args: {}
