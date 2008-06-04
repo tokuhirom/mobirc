@@ -4,17 +4,26 @@ use MooseX::Plaggerize::Plugin;
 use Carp;
 use App::Mobirc::Util;
 
+has username => (
+    is       => 'ro',
+    isa      => 'Str',
+    required => 1,
+);
+
+has password => (
+    is       => 'ro',
+    isa      => 'Str',
+    required => 1,
+);
+
 hook authorize => sub {
-    my ( $self, $global_context, $c, $conf ) = @_;
+    my ( $self, $global_context, $c, ) = @_;
 
     DEBUG "Basic Auth...";
 
-    croak "missing username" unless $conf->{username};
-    croak "missing password" unless $conf->{password};
+    my $cred = $self->{username} . ':' . $self->{password};
 
-    my $cred = $conf->{username} . ':' . $conf->{password};
-
-    my $sent_cred = $c->{req}->headers->authorization_basic;
+    my $sent_cred = $c->req->headers->authorization_basic;
     if ( defined($sent_cred) && $sent_cred eq $cred ) {
         return true;
     }
