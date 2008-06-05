@@ -54,7 +54,7 @@ sub dispatch_clear_all_unread {
         $channel->clear_unread;
     }
 
-    $c->res->redirect('/');
+    $c->res->redirect('/mobile/');
 }
 
 # topic on every channel
@@ -69,20 +69,6 @@ sub dispatch_topics {
             }
         )
     );
-}
-
-sub post_dispatch_show_channel {
-    my ( $class, $c, $args) = @_;
-
-    my $channel = uri_unescape $args->{channel};
-
-    my $message = $c->req->params->{'msg'};
-
-    DEBUG "POST MESSAGE $message";
-
-    context->get_channel($channel)->post_command($message);
-
-    $c->res->redirect( $c->req->uri->path );
 }
 
 sub dispatch_keyword {
@@ -106,10 +92,10 @@ sub dispatch_keyword {
     $channel->clear_unread;
 }
 
-sub dispatch_show_channel {
+sub dispatch_channel {
     my ($class, $c, $args, ) = @_;
 
-    my $channel_name = uri_unescape $args->{channel};
+    my $channel_name = $c->req->params->{channel};
     DEBUG "show channel page: $channel_name";
 
     my $channel = context->get_channel($channel_name);
@@ -127,6 +113,20 @@ sub dispatch_show_channel {
     );
 
     $channel->clear_unread;
+}
+
+sub post_dispatch_channel {
+    my ( $class, $c, $args) = @_;
+
+    my $channel = $c->req->params->{channel};
+
+    my $message = $c->req->params->{'msg'};
+
+    DEBUG "POST MESSAGE $message";
+
+    context->get_channel($channel)->post_command($message);
+
+    $c->res->redirect( $c->req->uri->path . "?channel=" . uri_escape($channel));
 }
 
 1;
