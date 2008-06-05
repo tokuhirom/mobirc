@@ -2,9 +2,6 @@ package App::Mobirc::Plugin::Component::HTTPD;
 use strict;
 use MooseX::Plaggerize::Plugin;
 
-use HTTP::MobileAgent;
-use HTTP::MobileAgent::Plugin::Charset;
-
 use App::Mobirc;
 use App::Mobirc::Util;
 use App::Mobirc::Web::Handler;

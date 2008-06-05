@@ -2,10 +2,13 @@ package App::Mobirc::Web::Handler;
 use Moose;
 use Scalar::Util qw/blessed/;
 use Data::Visitor::Encode;
+use HTTP::MobileAgent;
+use HTTP::MobileAgent::Plugin::Charset;
+use Module::Find;
+
 use App::Mobirc;
 use App::Mobirc::Util;
 use App::Mobirc::Web::Router;
-use Module::Find;
 useall 'App::Mobirc::Web::C';
 
 my $dve = Data::Visitor::Encode->new;
