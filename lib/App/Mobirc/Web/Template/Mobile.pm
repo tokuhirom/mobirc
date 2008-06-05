@@ -40,7 +40,7 @@ template 'mobile/wrapper_mobile' => sub {
 private template 'mobile/footer' => sub {
     hr { };
     outs_raw '&#xE6E9;'; # TODO: pictogram::docomo { '8' }
-    a { attr { 'accesskey' => "8", 'href' => "/"}
+    a { attr { 'accesskey' => "8", 'href' => "/mobile/"}
         'back to top'
     }
 };
@@ -58,7 +58,7 @@ template 'mobile/topics' => sub {
         for my $channel ( @{ $args{channels} } ) {
             div { attr { class => 'OneTopic' }
 
-                a { attr { href => sprintf('/channels/%s', uri_escape($channel->name)) }
+                a { attr { href => sprintf('/mobile/channels/%s', uri_escape($channel->name)) }
                     $channel->name;
                 } br { }
 
@@ -110,7 +110,7 @@ template 'mobile/top' => sub {
             div {
                 class is 'keyword_recent_notice';
                 a {
-                    href is '/keyword?recent_mode=on';
+                    href is '/mobile/keyword?recent_mode=on';
                     "Keyword($args{keyword_recent_num})"
                 }
             };
@@ -119,12 +119,12 @@ template 'mobile/top' => sub {
         for my $channel (@{$args{channels}}) {
             outs_raw '&#xE6F0;';
             a {
-                href is ('/channels/' . uri_escape($channel->name));
+                href is ('/mobile/channels/' . uri_escape($channel->name));
                 $channel->name
             };
             if ($channel->unread_lines) {
                 a {
-                    href is ('/channels/' . uri_escape($channel->name) . '?recent_mode=on');
+                    href is ('/mobile/channels/' . uri_escape($channel->name) . '?recent_mode=on');
                     $channel->unread_lines
                 }
             }
@@ -159,7 +159,7 @@ template 'mobile/recent' => sub {
                 $channel->name;
             };
             a {
-                href is '/channels/' . uri_escape($channel->name);
+                href is '/mobile/channels/' . uri_escape($channel->name);
                 'more...';
             };
         };
@@ -172,7 +172,7 @@ template 'mobile/recent' => sub {
         if ($args{has_next_page}) {
             outs_raw '&#xE6E7;';
             a {
-                href is '/recent';
+                href is '/mobile/recent';
                 accesskey is '6';
                 'next';
             }
@@ -190,7 +190,7 @@ private template 'mobile/go_to_top' => sub {
         outs_raw '&#xE6E9;';
         a {
             accesskey is "8";
-            href is "/";
+            href is "/mobile/";
             'ch list'
         };
     };
@@ -205,31 +205,31 @@ private template 'mobile/menu' => sub {
     );
 
     outs_raw '&#xE6EB;';
-    a { attr { href => '/#top', accesskey => 0 }
+    a { attr { href => '/mobile/#top', accesskey => 0 }
         'refresh list'
     };
     br { };
 
     if ($args{exists_recent_entries}) {
         span { '*' }
-        a { attr { href => '/recent', accesskey => '*' }
+        a { attr { href => '/mobile/recent', accesskey => '*' }
             'recent'
         }
         br { }
     }
-    a { attr { href => '/topics', accesskey => '#' }
+    a { attr { href => '/mobile/topics', accesskey => '#' }
         'topics'
     }
     br { };
 
-    a { attr { 'href' => '/keyword' }
+    a { attr { 'href' => '/mobile/keyword' }
         'keyword'
     };
     br { };
 
     outs_raw '&#xE6EA;';
     a {
-        attr { href => '/clear_all_unread', accesskey => '9' }
+        attr { href => '/mobile/clear_all_unread', accesskey => '9' }
         'clear_all_unread'
     }
     br { };
@@ -281,7 +281,7 @@ template 'mobile/channel' => sub {
                     hr { };
                     outs_raw '&#xE6E6;';
                     a {
-                        attr { 'accesskey' => 5, href => '/channels/' . uri_escape($channel->name) };
+                        attr { 'accesskey' => 5, href => '/mobile/channels/' . uri_escape($channel->name) };
                         'more'
                     };
                 } else {
