@@ -20,6 +20,7 @@ requires 'POE::Component::IRC'         => '5.58';
 requires 'Encode::JP::Mobile'                       => '0.25';
 requires 'HTTP::MobileAgent'                        => '0.27';
 requires 'HTTP::MobileAgent::Plugin::Charset'       => '0.03';
+requires 'HTTP::MobileAgent::Plugin::Locator'       => '0.01';
 requires 'HTML::Entities::ConvertPictogramMobileJp' => '0.06';
 
 # template engine
