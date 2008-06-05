@@ -57,9 +57,9 @@ sub process_request {
             my $uri = $c->req->uri->path;
             warn "dan the 404 not found: $uri" if $uri ne '/favicon.ico';
             # TODO: use $c->res->status(404)
-            my $response = HTTP::Response->new(404);
-            $response->content("Dan the 404 not found: $uri");
-            return $response;
+            $c->res->status(404);
+            $c->res->body("Dan the 404 not found: $uri");
+            return;
         };
     }
 
