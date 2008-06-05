@@ -34,7 +34,7 @@ sub dispatch_channel {
                   } reverse $channel->$meth
             ]
         );
-        $c->res->body( "Mobirc.callbackChannel($json);");
+        $c->res->body( encode($c->req->mobile_agent->encoding, "Mobirc.callbackChannel($json);" ) );
 
         $channel->clear_unread();
     } else {
