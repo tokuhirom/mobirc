@@ -27,7 +27,7 @@ hook 'html_filter' => sub {
     my ($self, $global_context, $c, $content) = @_;
 
     DEBUG "Filter DoCoMoGUID";
-    return $content unless $c->req->mobile_agent->is_docomo;
+    return ($c, $content) unless $c->req->mobile_agent->is_docomo;
     return ($c, HTML::StickyQuery::DoCoMoGUID->new()->sticky( scalarref => \$content, ));
 };
 
