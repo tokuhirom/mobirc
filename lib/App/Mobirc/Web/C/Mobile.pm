@@ -4,6 +4,7 @@ use App::Mobirc::Web::C;
 use App::Mobirc::Util;
 use URI::Escape qw/uri_escape uri_unescape/;
 use Encode;
+use Encode::JP::Mobile;
 
 sub dispatch_index {
     my ($class, $c) = @_;
