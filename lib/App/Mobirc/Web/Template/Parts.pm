@@ -12,7 +12,7 @@ template 'keyword_line' => sub {
     my ($self, $row, $irc_nick) = @_;
     show 'irc_message', $row, $irc_nick;
     outs '(';
-        a { attr { 'href' => sprintf('/channels/%s', uri_escape( $row->channel->name)) }
+        a { attr { 'href' => '/mobile/channel?channel=' . uri_escape( $row->channel->name) }
             $row->channel->name
         };
     outs ')';
