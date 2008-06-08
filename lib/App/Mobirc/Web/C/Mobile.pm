@@ -106,9 +106,9 @@ sub dispatch_channel {
         'mobile/channel' => {
             mobile_agent        => $c->req->mobile_agent,
             channel             => $channel,
-            recent_mode         => $c->req->params->{recent_mode},
+            recent_mode         => $c->req->params->{recent_mode} || undef,
             message             => $c->req->params->{'msg'} || '',
-            channel_page_option => context->run_hook('channel_page_option', $channel, $c),
+            channel_page_option => context->run_hook('channel_page_option', $channel, $c) || [],
             irc_nick            => irc_nick,
         }
     );
