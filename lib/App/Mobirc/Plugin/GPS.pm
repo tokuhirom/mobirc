@@ -21,7 +21,6 @@ has inv_geocoder => (
 hook channel_page_option => sub {
     my ( $self, $global_context, $channel ) = @_;
 
-    my $time = time();
     return tt qq{<a href="/channel/[% channel.name | uri %]/gps">gps</a>};
 };
 
