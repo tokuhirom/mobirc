@@ -2,7 +2,7 @@ package App::Mobirc::Web::C::Mobile;
 use Moose;
 use App::Mobirc::Web::C;
 use App::Mobirc::Util;
-use URI::Escape qw/uri_escape uri_unescape/;
+use URI::Escape qw(uri_escape_utf8);
 use Encode;
 use Encode::JP::Mobile;
 
@@ -127,7 +127,7 @@ sub post_dispatch_channel {
 
     context->get_channel($channel)->post_command($message);
 
-    $c->res->redirect( $c->req->uri->path . "?channel=" . uri_escape($channel));
+    $c->res->redirect( $c->req->uri->path . "?channel=" . uri_escape_utf8($channel));
 }
 
 1;
