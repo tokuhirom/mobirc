@@ -48,6 +48,7 @@ requires 'Storable'              => '2.18';
 requires 'UNIVERSAL::require'    => '0.11';
 requires 'URI'                   => '1.36';
 requires 'URI::Find'             => '0.16';
+requires 'HTML::StickyQuery'     => '0.12';
 requires 'YAML'                  => '0.66';
 # Note.
 #  follow modules are contained by other module.
