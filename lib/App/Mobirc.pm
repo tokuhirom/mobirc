@@ -51,6 +51,9 @@ sub run {
 
     $self->run_hook('run_component');
 
+    # POE::Sugar::Args => Devel::Caller::Perl => DB => DB::catch(do not catch here)
+    $SIG{INT} = sub { die "SIGINT\n" };
+
     $poe_kernel->run();
 }
 
