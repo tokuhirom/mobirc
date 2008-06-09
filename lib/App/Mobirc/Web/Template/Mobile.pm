@@ -58,7 +58,7 @@ template 'mobile/topics' => sub {
         for my $channel ( @{ $args{channels} } ) {
             div { attr { class => 'OneTopic' }
 
-                a { attr { href => sprintf('/mobile/channel?channel=', uri_escape_utf8($channel->name)) }
+                a { attr { href => sprintf('/mobile/channel?channel=%s', uri_escape_utf8($channel->name)) }
                     $channel->name;
                 } br { }
 
