@@ -104,3 +104,4 @@ t/Web/Template/Ajax/menu.t
 t/Web/Template/IRCMessage.t
 t/Web/Template/Mobile/topics.t
 t/Web/Template/MobileAjax/index.t
+lib/App/Mobirc/Plugin/ChannelPageParts.pm
