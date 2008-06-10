@@ -89,20 +89,17 @@ hook process_command => sub {
 
             DEBUG "Sending command $command";
 
-            # FIXME: httpd 関係ない件
-            if ( $global_context->config->{httpd}->{echo} eq true ) {
-                $channel->add_message(
-                    App::Mobirc::Model::Message->new(
-                        who => decode(
-                            $irc_incode,
-                            $poe_kernel->alias_resolve('irc_session')
-                              ->get_heap->{irc}->nick_name
-                        ),
-                        body  => $command,
-                        class => 'public',
-                    )
-                );
-            }
+            $channel->add_message(
+                App::Mobirc::Model::Message->new(
+                    who => decode(
+                        $irc_incode,
+                        $poe_kernel->alias_resolve('irc_session')
+                            ->get_heap->{irc}->nick_name
+                    ),
+                    body  => $command,
+                    class => 'public',
+                )
+            );
         }
         return true;
     }

@@ -265,8 +265,6 @@ sub poe_initialize_mobirc {
         return;
     }
 
-    # httpd echo mode is disable
-    $mobirc->config->{httpd}->{echo} = false;
     $poe->heap->{mobirc} = $mobirc;
     $poe->heap->{config} = $mobirc->config;
 

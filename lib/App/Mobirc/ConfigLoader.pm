@@ -34,7 +34,6 @@ my $schema = {
             mapping  => {
                 lines          => { type => 'int', },
                 root           => { type => 'str', },
-                echo           => { type => 'bool', },
             },
         },
         global => {
@@ -90,7 +89,6 @@ sub load {
     # set default vars.
     $config->{httpd}->{lines}          ||= 20;
     $config->{httpd}->{root}           ||= decode( 'utf8', '/' );
-    $config->{httpd}->{echo} = true unless exists $config->{httpd}->{echo};
     $config->{global}->{assets_dir}    ||= File::Spec->catfile( $FindBin::Bin, 'assets' );
 
     return $config;
