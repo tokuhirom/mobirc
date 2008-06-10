@@ -32,8 +32,9 @@ hook run_component => sub {
         interface => {
             module => 'POE',
             args   => {
-                host => $self->address,
-                port => $self->port,
+                host  => $self->address,
+                port  => $self->port,
+                alias => 'mobirc_httpd',
             },
             request_handler => \&App::Mobirc::Web::Handler::handler,
         }
