@@ -5,6 +5,7 @@ use App::Mobirc::Util;
 use URI::Escape qw(uri_escape_utf8);
 use Encode;
 use Encode::JP::Mobile;
+use MIME::Base64::URLSafe qw(urlsafe_b64decode);
 
 sub dispatch_index {
     my ($class, $c) = @_;
@@ -93,10 +94,15 @@ sub dispatch_keyword {
     $channel->clear_unread;
 }
 
+sub decode_urlsafe_encoded {
+    my $name = shift;
+    decode_utf8 urlsafe_b64decode($name);
+}
+
 sub dispatch_channel {
     my ($class, $c, $args, ) = @_;
 
-    my $channel_name = $c->req->params->{channel};
+    my $channel_name = decode_urlsafe_encoded $c->req->params->{channel};
     DEBUG "show channel page: $channel_name";
 
     my $channel = context->get_channel($channel_name);
@@ -119,15 +125,16 @@ sub dispatch_channel {
 sub post_dispatch_channel {
     my ( $class, $c, $args) = @_;
 
-    my $channel = $c->req->params->{channel};
+    my $channel_name = decode_urlsafe_encoded $c->req->params->{channel};
 
     my $message = $c->req->params->{'msg'};
 
     DEBUG "POST MESSAGE $message";
 
-    context->get_channel($channel)->post_command($message);
+    my $channel = context->get_channel($channel_name);
+    $channel->post_command($message);
 
-    $c->res->redirect( $c->req->uri->path . "?channel=" . uri_escape_utf8($channel));
+    $c->res->redirect( $c->req->uri->path . "?channel=" . $channel->name_urlsafe_encoded);
 }
 
 1;

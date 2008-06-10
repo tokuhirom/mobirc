@@ -5,6 +5,8 @@ use Carp;
 use List::MoreUtils qw/any all/;
 use App::Mobirc::Util;
 use App::Mobirc::Model::Message;
+use MIME::Base64::URLSafe;
+use Encode;
 
 has message_log => (
     is      => 'rw',
@@ -107,6 +109,11 @@ sub post_command {
 sub recent_log_count {
     my $self = shift;
     scalar @{ $self->recent_log };
+}
+
+sub name_urlsafe_encoded {
+    my $self = shift;
+    urlsafe_b64encode(encode_utf8 $self->name);
 }
 
 __PACKAGE__->meta->make_immutable;

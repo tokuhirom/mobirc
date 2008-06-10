@@ -58,7 +58,7 @@ template 'mobile/topics' => sub {
         for my $channel ( @{ $args{channels} } ) {
             div { attr { class => 'OneTopic' }
 
-                a { attr { href => sprintf('/mobile/channel?channel=%s', uri_escape_utf8($channel->name)) }
+                a { attr { href => sprintf('/mobile/channel?channel=%s', $channel->name_urlsafe_encoded) }
                     $channel->name;
                 } br { }
 
@@ -119,12 +119,12 @@ template 'mobile/top' => sub {
         for my $channel (@{$args{channels}}) {
             outs_raw '&#xE6F0;';
             a {
-                href is ('/mobile/channel?channel=' . uri_escape_utf8($channel->name));
+                href is ('/mobile/channel?channel=' . $channel->name_urlsafe_encoded);
                 $channel->name
             };
             if ($channel->unread_lines) {
                 a {
-                    href is ('/mobile/channel?recent_mode=on&channel=' . uri_escape_utf8($channel->name));
+                    href is ('/mobile/channel?recent_mode=on&channel=' . $channel->name_urlsafe_encoded);
                     $channel->unread_lines
                 }
             }
@@ -159,7 +159,7 @@ template 'mobile/recent' => sub {
                 $channel->name;
             };
             a {
-                href is '/mobile/channel?channel=' . uri_escape_utf8($channel->name);
+                href is '/mobile/channel?channel=' . $channel->name_urlsafe_encoded();
                 'more...';
             };
         };
@@ -252,7 +252,7 @@ template 'mobile/channel' => sub {
 
     show 'wrapper_mobile', $args{mobile_agent}, sub {
         form {
-            attr { action => '/mobile/channel?channel=' . uri_escape_utf8($channel->name), method => 'post' };
+            attr { action => '/mobile/channel?channel=' . $channel->name_urlsafe_encoded, method => 'post' };
             input {
                 unless ($args{mobile_agent}->is_non_mobile) {
                     size is 10;
@@ -281,7 +281,7 @@ template 'mobile/channel' => sub {
                     hr { };
                     outs_raw '&#xE6E6;';
                     a {
-                        attr { 'accesskey' => 5, href => '/mobile/channel?channel=' . uri_escape_utf8($channel->name) };
+                        attr { 'accesskey' => 5, href => '/mobile/channel?channel=' . $channel->name_urlsafe_encoded() };
                         'more'
                     };
                 } else {
