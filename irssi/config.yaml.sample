@@ -1,0 +1,43 @@
+---
+plugin:
+  - module: HTMLFilter::ConvertPictograms
+  - module: HTMLFilter::DoCoMoCSS
+
+  - module: Authorizer::Cookie
+    config:
+      password: 1152
+  - module: Authorizer::BasicAuth
+    config:
+      username: netwatcher
+      password: 0721
+  # - module: Authorizer::EZSubscriberID
+  #   config:
+  #     au_subscriber_id: 25253252_oe.ezweb.ne.jp
+
+  - module: MessageBodyFilter::Clickable
+    config:
+      au_pcsv: 0
+      pocket_hatena: 1
+      # http_link_string: $host$path
+      # accept_schemes: [mailto, tel]
+      # redirector: http://www.google.com/url?sa=D&q=
+  - module: MessageBodyFilter::IRCColor
+    config:
+      # no_decorate: 0
+
+  # - module: DocRoot
+  #   config:
+  #     root: /foo/
+
+  - module: Component::HTTPD
+    config:
+      port: 5679
+
+  - module: ChannelPageParts
+    config:
+      template: irssi!
+
+httpd:
+  lines: 40
+  # root: /
+

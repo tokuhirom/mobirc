@@ -83,6 +83,12 @@ features(
         -default => 0,
         recommends('HTML::StickyQuery::DoCoMoGUID', '1.66'),
     ],
+    'Irssi' => [
+        -default => 0,
+        recommends('POE::Session::Irssi', '0.4'),
+        recommends('Glib', '0.4'),
+        recommends('POE::Loop::Glib', '0.0034'),
+    ],
 );
 
 tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t';
