@@ -37,13 +37,13 @@ my $expected = <<'...';
  <body>
   <a name="top"></a>
   <div class="OneTopic">
-   <a href="/channels/%23tester">#tester</a>
+   <a href="/mobile/channel?channel=I3Rlc3Rlcg">#tester</a>
    <br />
    <span></span>
    <br />
   </div>
   <hr />&#xE6E9;
-  <a accesskey="8" href="/">back to top</a>
+  <a accesskey="8" href="/mobile/">back to top</a>
  </body>
 </html>
 ...
