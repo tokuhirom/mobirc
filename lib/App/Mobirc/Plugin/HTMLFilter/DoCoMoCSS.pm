@@ -14,7 +14,7 @@ hook 'html_filter' => sub {
     my ($self, $global_context, $c, $content) = @_;
 
     DEBUG "FILTER DOCOMO CSS";
-    # return ($c, $content) unless $c->req->mobile_agent->is_docomo;
+    return ($c, $content) unless $c->req->mobile_agent->is_docomo;
 
     # escape Numeric character reference.
     $content =~ s/&#(x[\dA-Fa-f]{4}|\d+);/HTMLCSSINLINERESCAPE$1::::::::/g;
