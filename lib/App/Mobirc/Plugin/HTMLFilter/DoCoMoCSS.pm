@@ -24,6 +24,7 @@ hook 'html_filter' => sub {
     my $css = CSS::Tiny->read_string($self->css_text($global_context));
     my $doc = eval { XML::LibXML->new->parse_string($content); };
     if (my $e = $@) {
+        warn $e;
         return ($c, $pict_unescape->());
     }
     my $xc               = XML::LibXML::XPathContext->new($doc);
