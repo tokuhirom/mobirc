@@ -12,7 +12,7 @@ use HTTP::MobileAgent::Plugin::Charset;
 template 'mobile/wrapper_mobile' => sub {
     my ($self, $mobile_agent, $code, $subtitle) = @_;
     my $encoding = $mobile_agent->can_display_utf8 ? 'UTF-8' : 'Shift_JIS';
-    outs_raw qq{<?xml version="1.0" encoding="$encoding"?>};
+    xml_decl { 'xml', version => '1.0', encoding => $encoding };
     outs_raw qq{<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">};
     html { attr { 'lang' => 'ja', 'xml:lang' => 'ja', xmlns => 'http://www.w3.org/1999/xhtml' }
         head {

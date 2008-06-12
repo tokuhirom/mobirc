@@ -16,7 +16,8 @@ template 'ajax/base' => sub {
         },
     );
 
-    xml_decl { 'xml', version => 1.0, encoding => 'UTF-8' };
+    xml_decl { 'xml', version => '1.0', encoding => 'UTF-8' };
+    outs_raw qq{<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">};
     html {
         attr { lang => 'ja', 'xml:lang' => 'ja', xmlns => "http://www.w3.org/1999/xhtml" }
         head {
