@@ -92,26 +92,26 @@ sub process_http {
     if ( $self->redirector ) {
         $out =
         sprintf(
-            '<a href="%s%s" rel="nofollow" class="url">%s</a>',
+            '<a href="%s%s" rel="nofollow" class="url" target="_blank">%s</a>',
             encode_entities($self->redirector, q(<>&")),
             $encoded_uri,
             $link_string );
     } else {
-        $out = qq{<a href="$encoded_uri" rel="nofollow" class="url">$link_string</a>};
+        $out = qq{<a href="$encoded_uri" rel="nofollow" class="url" target="_blank">$link_string</a>};
     }
     if ( $self->au_pcsv ) {
-        $out .= qq{<a href="device:pcsiteviewer?url=$encoded_uri" rel="nofollow" class="au_pcsv">[PCSV]</a>};
+        $out .= qq{<a href="device:pcsiteviewer?url=$encoded_uri" rel="nofollow" class="au_pcsv" target="_blank">[PCSV]</a>};
     }
     if ( $self->pocket_hatena ) {
         $out .=
         sprintf(
-            '<a href="http://mgw.hatena.ne.jp/?url=%s;noimage=0;split=1" rel="nofollow" class="pocket_hatena">[ph]</a>',
+            '<a href="http://mgw.hatena.ne.jp/?url=%s;noimage=0;split=1" rel="nofollow" class="pocket_hatena" target="_blank">[ph]</a>',
             uri_escape($uri) );
     }
     if ( $self->google_gwt ) {
         $out .=
         sprintf(
-            '<a href="http://www.google.co.jp/gwt/n?u=%s;_gwt_noimg=0" rel="nofollow" class="google_gwt">[gwt]</a>',
+            '<a href="http://www.google.co.jp/gwt/n?u=%s;_gwt_noimg=0" rel="nofollow" class="google_gwt" target="_blank">[gwt]</a>',
             uri_escape($uri) );
     }
     return U $out;
@@ -125,7 +125,7 @@ sub process_default {
         $link_string = $link_string_table->{$orig_uri};
     }
     return sprintf(
-        qq{<a href="%s" rel="nofollow" class="url">%s</a>},
+        qq{<a href="%s" rel="nofollow" class="url" target="_blank">%s</a>},
         encode_entities($uri, q(<>&")),
         encode_entities($link_string, q(<>&")),
     );
