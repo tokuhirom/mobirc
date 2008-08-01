@@ -18,6 +18,13 @@ has http_link_string => (
     isa => 'Str',
 );
 
+has http_link_target => (
+    is  => 'ro',
+    isa => 'Str',
+
+    default => '_blank',
+);
+
 has redirector => (
     is  => 'ro',
     isa => 'Str',
@@ -92,27 +99,41 @@ sub process_http {
     if ( $self->redirector ) {
         $out =
         sprintf(
-            '<a href="%s%s" rel="nofollow" class="url" target="_blank">%s</a>',
+            '<a href="%s%s" rel="nofollow" class="url" target="%s">%s</a>',
             encode_entities($self->redirector, q(<>&")),
             $encoded_uri,
+            $self->http_link_target,
             $link_string );
     } else {
-        $out = qq{<a href="$encoded_uri" rel="nofollow" class="url" target="_blank">$link_string</a>};
+        $out =
+        sprintf(
+            '<a href="%s" rel="nofollow" class="url" target="%s">%s</a>',
+            $encoded_uri,
+            $self->http_link_target,
+            $link_string );
     }
+
     if ( $self->au_pcsv ) {
-        $out .= qq{<a href="device:pcsiteviewer?url=$encoded_uri" rel="nofollow" class="au_pcsv" target="_blank">[PCSV]</a>};
+        $out .=
+        sprintf(
+            '<a href="device:pcsiteviewer?url=%s" rel="nofollow" class="au_pcsv" target="%s">[PCSV]</a>',
+            $encoded_uri,
+            $self->http_link_target );
     }
+
     if ( $self->pocket_hatena ) {
         $out .=
         sprintf(
-            '<a href="http://mgw.hatena.ne.jp/?url=%s;noimage=0;split=1" rel="nofollow" class="pocket_hatena" target="_blank">[ph]</a>',
-            uri_escape($uri) );
+            '<a href="http://mgw.hatena.ne.jp/?url=%s;noimage=0;split=1" rel="nofollow" class="pocket_hatena" target="%s">[ph]</a>',
+            uri_escape($uri),
+            $self->http_link_target );
     }
     if ( $self->google_gwt ) {
         $out .=
         sprintf(
-            '<a href="http://www.google.co.jp/gwt/n?u=%s;_gwt_noimg=0" rel="nofollow" class="google_gwt" target="_blank">[gwt]</a>',
-            uri_escape($uri) );
+            '<a href="http://www.google.co.jp/gwt/n?u=%s;_gwt_noimg=0" rel="nofollow" class="google_gwt" target="%s">[gwt]</a>',
+            uri_escape($uri),
+            $self->http_link_target );
     }
     return U $out;
 }
@@ -125,8 +146,9 @@ sub process_default {
         $link_string = $link_string_table->{$orig_uri};
     }
     return sprintf(
-        qq{<a href="%s" rel="nofollow" class="url" target="_blank">%s</a>},
+        qq{<a href="%s" rel="nofollow" class="url" target="%s">%s</a>},
         encode_entities($uri, q(<>&")),
+        $self->http_link_target,
         encode_entities($link_string, q(<>&")),
     );
 }
