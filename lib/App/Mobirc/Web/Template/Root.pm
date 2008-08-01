@@ -44,6 +44,9 @@ template 'root/index' => sub {
                     li {
                         a { href is '/mobile-ajax/'; 'mobile-ajax' };
                     };
+                    li {
+                        a { href is '/iphone/'; 'iphone' };
+                    };
                 };
             };
 

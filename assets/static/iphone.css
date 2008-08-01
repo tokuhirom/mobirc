@@ -1,0 +1,87 @@
+@charset "UTF-8";
+
+html {
+}
+
+body {
+	margin: 0;
+	padding: .2em 5px;
+	word-break: break-all;
+}
+
+#body {
+}
+
+#menu {
+	position: relative;
+	line-height: 1.2;
+	font-size: 12px;
+}
+
+#menu .keyword_recent_notice {
+	position: absolute;
+	right: 0;
+	bottom: -1em;
+	background: none;
+}
+
+#menu .keyword_recent_notice a:link {
+	color: #933;
+}
+
+#menu .channel {
+	display: inline;
+	font-size: 100%;
+}
+
+#menu a {
+	text-decoration:none;
+}
+
+#menu .channel a:link {
+	color: #999;
+}
+
+#menu .unread a:link {
+	font-size: 167%;
+	font-weight: bold;
+	color: #366;
+}
+
+#menu .KeywordChannel a:link {
+	font-size: 167%;
+	font-weight: bold;
+	color: #933;
+}
+
+form {
+	margin: 0;
+	text-align: center;
+	border-top: 1px dotted #CCC;
+	margin-top: .5em;
+	padding-top: .5em;
+}
+
+form input[type="text"] {
+	width: 90%;
+	height: 2em;
+}
+
+form input[type="button"] {
+	display: none;
+}
+
+#contents {
+	margin: .5em 0;
+	border-bottom: 1px dotted #CCC;
+	line-height: 1.5;
+}
+
+#footer {
+	text-align: center;
+}
+
+#footer div {
+	font-size: 10px;
+	color: #999;
+}
