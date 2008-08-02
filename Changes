@@ -1,3 +1,10 @@
+1.02
+
+    - added iPhone mode(contributed by retlet++)
+    - added http_link_target option for Plugin::MessageBodyFilter::Clickable
+      (contributed by aerith++)
+    - depend to latest version of Moose(0.48 => 0.54)
+
 1.01
 
     - Plugin::HTMLFilter::DoCoMoCSS:

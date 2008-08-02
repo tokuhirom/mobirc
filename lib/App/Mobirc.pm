@@ -11,7 +11,7 @@ use Carp;
 use App::Mobirc::Model::Server;
 use Encode;
 
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 
 has server => (
     is      => 'ro',
