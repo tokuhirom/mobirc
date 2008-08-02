@@ -1,4 +1,6 @@
 assets/plugin/GPS/measure.tt2
+assets/static/iphone.css
+assets/static/iphone.js
 assets/static/jquery.js
 assets/static/mobile-ajax.css
 assets/static/mobile-ajax.js
@@ -28,6 +30,8 @@ inc/Test/Builder/Module.pm
 inc/Test/Exception.pm
 inc/Test/More.pm
 inc/Text/Diff.pm
+irssi/config.yaml.sample
+irssi/mobirc.pl
 lib/App/Mobirc.pm
 lib/App/Mobirc/ConfigLoader.pm
 lib/App/Mobirc/Model/Channel.pm
@@ -38,6 +42,7 @@ lib/App/Mobirc/Plugin/Authorizer/Cookie.pm
 lib/App/Mobirc/Plugin/Authorizer/DoCoMoGUID.pm
 lib/App/Mobirc/Plugin/Authorizer/EZSubscriberID.pm
 lib/App/Mobirc/Plugin/Authorizer/SoftBankID.pm
+lib/App/Mobirc/Plugin/ChannelPageParts.pm
 lib/App/Mobirc/Plugin/Component/HTTPD.pm
 lib/App/Mobirc/Plugin/Component/IRCClient.pm
 lib/App/Mobirc/Plugin/Component/Twitter.pm
@@ -59,6 +64,7 @@ lib/App/Mobirc/Util.pm
 lib/App/Mobirc/Validator.pm
 lib/App/Mobirc/Web/C.pm
 lib/App/Mobirc/Web/C/Ajax.pm
+lib/App/Mobirc/Web/C/IPhone.pm
 lib/App/Mobirc/Web/C/Mobile.pm
 lib/App/Mobirc/Web/C/MobileAjax.pm
 lib/App/Mobirc/Web/C/Root.pm
@@ -68,6 +74,7 @@ lib/App/Mobirc/Web/Middleware/Encoding.pm
 lib/App/Mobirc/Web/Middleware/MobileAgent.pm
 lib/App/Mobirc/Web/Router.pm
 lib/App/Mobirc/Web/Template/Ajax.pm
+lib/App/Mobirc/Web/Template/IPhone.pm
 lib/App/Mobirc/Web/Template/IRCMessage.pm
 lib/App/Mobirc/Web/Template/Mobile.pm
 lib/App/Mobirc/Web/Template/MobileAjax.pm
@@ -87,14 +94,14 @@ t/Plugins/Authorizer/DoCoMoGUID-authorizer.t
 t/Plugins/Authorizer/DoCoMoGUID-html_filter.t
 t/Plugins/Component/IRCClient.t
 t/Plugins/DocRoot.t
-t/Plugins/Filter/clickable.t
-t/Plugins/Filter/decorate-irc-color.t
-t/Plugins/Filter/no-decorate-irc-color.t
 t/Plugins/GPS.t
 t/Plugins/HTMLFilter/CompressHTML.t
 t/Plugins/HTMLFilter/ConvertPictograms.t
 t/Plugins/HTMLFilter/DoCoMoCSS.t
 t/Plugins/HTMLFilter/NickGroup.t
+t/Plugins/MessageBodyFilter/clickable.t
+t/Plugins/MessageBodyFilter/decorate-irc-color.t
+t/Plugins/MessageBodyFilter/no-decorate-irc-color.t
 t/Plugins/StickyTime.t
 t/Role/Context.t
 t/Web/Router.t
@@ -104,6 +111,3 @@ t/Web/Template/Ajax/menu.t
 t/Web/Template/IRCMessage.t
 t/Web/Template/Mobile/topics.t
 t/Web/Template/MobileAjax/index.t
-lib/App/Mobirc/Plugin/ChannelPageParts.pm
-irssi/config.yaml.sample
-irssi/mobirc.pl
