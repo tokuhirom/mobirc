@@ -12,7 +12,7 @@ requires 'MooseX::Plaggerize'  => '0.03';
 requires 'HTTP::Engine'        => '0.0.11';
 
 # poe
-requires 'POE'                         => '1.0002';
+requires 'POE'                         => '1.003';
 requires 'POE::Sugar::Args'            => '1.3';
 requires 'POE::Component::IRC'         => '5.58';
 
