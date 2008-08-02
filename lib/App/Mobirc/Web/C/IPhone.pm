@@ -3,6 +3,7 @@ use Moose;
 use App::Mobirc::Web::C;
 use App::Mobirc::Util;
 use Encode;
+use JSON qw/encode_json/;
 
 sub dispatch_base {
     my ($class, $c) = @_;
@@ -21,13 +22,24 @@ sub dispatch_channel {
     my $channel_name = $c->req->params->{channel};
 
     my $channel = server->get_channel($channel_name);
-    render_td(
-        $c,
-        'iphone/channel' => (
-            channel  => $channel,
-            irc_nick => irc_nick,
-        )
-    );
+    if (@{$channel->message_log}) {
+        my $meth = $c->req->query_params->{recent} ? 'recent_log' : 'message_log';
+        my $json = encode_json(
+            {
+                messages => [
+                    map {
+                        App::Mobirc::Web::View->show( 'irc_message', $_, irc_nick )
+                    } reverse $channel->$meth
+                ],
+                channel_name => $channel->name,
+            }
+        );
+        $c->res->body( $json );
+
+        $channel->clear_unread();
+    } else {
+        $c->res->body('');
+    }
     $channel->clear_unread();
 }
 

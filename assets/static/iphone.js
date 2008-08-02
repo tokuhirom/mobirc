@@ -5,8 +5,12 @@ var load_url;
 function contents_load(url) {
     var joinner = (url.indexOf('?') == -1) ? '?' : '&';
     $.getJSON(
+        url + joinner + 'time='+ts(),
+        function (res) {
+            $('#contents').html( res.messages.join("<br />") );
+            $('title').html( res.channel_name + " - mobirc" );
+        }
     );
-    $('#contents').load(url+joinner+'time='+ts());
     load_url = url;
 //    $('#msg').focus();
 }

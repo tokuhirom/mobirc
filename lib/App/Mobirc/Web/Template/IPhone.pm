@@ -117,21 +117,5 @@ template 'iphone/keyword' => sub {
     }
 };
 
-template 'iphone/channel' => sub {
-    my $self = shift;
-    my %args = validate(
-        @_ => {
-            channel  => 1,
-            irc_nick => 1,
-        },
-    );
-    div {
-        for my $message (reverse $args{channel}->message_log) {
-            show '../irc_message', $message, $args{irc_nick};
-            br { };
-        }
-    }
-};
-
 1;
 
