@@ -110,3 +110,9 @@ conf:
   google_gwt: 1
 --- expected: <a href="http://d.hatena.ne.jp/" rel="nofollow" class="url" target="_blank">http://d.hatena.ne.jp/</a><a href="http://www.google.co.jp/gwt/n?u=http%3A%2F%2Fd.hatena.ne.jp%2F;_gwt_noimg=0" rel="nofollow" class="google_gwt" target="_blank">[gwt]</a>
 
+=== basic with http_link_target
+--- input
+text: http://d.hatena.ne.jp/hatenachan/
+conf:
+  http_link_target: _top
+--- expected: <a href="http://d.hatena.ne.jp/hatenachan/" rel="nofollow" class="url" target="_top">http://d.hatena.ne.jp/hatenachan/</a>
