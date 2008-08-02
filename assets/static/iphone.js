@@ -24,17 +24,17 @@ function send_message() {
 
 function load_menu () {
     $('#menu').load(
-        docroot + 'ajax/menu?time=' + ts(),
+        docroot + 'iphone/menu?time=' + ts(),
         '',
         function () {
             $('#menu .channel a').click(function () {
-                contents_load(docroot + 'ajax/channel?channel=' + encodeURIComponent($(this).text()), $(this).text());
+                contents_load(docroot + 'iphone/channel?channel=' + encodeURIComponent($(this).text()), $(this).text());
                 $(this).parent().removeClass('unread');
                 return false;
             });
 
             var keyword_cb = function () {
-                contents_load(docroot + 'ajax/keyword')
+                contents_load(docroot + 'iphone/keyword')
                 $(this).parent().remove();
             };
             $('#menu .keyword_recent_notice a').click(keyword_cb).keypress(keyword_cb);
