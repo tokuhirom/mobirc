@@ -42,7 +42,10 @@ plugin:
       username: netwatcher
       # password: netwatch
       incode: utf-8
-      groups:
+
+  - module: HTMLFilter::NickGroup
+    config:
+      map:
         subtech:
           - tokuhir
           - miyagawa
