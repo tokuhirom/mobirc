@@ -144,30 +144,32 @@ template 'mobile/recent' => sub {
     my $self = shift;
     my %args = validate(
         @_ => {
-            channel       => 1,
+            channels      => 1,
             has_next_page => 1,
             irc_nick      => 1,
             mobile_agent  => 1,
         }
     );
-    my $channel = $args{channel} or die 'missing channel';
 
     show 'wrapper_mobile', $args{mobile_agent}, sub {
-        div {
-            class is 'ChannelHeader';
-            a {
-                class is 'ChannelName';
-                $channel->name;
+        for my $channel ( @{ $args{channels} } ) {
+            div {
+                class is 'ChannelHeader';
+                a {
+                    class is 'ChannelName';
+                    $channel->name;
+                };
+                a {
+                    href is '/mobile/channel?channel=' . $channel->name_urlsafe_encoded();
+                    'more...';
+                };
             };
-            a {
-                href is '/mobile/channel?channel=' . $channel->name_urlsafe_encoded();
-                'more...';
-            };
-        };
 
-        for my $message (@{$channel->recent_log}) {
-            show '../irc_message', $message, $args{irc_nick};
-            br { };
+            for my $message (@{$channel->recent_log}) {
+                show '../irc_message', $message, $args{irc_nick};
+                br { };
+            }
+            hr {};
         }
 
         if ($args{has_next_page}) {

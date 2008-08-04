@@ -25,22 +25,35 @@ sub dispatch_index {
 sub dispatch_recent {
     my ($class, $c) = @_;
 
+    my @target_channels;
+    my $log_counter   = 0;
+    my $has_next_page = 0;
     my @unread_channels =
       grep { $_->unread_lines }
       context->channels;
 
+    for my $channel (@unread_channels) {
+        push @target_channels, $channel;
+        $log_counter += $channel->recent_log_count;
+
+        if ($log_counter >= App::Mobirc->context->{config}->{httpd}->{recent_log_per_page}) {
+            $has_next_page = 1;
+            last;
+        }
+    }
+
     my $out = render_td(
         $c,
         'mobile/recent' => {
-            channel       => $unread_channels[0],
-            has_next_page => (scalar(@unread_channels) >= 2 ? 1 : 0),
+            channels      => \@target_channels,
+            has_next_page => $has_next_page,
             irc_nick      => irc_nick,
             mobile_agent  => $c->req->mobile_agent,
         },
     );
 
     # reset counter.
-    if (my $channel = $unread_channels[0]) {
+    for my $channel (@target_channels) {
         $channel->clear_unread;
     }
 

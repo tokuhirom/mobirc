@@ -32,8 +32,9 @@ my $schema = {
             type     => 'map',
             required => 1,
             mapping  => {
-                lines          => { type => 'int', },
-                root           => { type => 'str', },
+                lines               => { type => 'int', },
+                recent_log_per_page => { type => 'int', },
+                root                => { type => 'str', },
             },
         },
         global => {
