@@ -1,37 +1,38 @@
 @charset "UTF-8";
 
-html {
-}
-
 body {
 	margin: 0;
-	padding: .2em 5px;
+	padding: 0;
 	word-break: break-all;
-}
-
-#body {
+	font-family: sans-serif;
+	background: #FCFCFC;
 }
 
 #menu {
 	position: relative;
-	line-height: 1.2;
+	padding: .5em 5px;
 	font-size: 12px;
+	line-height: 1.2;
+	border-bottom: 1px solid #8499AE;
+	background: #FFF;
 }
 
 #menu .keyword_recent_notice {
 	position: absolute;
 	right: 0;
-	bottom: -1em;
+	bottom: 0;
+	z-index: 10;
 	background: none;
 }
 
 #menu .keyword_recent_notice a:link {
-	color: #933;
+	color: #F33;
 }
 
 #menu .channel {
 	display: inline;
 	font-size: 100%;
+	z-index: 100;
 }
 
 #menu a {
@@ -39,13 +40,13 @@ body {
 }
 
 #menu .channel a:link {
-	color: #999;
+	color: #666;
 }
 
 #menu .unread a:link {
 	font-size: 167%;
 	font-weight: bold;
-	color: #366;
+	color: #0080FF;
 }
 
 #menu .KeywordChannel a:link {
@@ -57,31 +58,38 @@ body {
 form {
 	margin: 0;
 	text-align: center;
-	border-top: 1px dotted #CCC;
-	margin-top: .5em;
-	padding-top: .5em;
+	padding: .5em 0;
+	border-top: 1px solid #FFF;
+	border-bottom: 1px solid #8499AE;
 }
 
 form input[type="text"] {
-	width: 90%;
+	width: 70%;
 	height: 2em;
 }
 
 form input[type="button"] {
-	display: none;
+	width: 20%;
+	height: 2.5em;
 }
 
 #contents {
-	margin: .5em 0;
-	border-bottom: 1px dotted #CCC;
+	margin: 0;
+	padding: .5em 5px;
+	border-bottom: 1px solid #8499AE;
 	line-height: 1.5;
+	background: #FFF;
+}
+
+#contents:empty {
+	padding: 0;
+	border-bottom: none;
 }
 
 #footer {
+	padding: .3em 5px;
 	text-align: center;
-}
-
-#footer div {
 	font-size: 10px;
-	color: #999;
+	color: #666;
+	border-top: 1px solid #FFF;
 }
