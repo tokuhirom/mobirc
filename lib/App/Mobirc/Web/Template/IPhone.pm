@@ -29,8 +29,8 @@ template 'iphone/base' => sub {
             script { src is "/static/jquery.js" };
             script { src is "/static/iphone.js" };
             if ($args{user_agent} =~ /(?:iPod|iPhone)/) {
-                meta { attr { name => 'viewport', content => 'width=device-width' } }
-                meta { attr { name => 'viewport', content => 'initial-scale=1, user-scalable=yes' } }
+#                meta { attr { name => 'viewport', content => 'width=device-width' } }
+                meta { attr { name => 'viewport', content => 'initial-scale=1.0, maximum-scale=1.0, user-scalable=no' } }
             }
             title { 'mobirc' }
         }
@@ -41,7 +41,7 @@ template 'iphone/base' => sub {
                     id is 'main';
                     div { id is 'menu' }
                     form {
-                        onsubmit is 'send_message();return false';
+                        onsubmit is 'return false';
                         input { attr { type => 'text', id => 'msg', name => 'msg', size => 30 } };
                         input { attr { type => 'button', value => 'send', onclick => 'send_message();' } };
                     }
