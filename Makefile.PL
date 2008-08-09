@@ -30,7 +30,7 @@ requires 'Template::Declare'  => '0.28';
 # utilities
 
 requires 'Carp'                  => '1.04';
-requires 'Data::Visitor::Encode' => '0.09';
+requires 'Data::Visitor::Encode' => '0.10001';
 requires 'Encode'                => '2.25';
 requires 'Exporter'              => '5.62';
 requires 'File::Spec'            => '3.2701';
