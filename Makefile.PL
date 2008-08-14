@@ -9,7 +9,7 @@ requires 'Moose'               => '0.54';
 requires 'MooseX::Plaggerize'  => '0.03';
 
 # http-engine
-requires 'HTTP::Engine'         => '0.0.11'; # TODO: depend to recent version
+requires 'HTTP::Engine'         => '0.0.13'; # TODO: depend to recent version
 requires 'HTTP::Engine::Compat' => '0.0.1';
 
 # poe

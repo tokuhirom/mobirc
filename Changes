@@ -1,3 +1,11 @@
+1.03
+
+    - rebirth recent_log_per_page(by hirose31++)
+    - updated dependencies
+      Data::Visitor::Encode
+      Template
+    - use HTTP::Engine::Compat
+
 1.02
 
     - added iPhone mode(contributed by retlet++)
