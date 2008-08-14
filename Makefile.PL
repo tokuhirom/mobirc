@@ -25,7 +25,7 @@ requires 'HTTP::MobileAgent::Plugin::Locator'       => '0.01';
 requires 'HTML::Entities::ConvertPictogramMobileJp' => '0.06';
 
 # template engine
-requires 'Template' => 2.16;                # new 'uri' is supported from 2.16
+requires 'Template' => 2.19;                # new 'uri' is supported from 2.16
 requires 'Template::Declare'  => '0.29';
 
 # utilities
