@@ -3,7 +3,7 @@ use warnings;
 use Test::More;
 use App::Mobirc;
 use HTTP::MobileAgent;
-use HTTP::Engine middlewares => [
+use HTTP::Engine::Compat middlewares => [
     qw/ +App::Mobirc::Web::Middleware::MobileAgent /
 ];
 
@@ -26,7 +26,7 @@ my ($c, $got) = $mobirc->run_hook_filter('html_filter', create_c(), $html);
 is $got, '<a href="/?guid=ON">foo</a>';
 
 sub create_c {
-    my $c = HTTP::Engine::Context->new;
+    my $c = HTTP::Engine::Compat::Context->new;
     $c->req->user_agent('DoCoMo/2.0 SH904i(c100;TB;W24H16)');
     $c;
 }

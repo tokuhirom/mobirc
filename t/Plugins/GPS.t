@@ -2,8 +2,8 @@ use strict;
 use warnings;
 use App::Mobirc;
 use Test::More;
-use HTTP::Engine::Context;
-use HTTP::Engine middlewares => [
+use HTTP::Engine::Compat::Context;
+use HTTP::Engine::Compat middlewares => [
     '+App::Mobirc::Web::Middleware::MobileAgent'
 ];
 
@@ -20,7 +20,7 @@ my $mobirc = App::Mobirc->new(
 $mobirc->load_plugin({module => 'GPS', config => {}});
 
 my $c = sub {
-    my $c = HTTP::Engine::Context->new();
+    my $c = HTTP::Engine::Compat::Context->new();
     $c->req->user_agent('DoCoMo/2.0 SH904i(c100;TB;W24H16)');
     $c->req->query_params(
         { lat => '35.21.03.342', lon => '138.34.45.725', geo => 'wgs84' } );

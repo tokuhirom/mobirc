@@ -6,7 +6,8 @@ use App::Mobirc;
 use App::Mobirc::Util;
 use App::Mobirc::Web::Handler;
 
-use HTTP::Engine middlewares => [
+use HTTP::Engine;
+use HTTP::Engine::Compat middlewares => [
     qw/
         +App::Mobirc::Web::Middleware::Encoding
         +App::Mobirc::Web::Middleware::MobileAgent
@@ -40,6 +41,7 @@ hook run_component => sub {
         }
     )->run;
 
+    # default plugins
     $global_context->load_plugin('StickyTime');
 };
 

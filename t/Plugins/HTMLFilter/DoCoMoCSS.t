@@ -4,12 +4,12 @@ use Test::More tests => 1;
 use HTTP::MobileAgent;
 use App::Mobirc;
 use App::Mobirc::Plugin::HTMLFilter::DoCoMoCSS;
-use HTTP::Engine::Context;
-use HTTP::Engine middlewares => [
+use HTTP::Engine::Compat::Context;
+use HTTP::Engine::Compat middlewares => [
     '+App::Mobirc::Web::Middleware::MobileAgent'
 ];
 
-my $c = HTTP::Engine::Context->new;
+my $c = HTTP::Engine::Compat::Context->new;
 $c->req->user_agent('DoCoMo/2.0 P2101V(c100)');
 my $global_context = App::Mobirc->new(
     {

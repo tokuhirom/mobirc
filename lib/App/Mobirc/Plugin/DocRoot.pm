@@ -16,7 +16,7 @@ hook request_filter => sub {
     my ($self, $global_context, $c) = validate_pos(@_,
         { isa => __PACKAGE__ },
         { isa => 'App::Mobirc' },
-        { isa => 'HTTP::Engine::Context' },
+        { isa => 'HTTP::Engine::Compat::Context' },
     );
 
     my $root = $self->root;

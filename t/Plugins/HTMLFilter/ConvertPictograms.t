@@ -2,9 +2,9 @@ use strict;
 use warnings;
 use App::Mobirc;
 use HTTP::MobileAgent;
-use HTTP::Engine::Context;
+use HTTP::Engine::Compat::Context;
 use Test::Base;
-use HTTP::Engine middlewares => [
+use HTTP::Engine::Compat middlewares => [
     '+App::Mobirc::Web::Middleware::MobileAgent'
 ];
 
@@ -22,7 +22,7 @@ filters {
 
 sub convert {
     my $x = shift;
-    my $c = HTTP::Engine::Context->new;
+    my $c = HTTP::Engine::Compat::Context->new;
     $c->req->user_agent( $x->{ua} );
     ($c, $x->{src}) = $global_context->run_hook_filter( 'html_filter', $c, $x->{src} );
     return $x->{src};

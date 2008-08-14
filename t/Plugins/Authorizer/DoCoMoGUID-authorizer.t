@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use Test::More;
 use App::Mobirc;
-use HTTP::Engine::Context;
+use HTTP::Engine::Compat::Context;
 
 eval "use HTML::StickyQuery::DoCoMoGUID";
 plan skip_all => 'this test needs HTML::StickyQuery::DoCoMoGUID' if $@;
@@ -21,7 +21,7 @@ ok !$mobirc->run_hook_first('authorize', create_c('invalid_login_id')), 'login f
 
 sub create_c {
     my $guid = shift;
-    my $c = HTTP::Engine::Context->new;
+    my $c = HTTP::Engine::Compat::Context->new;
     $c->req->header('x-dcmguid' => $guid);
     $c;
 }

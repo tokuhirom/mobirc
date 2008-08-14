@@ -8,7 +8,7 @@ hook html_filter => sub {
     my ($self, $global_context, $c, $content) = validate_pos(@_,
         { isa => __PACKAGE__ },
         { isa => 'App::Mobirc' },
-        { isa => 'HTTP::Engine::Context' },
+        { isa => 'HTTP::Engine::Compat::Context' },
         { type => SCALAR },
     );
 
