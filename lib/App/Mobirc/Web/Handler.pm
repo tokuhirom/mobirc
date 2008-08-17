@@ -19,6 +19,7 @@ sub handler {
     my $c = shift;
 
     my $res = _handler($c);
+    context->run_hook('response_filter', $res);
     $c->res($res);
 }
 
@@ -30,7 +31,6 @@ sub _handler {
 
     if (authorize($req)) {
         process_request($c);
-        context->run_hook('response_filter', $c);
         return $c->res;
     } else {
         HTTP::Engine::Response->new(

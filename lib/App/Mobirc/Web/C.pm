@@ -25,8 +25,6 @@ sub _make_response {
     $out = encode( $c->req->mobile_agent->encoding, $out);
 
     $c->res->body( $out );
-
-    context->run_hook('response_filter', $c);
 }
 
 sub _set_content_type {

@@ -5,6 +5,7 @@ use App::Mobirc::Util;
 use XML::LibXML;
 use Encode;
 use Params::Validate ':all';
+use App::Mobirc::Validator;
 
 has root => (
     is       => 'ro',
@@ -28,16 +29,16 @@ hook request_filter => sub {
 };
 
 hook response_filter => sub {
-    my ($self, $global_context, $c) = @_;
+    my ($self, $global_context, $res) = validate_hook('response_filter', @_);
 
-    if ($c->res->redirect) {
-        DEBUG "REWRITE REDIRECT : " . $c->res->redirect;
+    if ($res->redirect) {
+        DEBUG "REWRITE REDIRECT : " . $res->redirect;
 
         my $root = $self->root;
         $root =~ s!/$!!;
-        $c->res->redirect( $root . $c->res->redirect );
+        $res->redirect( $root . $res->redirect );
 
-        DEBUG "FINISHED: " . $c->res->redirect;
+        DEBUG "FINISHED: " . $res->redirect;
     }
 };
 

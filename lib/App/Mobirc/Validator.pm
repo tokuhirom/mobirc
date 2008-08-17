@@ -15,7 +15,7 @@ my $map = {
     response_filter => [
         { can => 'register' },
         { isa => 'App::Mobirc' },
-        { isa => 'HTTP::Engine::Compat::Context' },
+        { isa => 'HTTP::Engine::Response' },
     ],
 };
 

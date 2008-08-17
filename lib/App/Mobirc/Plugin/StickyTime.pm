@@ -3,14 +3,15 @@ use strict;
 use MooseX::Plaggerize::Plugin;
 use App::Mobirc::Util;
 use HTML::StickyQuery;
+use App::Mobirc::Validator;
 
 hook response_filter => sub {
-    my ($self, $global_context, $c) = @_;
+    my ($self, $global_context, $res) = validate_hook('response_filter', @_);
 
-    if ($c->res->redirect) {
-        my $uri  = URI->new($c->res->redirect);
+    if ($res->redirect) {
+        my $uri  = URI->new($res->redirect);
         $uri->query_form( $uri->query_form, t => time() );
-        return $c->res->redirect( $uri->as_string );
+        return $res->redirect( $uri->as_string );
     }
 };
 
