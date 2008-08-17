@@ -54,19 +54,20 @@ sub authorize {
 
 sub process_request {
     my ($c, ) = @_;
+    my $req = $c->req;
 
-    my $rule = App::Mobirc::Web::Router->match($c->req);
+    my $rule = App::Mobirc::Web::Router->match($req);
 
     unless ($rule) {
         # hook by plugins
-        if (context->run_hook_first( 'httpd', ( $c, $c->req->uri->path ) ) ) {
+        if (my $res = context->run_hook_first( 'httpd', $req )) {
             # XXX we should use html filter?
-            return $c->res;
+            return $res;
         }
 
         # doesn't match.
         do {
-            my $uri = $c->req->uri->path;
+            my $uri = $req->uri->path;
             warn "dan the 404 not found: $uri" if $uri ne '/favicon.ico';
 
             return HTTP::Engine::Response->new(
@@ -81,8 +82,8 @@ sub process_request {
     my $meth = $rule->{action};
     my $post_meth = "post_dispatch_$meth";
     my $get_meth  = "dispatch_$meth";
-    my $args = $dve->decode( $c->req->mobile_agent->encoding, $rule->{args} );
-    if ( $c->req->method =~ /POST/i && $controller->can($post_meth)) {
+    my $args = $dve->decode( $req->mobile_agent->encoding, $rule->{args} );
+    if ( $req->method =~ /POST/i && $controller->can($post_meth)) {
         $controller->$post_meth($c, $args);
         return $c->res;
     } else {

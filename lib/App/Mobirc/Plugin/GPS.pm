@@ -11,6 +11,7 @@ use Geo::Coordinates::Converter;
 use UNIVERSAL::require;
 use String::TT ':all';
 use Encode::JP::Mobile;
+use App::Mobirc::Validator;
 
 has inv_geocoder => (
     is      => 'ro',
@@ -25,9 +26,9 @@ hook channel_page_option => sub {
 };
 
 hook httpd => sub {
-    my ( $self, $global_context, $c, $uri ) = @_;
+    my ( $self, $global_context, $req ) = validate_hook('httpd', @_);
 
-    if ( $uri =~ m{^/channel/([^/]+)/gps$} ) {
+    if ( $req->path =~ m{^/channel/([^/]+)/gps$} ) {
         my $channel_name = $1;
 
         my $config = App::Mobirc->context->config;
@@ -35,7 +36,7 @@ hook httpd => sub {
             'plugin', 'GPS', 'measure.tt2' );
 
         local %ENV;
-        if ( my $devcap_multimedia = $c->req->header('X-UP-DEVCAP-MULTIMEDIA') )
+        if ( my $devcap_multimedia = $req->header('X-UP-DEVCAP-MULTIMEDIA') )
         {
             $ENV{HTTP_X_UP_DEVCAP_MULTIMEDIA} = $devcap_multimedia;
         }
@@ -44,44 +45,46 @@ hook httpd => sub {
         $tt->process(
             $path,
             {
-                request      => $c->request,
-                req          => $c->req,
+                request      => $req, # FIXME: why we needs two same parameters?
+                req          => $req,
                 channel_name => $channel_name,
-                mobile_agent => $c->req->mobile_agent,
+                mobile_agent => $req->mobile_agent,
                 docroot      => $config->{httpd}->{root},
                 port         => $config->{httpd}->{port},
             },
             \my $out
         ) or warn $tt->error;
 
-        $c->res->content_type(
-            encode( 'utf8', 'text/html; charset=Shift_JIS' ) );
-        $c->res->body($out);
-        return 1;
+        return HTTP::Engine::Response->new(
+            content_type => 'text/html; charset=Shift_JIS',
+            body         => $out,
+        );
     }
     else {
-        return 0;
+        return;
     }
 };
 
 hook httpd => sub {
-    my ($self, $global_context, $c, $uri) = @_;
+    my ( $self, $global_context, $req ) = validate_hook('httpd', @_);
 
-    if ($uri =~ m{^/channel/([^/]+)/gps_do$}) {
+    if ($req->path =~ m{^/channel/([^/]+)/gps_do$}) {
         my $channel_name = uri_unescape $1;
         my $inv_geocoder = $self->inv_geocoder;
 
-        my $point = $c->req->mobile_agent->get_location( $c->req->query_params );
+        my $point = $req->mobile_agent->get_location( $req->query_params );
 
         "App::Mobirc::Plugin::GPS::InvGeocoder::$inv_geocoder"->use or die $@;
         my $msg = "App::Mobirc::Plugin::GPS::InvGeocoder::$inv_geocoder"->inv_geocoder($point);
-           $msg = uri_escape encode($c->req->mobile_agent->encoding, $msg);
+           $msg = uri_escape encode($req->mobile_agent->encoding, $msg);
 
         my $redirect = tt "/channels/[% channel_name | uri %]?msg=L:[% msg %]";
-        $c->res->redirect($redirect);
-        return 1;
+        return HTTP::Engine::Response->new(
+            status  => 302,
+            headers => HTTP::Headers->new( Location => $redirect )
+        );
     } else {
-        return 0;
+        return;
     }
 };
 
