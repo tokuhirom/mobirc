@@ -4,6 +4,7 @@ use MooseX::Plaggerize::Plugin;
 use Carp;
 use App::Mobirc::Util;
 use HTML::StickyQuery::DoCoMoGUID;
+use App::Mobirc::Validator;
 
 has docomo_guid => (
     is       => 'ro',
@@ -12,9 +13,9 @@ has docomo_guid => (
 );
 
 hook authorize => sub {
-    my ( $self, $global_context, $c, ) = @_;
+    my ( $self, $global_context, $req, ) = validate_hook('authorize', @_);
 
-    my $subno = $c->req->header('x-dcmguid');
+    my $subno = $req->header('x-dcmguid');
     if ( $subno && $subno eq $self->docomo_guid ) {
         DEBUG "SUCESS AT DocomoGUID";
         return true;

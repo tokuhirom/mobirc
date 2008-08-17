@@ -3,6 +3,7 @@ use strict;
 use MooseX::Plaggerize::Plugin;
 use Carp;
 use App::Mobirc::Util;
+use App::Mobirc::Validator;
 
 has username => (
     is       => 'ro',
@@ -17,13 +18,13 @@ has password => (
 );
 
 hook authorize => sub {
-    my ( $self, $global_context, $c, ) = @_;
+    my ( $self, $global_context, $req, ) = validate_hook('authorize', @_);
 
     DEBUG "Basic Auth...";
 
     my $cred = $self->{username} . ':' . $self->{password};
 
-    my $sent_cred = $c->req->headers->authorization_basic;
+    my $sent_cred = $req->headers->authorization_basic;
     if ( defined($sent_cred) && $sent_cred eq $cred ) {
         return true;
     }

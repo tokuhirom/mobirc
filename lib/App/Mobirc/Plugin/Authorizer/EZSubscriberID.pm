@@ -3,6 +3,7 @@ use strict;
 use MooseX::Plaggerize::Plugin;
 use Carp;
 use App::Mobirc::Util;
+use App::Mobirc::Validator;
 
 has 'au_subscriber_id' => (
     is       => 'ro',
@@ -11,9 +12,9 @@ has 'au_subscriber_id' => (
 );
 
 hook authorize => sub {
-    my ( $self, $global_context, $c, ) = @_;
+    my ( $self, $global_context, $req, ) = validate_hook('authorize', @_);
 
-    my $subno = $c->req->header('x-up-subno');
+    my $subno = $req->header('x-up-subno');
     if ( $subno && $subno eq $self->au_subscriber_id ) {
         DEBUG "SUCESS AT EZSubscriberID";
         return true;

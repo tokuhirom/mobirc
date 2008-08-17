@@ -21,9 +21,9 @@ has expires => (
 );
 
 hook authorize => sub {
-    my ( $self, $global_context, $c, ) = validate_hook('authorize', @_);
+    my ( $self, $global_context, $req, ) = validate_hook('authorize', @_);
 
-    my $cookie_str = $c->req->header('Cookie');
+    my $cookie_str = $req->header('Cookie');
     unless ($cookie_str) {
         DEBUG "cookie header is empty";
         return false;

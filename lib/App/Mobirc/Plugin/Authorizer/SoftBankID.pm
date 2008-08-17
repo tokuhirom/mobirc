@@ -3,6 +3,7 @@ use strict;
 use MooseX::Plaggerize::Plugin;
 use Carp;
 use App::Mobirc::Util;
+use App::Mobirc::Validator;
 
 has jphone_uid => (
     is       => 'ro',
@@ -11,9 +12,9 @@ has jphone_uid => (
 );
 
 hook authorize => sub {
-    my ( $self, $global_context, $c ) = @_;
+    my ( $self, $global_context, $req, ) = validate_hook('authorize', @_);
 
-    my $uid = $c->req->header('x-jphone-uid');
+    my $uid = $req->header('x-jphone-uid');
     if ( $uid && $uid eq $self->jphone_uid ) {
         return true;
     } else {

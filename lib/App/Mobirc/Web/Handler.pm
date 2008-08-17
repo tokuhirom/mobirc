@@ -28,7 +28,7 @@ sub _handler {
 
     context->run_hook('request_filter', $req);
 
-    if (authorize($c)) {
+    if (authorize($req)) {
         process_request($c);
         context->run_hook('response_filter', $c);
         return $c->res;
@@ -43,9 +43,9 @@ sub _handler {
 }
 
 sub authorize {
-    my $c = shift;
+    my $req = shift;
 
-    if (context->run_hook_first('authorize', $c)) {
+    if (context->run_hook_first('authorize', $req)) {
         DEBUG "AUTHORIZATION SUCCEEDED";
         return 1; # authorization succeeded.
     } else {

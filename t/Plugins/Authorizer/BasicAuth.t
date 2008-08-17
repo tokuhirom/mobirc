@@ -14,13 +14,13 @@ my $mobirc = App::Mobirc->new(
 );
 $mobirc->load_plugin( {module => 'Authorizer::BasicAuth', config => {username => 'dankogai', password => 'kogaidan'}} );
 
-ok !$mobirc->run_hook_first('authorize', create_c('dankogai', 'dankogai'));
-ok $mobirc->run_hook_first('authorize', create_c('dankogai', 'kogaidan'));
+ok !$mobirc->run_hook_first('authorize', create_req('dankogai', 'dankogai'));
+ok $mobirc->run_hook_first('authorize', create_req('dankogai', 'kogaidan'));
 
-sub create_c {
+sub create_req {
     my ($user, $passwd) = @_;
     my $c = HTTP::Engine::Compat::Context->new;
     $c->req->header('Authorization' => 'Basic ' . MIME::Base64::encode("$user:$passwd", ''));
-    $c;
+    $c->req;
 }
 

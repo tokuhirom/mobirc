@@ -16,13 +16,13 @@ my $mobirc = App::Mobirc->new(
 );
 $mobirc->load_plugin( {module => 'Authorizer::DoCoMoGUID', config => {docomo_guid => 'foobar.docomo'}} );
 
-ok $mobirc->run_hook_first('authorize', create_c('foobar.docomo')), 'login succeeded';
-ok !$mobirc->run_hook_first('authorize', create_c('invalid_login_id')), 'login failed';
+ok $mobirc->run_hook_first('authorize', create_req('foobar.docomo')), 'login succeeded';
+ok !$mobirc->run_hook_first('authorize', create_req('invalid_login_id')), 'login failed';
 
-sub create_c {
+sub create_req {
     my $guid = shift;
     my $c = HTTP::Engine::Compat::Context->new;
     $c->req->header('x-dcmguid' => $guid);
-    $c;
+    $c->req;
 }
 

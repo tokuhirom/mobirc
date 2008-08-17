@@ -10,7 +10,7 @@ my $map = {
     authorize => [
         { can => 'register' },
         { isa => 'App::Mobirc' },
-        { isa => 'HTTP::Engine::Compat::Context' },
+        { isa => 'HTTP::Engine::Request' },
     ],
     response_filter => [
         { can => 'register' },
