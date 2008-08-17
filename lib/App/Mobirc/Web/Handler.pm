@@ -30,8 +30,7 @@ sub _handler {
     context->run_hook('request_filter', $req);
 
     if (authorize($req)) {
-        process_request($c);
-        return $c->res;
+        return process_request($c);
     } else {
         HTTP::Engine::Response->new(
             status => 401,
@@ -62,17 +61,18 @@ sub process_request {
         # hook by plugins
         if (context->run_hook_first( 'httpd', ( $c, $c->req->uri->path ) ) ) {
             # XXX we should use html filter?
-            return;
+            return $c->res;
         }
 
         # doesn't match.
         do {
             my $uri = $c->req->uri->path;
             warn "dan the 404 not found: $uri" if $uri ne '/favicon.ico';
-            # TODO: use $c->res->status(404)
-            $c->res->status(404);
-            $c->res->body("Dan the 404 not found: $uri");
-            return;
+
+            return HTTP::Engine::Response->new(
+                status => 404,
+                body   => "404 not found: $uri",
+            );
         };
     }
 
@@ -83,9 +83,11 @@ sub process_request {
     my $get_meth  = "dispatch_$meth";
     my $args = $dve->decode( $c->req->mobile_agent->encoding, $rule->{args} );
     if ( $c->req->method =~ /POST/i && $controller->can($post_meth)) {
-        return $controller->$post_meth($c, $args);
+        $controller->$post_meth($c, $args);
+        return $c->res;
     } else {
-        return $controller->$get_meth($c, $args);
+        $controller->$get_meth($c, $args);
+        return $c->res;
     }
 }
 
