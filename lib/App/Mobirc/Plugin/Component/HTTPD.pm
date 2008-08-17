@@ -7,12 +7,8 @@ use App::Mobirc::Util;
 use App::Mobirc::Web::Handler;
 
 use HTTP::Engine;
-use HTTP::Engine::Compat middlewares => [
-    qw/
-        +App::Mobirc::Web::Middleware::Encoding
-        +App::Mobirc::Web::Middleware::MobileAgent
-    /
-];
+use App::Mobirc::Web::Middleware::Encoding;
+use App::Mobirc::Web::Middleware::MobileAgent;
 
 has address => (
     is      => 'ro',
@@ -37,7 +33,7 @@ hook run_component => sub {
                 port  => $self->port,
                 alias => 'mobirc_httpd',
             },
-            request_handler => \&App::Mobirc::Web::Handler::handler,
+            request_handler => App::Mobirc::Web::Middleware::Encoding->wrap( \&App::Mobirc::Web::Handler::handler ),
         }
     )->run;
 

@@ -18,14 +18,13 @@ sub context () { App::Mobirc->context } ## no critic
 sub handler {
     my $c = shift;
 
-    my $res = _handler($c);
+    my $res = _handler($c->req);
     context->run_hook('response_filter', $res);
     $c->res($res); # TODO: remove this
 }
 
 sub _handler {
-    my $c = shift;
-    my $req = $c->req;
+    my $req = shift;
 
     context->run_hook('request_filter', $req);
 

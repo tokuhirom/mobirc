@@ -2,17 +2,19 @@ package App::Mobirc::Web::Middleware::Encoding;
 use Moose;
 use Data::Visitor::Encode;
 
-my $dve = Data::Visitor::Encode->new;
-
 sub wrap {
-    my ($next, $c) = @_;
+    my ($class, $next) = @_;
 
-    my $encoding = $c->req->mobile_agent->encoding;
-    for my $method (qw/params query_params body_params/) {
-        $c->req->$method( $dve->decode($encoding, $c->req->$method) );
-    }
+    sub {
+        my $req = shift;
 
-    $next->($c);
+        my $encoding = $req->mobile_agent->encoding;
+        for my $method (qw/params query_params body_params/) {
+            $req->$method( Data::Visitor::Encode->decode($encoding, $req->$method) );
+        }
+
+        $next->($req);
+    };
 }
 
 1;

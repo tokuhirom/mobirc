@@ -41,24 +41,4 @@ sub daemonize {
     }
 }
 
-# -------------------------------------------------------------------------
-# FIXME: remove or move to anywhere
-
-do {
-    use HTTP::Engine::Request;
-    my $meta = HTTP::Engine::Request->meta;
-    $meta->make_mutable;
-    $meta->add_attribute(
-        'mobile_agent' => (
-            is => 'ro',
-            lazy => 1,
-            default => sub {
-                my $self = shift;
-                HTTP::MobileAgent->new($self->headers);
-            }
-        )
-    );
-    $meta->make_immutable;
-};
-
 1;

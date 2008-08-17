@@ -1,9 +1,11 @@
 package App::Mobirc::Web::Middleware::MobileAgent;
-use Moose;
+use strict;
+use warnings;
+use HTTP::Engine::Request;
 use HTTP::MobileAgent;
 use HTTP::MobileAgent::Plugin::Charset;
 
-sub setup {
+sub import {
     my $meta = HTTP::Engine::Request->meta;
     $meta->make_mutable;
     $meta->add_attribute(

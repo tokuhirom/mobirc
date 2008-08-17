@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use Test::More;
 use App::Mobirc;
-use HTTP::Engine::Compat::Context;
+use t::Utils;
 
 eval "use HTML::StickyQuery::DoCoMoGUID";
 plan skip_all => 'this test needs HTML::StickyQuery::DoCoMoGUID' if $@;
@@ -16,13 +16,13 @@ my $mobirc = App::Mobirc->new(
 );
 $mobirc->load_plugin( {module => 'Authorizer::DoCoMoGUID', config => {docomo_guid => 'foobar.docomo'}} );
 
-ok $mobirc->run_hook_first('authorize', create_req('foobar.docomo')), 'login succeeded';
-ok !$mobirc->run_hook_first('authorize', create_req('invalid_login_id')), 'login failed';
+test_he_filter {
+    my $req = shift;
 
-sub create_req {
-    my $guid = shift;
-    my $c = HTTP::Engine::Compat::Context->new;
-    $c->req->header('x-dcmguid' => $guid);
-    $c->req;
-}
+    $req->header('x-dcmguid' => 'foobar.docomo');
+    ok $mobirc->run_hook_first('authorize', $req), 'login succeeded';
+
+    $req->header('x-dcmguid' => 'invalid_login_id');
+    ok !$mobirc->run_hook_first('authorize', $req), 'login failed';
+};
 
