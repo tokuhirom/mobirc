@@ -2,6 +2,7 @@ use strict;
 use warnings;
 use Test::More tests => 3;
 use App::Mobirc;
+use t::Utils;
 
 my $mobirc = App::Mobirc->new(
     {
@@ -24,8 +25,11 @@ is get('<span class="nick_normal">(miyagawa)</span>'),
   q{<html><body><span class="nick_subtech">(miyagawa)</span></body></html>};
 
 sub get {
-    my $nick = shift;
-    my ($c, $html) = $mobirc->run_hook_filter('html_filter', undef, $nick);
+    my $html = shift;
+    test_he_filter {
+        my $req = shift;
+        ($req, $html) = $mobirc->run_hook_filter('html_filter', $req, $html);
+    };
     $html =~ s/\n$//;
     return $html;
 }

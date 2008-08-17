@@ -4,6 +4,7 @@ use utf8;
 use App::Mobirc;
 use Encode;
 use Test::Base;
+use t::Utils;
 
 my $global_context = App::Mobirc->new(
     {
@@ -18,12 +19,15 @@ filters {
 };
 
 sub convert {
-    my $src = shift;
-    my $c = undef;
-    ok Encode::is_utf8($src);
-    my ($cdst, $htmldst, ) = $global_context->run_hook_filter( 'html_filter', $c, $src );
-    ok Encode::is_utf8($htmldst);
-    $htmldst;
+    my $html = shift;
+    ok Encode::is_utf8($html);
+    test_he_filter {
+        my $req = shift;
+        my $global_context = App::Mobirc->context;
+        ($req, $html, ) = $global_context->run_hook_filter( 'html_filter', $req, $html );
+    };
+    ok Encode::is_utf8($html);
+    $html;
 }
 
 __END__

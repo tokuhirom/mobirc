@@ -3,9 +3,10 @@ package App::Mobirc::Plugin::HTMLFilter::CompressHTML;
 use strict;
 use MooseX::Plaggerize::Plugin;
 use App::Mobirc::Util;
+use App::Mobirc::Validator;
 
 hook html_filter => sub {
-    my ($self, $global_context, $c, $content) = @_;
+    my ($self, $global_context, $req, $content) = validate_hook('html_filter', @_);
 
     my $bsize = length $content;
 
@@ -21,7 +22,7 @@ hook html_filter => sub {
 
     DEBUG "Compress before->$bsize after->$asize $rate% packets->$packets";
 
-    return ( $c, $content);
+    return ( $req, $content);
 };
 
 1;

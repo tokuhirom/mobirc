@@ -3,19 +3,15 @@ use strict;
 use MooseX::Plaggerize::Plugin;
 use HTML::Entities::ConvertPictogramMobileJp qw(convert_pictogram_entities);
 use Params::Validate ':all';
+use App::Mobirc::Validator;
 
 hook html_filter => sub {
-    my ($self, $global_context, $c, $content) = validate_pos(@_,
-        { isa => __PACKAGE__ },
-        { isa => 'App::Mobirc' },
-        { isa => 'HTTP::Engine::Compat::Context' },
-        { type => SCALAR },
-    );
+    my ($self, $global_context, $req, $content) = validate_hook('html_filter', @_);
 
     return (
-        $c,
+        $req,
         convert_pictogram_entities(
-            mobile_agent => $c->req->mobile_agent,
+            mobile_agent => $req->mobile_agent,
             html         => $content,
         )
     );

@@ -8,13 +8,14 @@ use App::Mobirc::Util;
 use Encode;
 use Path::Class;
 use XML::LibXML::XPathContext;
+use App::Mobirc::Validator;
 
 # some code copied from HTML::DoCoMoCSS
 hook 'html_filter' => sub {
-    my ($self, $global_context, $c, $content) = @_;
+    my ($self, $global_context, $req, $content) = validate_hook('html_filter', @_);
 
     DEBUG "FILTER DOCOMO CSS";
-    return ($c, $content) unless $c->req->mobile_agent->is_docomo;
+    return ($req, $content) unless $req->mobile_agent->is_docomo;
 
     # escape Numeric character reference.
     $content =~ s/&#(x[\dA-Fa-f]{4}|\d+);/HTMLCSSINLINERESCAPE$1::::::::/g;
@@ -25,7 +26,7 @@ hook 'html_filter' => sub {
     my $doc = eval { XML::LibXML->new->parse_string($content); };
     if (my $e = $@) {
         warn $e;
-        return ($c, $pict_unescape->());
+        return ($req, $pict_unescape->());
     }
     my $xc               = XML::LibXML::XPathContext->new($doc);
     my $root             = $doc->documentElement();
@@ -53,7 +54,7 @@ hook 'html_filter' => sub {
 
     $content =~ s{(<a[^>]+)/>}{$1></a>}gi;
 
-    return ($c, $pict_unescape->());
+    return ($req, $pict_unescape->());
 };
 
 sub css_text {

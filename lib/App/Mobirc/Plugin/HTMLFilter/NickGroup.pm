@@ -4,6 +4,7 @@ use MooseX::Plaggerize::Plugin;
 use List::Util qw/first/;
 use XML::LibXML;
 use Encode;
+use App::Mobirc::Validator;
 
 has 'map' => (
     is       => 'ro',
@@ -30,12 +31,12 @@ has class_for => (
 );
 
 hook 'html_filter' => sub {
-    my ($self, $global_context, $c, $html) = @_;
+    my ($self, $global_context, $req, $html) = validate_hook('html_filter', @_);
 
     my $doc = eval { XML::LibXML->new->parse_html_string($html); };
     if ($@) {
         warn $@;
-        return ($c, $html);
+        return ($req, $html);
     }
 
     for my $elem ($doc->findnodes(q{//span[@class='nick_normal']})) {
@@ -51,7 +52,7 @@ hook 'html_filter' => sub {
     $html = $doc->toStringHTML();
     $html =~ s{<!DOCTYPE[^>]*>\s*}{};
     $html =~ s{(<a[^>]+)/>}{$1></a>}gi;
-    return ($c, decode($doc->encoding || "UTF-8", $html));
+    return ($req, decode($doc->encoding || "UTF-8", $html));
 };
 
 sub _class {

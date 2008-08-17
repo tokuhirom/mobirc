@@ -2,6 +2,7 @@ use strict;
 use warnings;
 use Test::Base;
 use App::Mobirc;
+use t::Utils;
 
 my $global_context = App::Mobirc->new(
     {
@@ -25,8 +26,10 @@ run {
 
 sub sticky {
     my $html = shift;
-    my $c = undef;
-    ($c, $html) = $global_context->run_hook_filter('html_filter', $c, $html);
+    test_he_filter {
+        my $req = shift;
+        ($req, $html) = $global_context->run_hook_filter('html_filter', $req, $html);
+    };
     return $html;
 }
 

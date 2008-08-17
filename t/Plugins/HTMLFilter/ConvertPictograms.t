@@ -2,11 +2,8 @@ use strict;
 use warnings;
 use App::Mobirc;
 use HTTP::MobileAgent;
-use HTTP::Engine::Compat::Context;
 use Test::Base;
-use HTTP::Engine::Compat middlewares => [
-    '+App::Mobirc::Web::Middleware::MobileAgent'
-];
+use t::Utils;
 
 my $global_context = App::Mobirc->new(
     {
@@ -22,9 +19,11 @@ filters {
 
 sub convert {
     my $x = shift;
-    my $c = HTTP::Engine::Compat::Context->new;
-    $c->req->user_agent( $x->{ua} );
-    ($c, $x->{src}) = $global_context->run_hook_filter( 'html_filter', $c, $x->{src} );
+    test_he_filter {
+        my $req = shift;
+        $req->user_agent($x->{ua});
+        ($req, $x->{src}) = App::Mobirc->context->run_hook_filter( 'html_filter', $req, $x->{src} );
+    };
     return $x->{src};
 }
 

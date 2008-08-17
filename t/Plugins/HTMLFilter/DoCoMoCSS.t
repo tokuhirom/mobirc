@@ -4,13 +4,8 @@ use Test::More tests => 1;
 use HTTP::MobileAgent;
 use App::Mobirc;
 use App::Mobirc::Plugin::HTMLFilter::DoCoMoCSS;
-use HTTP::Engine::Compat::Context;
-use HTTP::Engine::Compat middlewares => [
-    '+App::Mobirc::Web::Middleware::MobileAgent'
-];
+use t::Utils;
 
-my $c = HTTP::Engine::Compat::Context->new;
-$c->req->user_agent('DoCoMo/2.0 P2101V(c100)');
 my $global_context = App::Mobirc->new(
     {
         httpd  => { },
@@ -23,7 +18,11 @@ my $got = <<'...';
 <?xml version="1.0"?>
 <a href="/" class="time">foo</a>
 ...
-($c, $got) = $global_context->run_hook_filter('html_filter', $c, $got);
+test_he_filter {
+    my $req = shift;
+    $req->user_agent('DoCoMo/2.0 P2101V(c100)');
+    ($req, $got) = $global_context->run_hook_filter('html_filter', $req, $got);
+};
 
 my $expected = <<'...';
 <?xml version="1.0"?>

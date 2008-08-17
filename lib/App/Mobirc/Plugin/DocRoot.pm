@@ -43,7 +43,7 @@ hook response_filter => sub {
 };
 
 hook html_filter => sub {
-    my ($self, $global_context, $c, $content, ) = @_;
+    my ($self, $global_context, $req, $content) = validate_hook('html_filter', @_);
 
     DEBUG "FILTER DOCROOT";
     DEBUG "CONTENT IS UTF* : " . Encode::is_utf8($content);
@@ -54,7 +54,7 @@ hook html_filter => sub {
     my $doc = eval { XML::LibXML->new->parse_html_string($content) };
     if ($@) {
         warn "$content, orz.\n $@";
-        return ($c, $content);
+        return ($req, $content);
     }
     for my $elem ($doc->findnodes('//a')) {
         if (my $href = $elem->getAttribute('href')) {
@@ -82,7 +82,7 @@ hook html_filter => sub {
     my $html = $doc->toStringHTML;
     $html =~ s{<!DOCTYPE[^>]*>\s*}{};
 
-    return ($c, decode($doc->encoding || "UTF-8", $html));
+    return ($req, decode($doc->encoding || "UTF-8", $html));
 };
 
 1;

@@ -22,6 +22,12 @@ my $map = {
         { isa => 'App::Mobirc' },
         { isa => 'HTTP::Engine::Request' },
     ],
+    html_filter => [
+        { can => 'register' },
+        { isa => 'App::Mobirc' },
+        { isa => 'HTTP::Engine::Request' },
+        { type => SCALAR },
+    ],
 };
 
 sub validate_hook {

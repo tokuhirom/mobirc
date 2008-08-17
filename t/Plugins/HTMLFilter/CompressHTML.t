@@ -3,6 +3,7 @@ use warnings;
 use App::Mobirc::Plugin::HTMLFilter::CompressHTML;
 use Test::Base;
 use App::Mobirc;
+use t::Utils;
 
 my $global_context = App::Mobirc->new(
     {
@@ -21,7 +22,10 @@ run_is input => 'expected';
 sub compress {
     my $html = shift;
     my $c = undef;
-    ($c, $html) = $global_context->run_hook_filter('html_filter', $c, $html);
+    test_he_filter {
+        my $req = shift;
+        ($req, $html) = $global_context->run_hook_filter('html_filter', $req, $html);
+    };
     $html;
 }
 

@@ -16,12 +16,12 @@ hook response_filter => sub {
 };
 
 hook html_filter => sub {
-    my ($self, $global_context, $c, $content) = @_;
+    my ($self, $global_context, $req, $content) = validate_hook('html_filter', @_);
 
     my $sticky = HTML::StickyQuery->new();
 
     return (
-        $c,
+        $req,
         $sticky->sticky(
             scalarref => \$content,
             param     => { t => time() },

@@ -25,11 +25,11 @@ hook authorize => sub {
 };
 
 hook 'html_filter' => sub {
-    my ($self, $global_context, $c, $content) = @_;
+    my ($self, $global_context, $req, $content) = validate_hook('html_filter', @_);
 
     DEBUG "Filter DoCoMoGUID";
-    return ($c, $content) unless $c->req->mobile_agent->is_docomo;
-    return ($c, HTML::StickyQuery::DoCoMoGUID->new()->sticky( scalarref => \$content, ));
+    return ($req, $content) unless $req->mobile_agent->is_docomo;
+    return ($req, HTML::StickyQuery::DoCoMoGUID->new()->sticky( scalarref => \$content, ));
 };
 
 1;
