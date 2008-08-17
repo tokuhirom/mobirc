@@ -20,7 +20,7 @@ sub handler {
 
     my $res = _handler($c);
     context->run_hook('response_filter', $res);
-    $c->res($res);
+    $c->res($res); # TODO: remove this
 }
 
 sub _handler {
@@ -30,7 +30,7 @@ sub _handler {
     context->run_hook('request_filter', $req);
 
     if (authorize($req)) {
-        return process_request($c);
+        return process_request($req);
     } else {
         HTTP::Engine::Response->new(
             status => 401,
@@ -53,8 +53,7 @@ sub authorize {
 }
 
 sub process_request {
-    my ($c, ) = @_;
-    my $req = $c->req;
+    my ($req, ) = @_;
 
     my $rule = App::Mobirc::Web::Router->match($req);
 
@@ -84,11 +83,9 @@ sub process_request {
     my $get_meth  = "dispatch_$meth";
     my $args = $dve->decode( $req->mobile_agent->encoding, $rule->{args} );
     if ( $req->method =~ /POST/i && $controller->can($post_meth)) {
-        $controller->$post_meth($c, $args);
-        return $c->res;
+        return $controller->$post_meth($req, $args);
     } else {
-        $controller->$get_meth($c, $args);
-        return $c->res;
+        return $controller->$get_meth($req, $args);
     }
 }
 

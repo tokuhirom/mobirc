@@ -5,12 +5,12 @@ use App::Mobirc::Util;
 use Encode;
 
 sub dispatch_index {
-    my ($class, $c) = @_;
+    my ($class, $req) = @_;
 
     render_td(
-        $c,
+        $req,
         'root/index' => (
-            mobile_agent => $c->req->mobile_agent,
+            mobile_agent => $req->mobile_agent,
         )
     );
 }

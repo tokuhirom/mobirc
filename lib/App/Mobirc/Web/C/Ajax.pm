@@ -5,49 +5,54 @@ use App::Mobirc::Util;
 use Encode;
 
 sub dispatch_base {
-    my ($class, $c) = @_;
+    my ($class, $req) = @_;
 
     render_td(
-        $c,
+        $req,
         'ajax/base' => (
-            user_agent => $c->req->user_agent,
+            user_agent => $req->user_agent,
             docroot    => (App::Mobirc->context->{config}->{httpd}->{root} || '/'),
         )
     );
 }
 
 sub dispatch_channel {
-    my ($class, $c,) = @_;
-    my $channel_name = $c->req->params->{channel};
+    my ($class, $req,) = @_;
+    my $channel_name = $req->params->{channel};
 
     my $channel = server->get_channel($channel_name);
-    render_td(
-        $c,
+    my $res = render_td(
+        $req,
         'ajax/channel' => (
             channel  => $channel,
             irc_nick => irc_nick,
         )
     );
     $channel->clear_unread();
+    return $res;
 }
 
 sub post_dispatch_channel {
-    my ( $class, $c, ) = @_;
-    my $channel = $c->req->params->{channel};
-    my $message = $c->req->parameters->{'msg'};
+    my ( $class, $req, ) = @_;
+    my $channel = $req->params->{channel};
+    my $message = $req->parameters->{'msg'};
 
     DEBUG "POST MESSAGE $message";
 
     server->get_channel($channel)->post_command($message);
 
-    $c->res->body('ok');
+    HTTP::Engine::Response->new(
+        status       => 200,
+        content_type => 'text/plain',
+        body         => 'ok',
+    );
 }
 
 sub dispatch_menu {
-    my ($class, $c ) = @_;
+    my ($class, $req) = @_;
 
     render_td(
-        $c,
+        $req,
         'ajax/menu' => (
             server             => server,
             keyword_recent_num => server->keyword_channel->unread_lines,
@@ -56,16 +61,17 @@ sub dispatch_menu {
 }
 
 sub dispatch_keyword {
-    my ($class, $c ) = @_;
+    my ($class, $req ) = @_;
 
-    render_td(
-        $c,
+    my $res = render_td(
+        $req,
         'ajax/keyword' => {
             logs     => scalar(server->keyword_channel->message_log),
             irc_nick => irc_nick,
         }
     );
     server->keyword_channel->clear_unread();
+    $res;
 }
 
 1;

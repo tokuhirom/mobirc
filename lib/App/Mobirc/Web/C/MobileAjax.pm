@@ -7,12 +7,12 @@ use JSON qw/to_json/;
 use URI::Escape qw/uri_escape/;
 
 sub dispatch_index {
-    my ($class, $c) = @_;
+    my ($class, $req) = @_;
 
     render_td(
-        $c,
+        $req,
         'mobile-ajax/index' => (
-            mobile_agent => $c->req->mobile_agent,
+            mobile_agent => $req->mobile_agent,
             docroot =>
               ( App::Mobirc->context->{config}->{httpd}->{root} || '/' ),
             channels => [ server->channels ],
@@ -21,12 +21,13 @@ sub dispatch_index {
 }
 
 sub dispatch_channel {
-    my ($class, $c) = @_;
-    my $channel_name = $c->req->query_params->{channel} or die 'missing channel name';
+    my ($class, $req) = @_;
+    my $channel_name = $req->query_params->{channel} or die 'missing channel name';
     my $channel = server->get_channel($channel_name);
 
+    my $body;
     if (@{$channel->message_log}) {
-        my $meth = $c->req->query_params->{recent} ? 'recent_log' : 'message_log';
+        my $meth = $req->query_params->{recent} ? 'recent_log' : 'message_log';
         my $json = to_json(
             [
                 map {
@@ -34,22 +35,31 @@ sub dispatch_channel {
                   } reverse $channel->$meth
             ]
         );
-        $c->res->body( encode($c->req->mobile_agent->encoding, "Mobirc.callbackChannel($json);" ) );
+        $body = encode($req->mobile_agent->encoding, "Mobirc.callbackChannel($json);" );
 
         $channel->clear_unread();
     } else {
-        $c->res->body('');
+        $body = '';
     }
+    HTTP::Engine::Response->new(
+        status       => 200,
+        content_type => 'text/plain; charset=UTF-8',
+        body         => $body,
+    );
 }
 
 sub post_dispatch_channel {
-    my ( $class, $c, $args) = @_;
-    my $channel = $c->req->params->{'channel'};
-    my $message = $c->req->params->{'msg'};
+    my ( $class, $req, $args) = @_;
+    my $channel = $req->params->{'channel'};
+    my $message = $req->params->{'msg'};
 
     context->get_channel($channel)->post_command($message);
 
-    $c->res->body('ok');
+    HTTP::Engine::Response->new(
+        status       => 200,
+        content_type => 'text/plain; charset=UTF-8',
+        body         => 'ok',
+    );
 }
 
 #   sub dispatch_recent {

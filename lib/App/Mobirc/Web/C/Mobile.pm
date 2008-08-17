@@ -8,13 +8,13 @@ use Encode::JP::Mobile;
 use MIME::Base64::URLSafe qw(urlsafe_b64decode);
 
 sub dispatch_index {
-    my ($class, $c) = @_;
+    my ($class, $req) = @_;
 
     return render_td(
-        $c,
+        $req,
         'mobile/top' => {
             exists_recent_entries => scalar( grep { $_->unread_lines } server->channels ),
-            mobile_agent       => $c->req->mobile_agent,
+            mobile_agent       => $req->mobile_agent,
             keyword_recent_num => server->keyword_channel->unread_lines(),
             channels           => scalar( server->channels_sorted ),
         }
@@ -23,7 +23,7 @@ sub dispatch_index {
 
 # recent messages on every channel
 sub dispatch_recent {
-    my ($class, $c) = @_;
+    my ($class, $req) = @_;
 
     my @target_channels;
     my $log_counter   = 0;
@@ -42,13 +42,13 @@ sub dispatch_recent {
         }
     }
 
-    my $out = render_td(
-        $c,
+    my $res = render_td(
+        $req,
         'mobile/recent' => {
             channels      => \@target_channels,
             has_next_page => $has_next_page,
             irc_nick      => irc_nick,
-            mobile_agent  => $c->req->mobile_agent,
+            mobile_agent  => $req->mobile_agent,
         },
     );
 
@@ -57,29 +57,34 @@ sub dispatch_recent {
         $channel->clear_unread;
     }
 
-    return $out;
+    return $res;
 }
 
     # SHOULD USE http://example.com/ INSTEAD OF http://example.com:portnumber/
     # because au phone returns '400 Bad Request' when redrirect to http://example.com:portnumber/
 sub dispatch_clear_all_unread {
-    my ($class, $c) = @_;
+    my ($class, $req) = @_;
 
     for my $channel (server->channels) {
         $channel->clear_unread;
     }
 
-    $c->res->redirect('/mobile/');
+    HTTP::Engine::Response->new(
+        status   => 302,
+        headers  => HTTP::Headers->new(
+            Location => '/mobile/',
+        ),
+    );
 }
 
 # topic on every channel
 sub dispatch_topics {
-    my ($class, $c) = @_;
+    my ($class, $req) = @_;
 
     render_td(
-        $c => (
+        $req => (
             'mobile/topics' => {
-                mobile_agent => $c->req->mobile_agent,
+                mobile_agent => $req->mobile_agent,
                 channels     => scalar( server->channels ),
             }
         )
@@ -87,16 +92,16 @@ sub dispatch_topics {
 }
 
 sub dispatch_keyword {
-    my ($class, $c, ) = @_;
+    my ($class, $req, ) = @_;
 
     my $channel = server->keyword_channel;
 
-    render_td(
-        $c,
+    my $res = render_td(
+        $req,
         'mobile/keyword' => {
-            mobile_agent => $c->req->mobile_agent,
+            mobile_agent => $req->mobile_agent,
             rows         => (
-                  $c->req->params->{recent_mode}
+                  $req->params->{recent_mode}
                 ? scalar($channel->recent_log)
                 : scalar($channel->message_log)
             ),
@@ -105,6 +110,8 @@ sub dispatch_keyword {
     );
 
     $channel->clear_unread;
+
+    return $res;
 }
 
 sub decode_urlsafe_encoded {
@@ -113,41 +120,47 @@ sub decode_urlsafe_encoded {
 }
 
 sub dispatch_channel {
-    my ($class, $c, $args, ) = @_;
+    my ($class, $req, $args, ) = @_;
 
-    my $channel_name = decode_urlsafe_encoded $c->req->params->{channel};
+    my $channel_name = decode_urlsafe_encoded $req->params->{channel};
     DEBUG "show channel page: $channel_name";
 
     my $channel = context->get_channel($channel_name);
 
-    render_td(
-        $c,
+    my $res = render_td(
+        $req,
         'mobile/channel' => {
-            mobile_agent        => $c->req->mobile_agent,
+            mobile_agent        => $req->mobile_agent,
             channel             => $channel,
-            recent_mode         => $c->req->params->{recent_mode} || undef,
-            message             => $c->req->params->{'msg'} || '',
-            channel_page_option => context->run_hook('channel_page_option', $channel, $c) || [],
+            recent_mode         => $req->params->{recent_mode} || undef,
+            message             => $req->params->{'msg'} || '',
+            channel_page_option => context->run_hook('channel_page_option', $channel) || [],
             irc_nick            => irc_nick,
         }
     );
 
     $channel->clear_unread;
+
+    return $res;
 }
 
 sub post_dispatch_channel {
-    my ( $class, $c, $args) = @_;
+    my ( $class, $req, $args) = @_;
 
-    my $channel_name = decode_urlsafe_encoded $c->req->params->{channel};
-
-    my $message = $c->req->params->{'msg'};
+    my $channel_name = decode_urlsafe_encoded $req->params->{channel};
+    my $message = $req->params->{'msg'};
 
     DEBUG "POST MESSAGE $message";
 
     my $channel = context->get_channel($channel_name);
     $channel->post_command($message);
 
-    $c->res->redirect( $c->req->uri->path . "?channel=" . $channel->name_urlsafe_encoded);
+    HTTP::Engine::Response->new(
+        status => 302,
+        headers => HTTP::Headers->new(
+            Location => $req->uri->path . "?channel=" . $channel->name_urlsafe_encoded,
+        ),
+    );
 }
 
 1;

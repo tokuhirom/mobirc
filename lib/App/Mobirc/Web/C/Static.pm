@@ -5,14 +5,17 @@ use App::Mobirc::Util;
 use Path::Class;
 
 sub dispatch_deliver {
-    my ($class, $c, $args) = @_;
+    my ($class, $req, $args) = @_;
     my $path = $args->{filename};
     die "invalid path: $path" unless $path =~ m{^[a-z0-9-]+\.(?:css|js)$};
 
     my $file = file(context->config->{global}->{assets_dir}, 'static', $path);
 
-    $c->res->content_type( $path =~ /\.css$/ ? 'text/css' : 'text/javascript' );
-    $c->res->body( $file->openr );
+    HTTP::Engine::Response->new(
+        status       => 200,
+        content_type => ($path =~ /\.css$/ ? 'text/css' : 'text/javascript' ),
+        body         => $file->openr(),
+    );
 }
 
 1;
