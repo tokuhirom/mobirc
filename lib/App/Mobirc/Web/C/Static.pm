@@ -14,7 +14,8 @@ sub dispatch_deliver {
     HTTP::Engine::Response->new(
         status       => 200,
         content_type => ($path =~ /\.css$/ ? 'text/css' : 'text/javascript' ),
-        body         => $file->openr(),
+        # body         => $file->openr(), # FIXME: this code doesn't works!
+        body         => scalar($file->slurp()),
     );
 }
 
