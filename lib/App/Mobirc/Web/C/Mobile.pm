@@ -156,10 +156,10 @@ sub post_dispatch_channel {
     $channel->post_command($message);
 
     HTTP::Engine::Response->new(
-        status => 302,
-        headers => HTTP::Headers->new(
+        status  => 302,
+        headers => {
             Location => $req->uri->path . "?channel=" . $channel->name_urlsafe_encoded,
-        ),
+        },
     );
 }
 
