@@ -5,7 +5,7 @@ all_from 'lib/App/Mobirc.pm';
 license  'gpl';
 
 # moooooose
-requires 'Moose'               => '0.54';
+requires 'Moose'               => '0.55';
 requires 'MooseX::Plaggerize'  => '0.03';
 
 # http-engine
