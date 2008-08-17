@@ -13,18 +13,18 @@ has root => (
 );
 
 hook request_filter => sub {
-    my ($self, $global_context, $c) = validate_pos(@_,
+    my ($self, $global_context, $req) = validate_pos(@_,
         { isa => __PACKAGE__ },
         { isa => 'App::Mobirc' },
-        { isa => 'HTTP::Engine::Compat::Context' },
+        { isa => 'HTTP::Engine::Request' },
     );
 
     my $root = $self->root;
     $root =~ s!/$!!;
 
-    my $path = $c->req->uri->path;
+    my $path = $req->uri->path;
     $path =~ s!^$root!!;
-    $c->req->uri->path($path);
+    $req->uri->path($path);
 };
 
 hook response_filter => sub {

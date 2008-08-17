@@ -18,14 +18,27 @@ sub context () { App::Mobirc->context } ## no critic
 sub handler {
     my $c = shift;
 
-    context->run_hook('request_filter', $c);
+    my $res = _handler($c);
+    $c->res($res);
+}
+
+sub _handler {
+    my $c = shift;
+    my $req = $c->req;
+
+    context->run_hook('request_filter', $req);
 
     if (authorize($c)) {
         process_request($c);
         context->run_hook('response_filter', $c);
+        return $c->res;
     } else {
-        $c->res->status(401);
-        $c->res->header('WWW-Authenticate' => qq(Basic Realm="mobirc"));
+        HTTP::Engine::Response->new(
+            status => 401,
+            headers => HTTP::Headers->new(
+                'WWW-Authenticate' => qq{Basic Realm="mobirc"}
+            ),
+        );
     }
 }
 
