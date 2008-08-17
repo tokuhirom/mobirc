@@ -22,12 +22,11 @@ sub render_td {
         $out = encode( $req->mobile_agent->encoding, $out);
     }->();
 
-    my $res = HTTP::Engine::Response->new(
+    HTTP::Engine::Response->new(
         status       => 200,
         content_type => _content_type($req),
         body         => $html,
     );
-    return $res;
 }
 
 sub _content_type {
