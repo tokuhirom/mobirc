@@ -5,7 +5,7 @@ use Test::Base;
 use App::Mobirc::Plugin::GPS::InvGeocoder::Nishioka;
 use Geo::Coordinates::Converter;
 
-plan skip_all => 'env{run_nishioka} doesnt set' unless $ENV{RUN_NISHIOKA};
+plan skip_all => 'env{RUN_NISHIOKA} doesnt set' unless $ENV{RUN_NISHIOKA};
 plan tests => 1*blocks;
 
 filters {
