@@ -17,6 +17,11 @@ my $map = {
         { isa => 'App::Mobirc' },
         { isa => 'HTTP::Engine::Response' },
     ],
+    request_filter => [
+        { can => 'register' },
+        { isa => 'App::Mobirc' },
+        { isa => 'HTTP::Engine::Request' },
+    ],
     httpd => [
         { can => 'register' },
         { isa => 'App::Mobirc' },
