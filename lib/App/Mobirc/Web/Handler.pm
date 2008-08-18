@@ -16,11 +16,11 @@ my $dve = Data::Visitor::Encode->new;
 sub context () { App::Mobirc->context } ## no critic
 
 sub handler {
-    my $c = shift;
+    my $req = shift;
 
-    my $res = _handler($c->req);
+    my $res = _handler($req);
     context->run_hook('response_filter', $res);
-    $c->res($res); # TODO: remove this
+    $res;
 }
 
 sub _handler {
