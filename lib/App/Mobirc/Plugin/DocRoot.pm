@@ -14,11 +14,7 @@ has root => (
 );
 
 hook request_filter => sub {
-    my ($self, $global_context, $req) = validate_pos(@_,
-        { isa => __PACKAGE__ },
-        { isa => 'App::Mobirc' },
-        { isa => 'HTTP::Engine::Request' },
-    );
+    my ($self, $global_context, $req) = validate_hook('response_filter', @_);
 
     my $root = $self->root;
     $root =~ s!/$!!;
