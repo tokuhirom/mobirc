@@ -14,7 +14,7 @@ has root => (
 );
 
 hook request_filter => sub {
-    my ($self, $global_context, $req) = validate_hook('response_filter', @_);
+    my ($self, $global_context, $req) = validate_hook('request_filter', @_);
 
     my $root = $self->root;
     $root =~ s!/$!!;
@@ -27,14 +27,16 @@ hook request_filter => sub {
 hook response_filter => sub {
     my ($self, $global_context, $res) = validate_hook('response_filter', @_);
 
-    if ($res->redirect) {
-        DEBUG "REWRITE REDIRECT : " . $res->redirect;
+    if (my $loc = $res->header('Location')) {
+        DEBUG "REWRITE REDIRECT : $loc";
 
         my $root = $self->root;
         $root =~ s!/$!!;
-        $res->redirect( $root . $res->redirect );
+        $loc = "$root$loc";
 
-        DEBUG "FINISHED: " . $res->redirect;
+        $res->header( Location => $loc );
+
+        DEBUG "FINISHED: $loc";
     }
 };
 

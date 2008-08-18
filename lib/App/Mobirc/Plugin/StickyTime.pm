@@ -8,10 +8,10 @@ use App::Mobirc::Validator;
 hook response_filter => sub {
     my ($self, $global_context, $res) = validate_hook('response_filter', @_);
 
-    if ($res->redirect) {
-        my $uri  = URI->new($res->redirect);
+    if (my $loc = $res->header('Location')) {
+        my $uri  = URI->new($loc);
         $uri->query_form( $uri->query_form, t => time() );
-        return $res->redirect( $uri->as_string );
+        return $res->header( Location => $uri->as_string );
     }
 };
 
