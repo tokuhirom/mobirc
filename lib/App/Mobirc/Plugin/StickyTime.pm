@@ -9,9 +9,9 @@ hook response_filter => sub {
     my ($self, $global_context, $res) = validate_hook('response_filter', @_);
 
     if (my $loc = $res->header('Location')) {
-        my $uri  = URI->new($loc);
-        $uri->query_form( $uri->query_form, t => time() );
-        return $res->header( Location => $uri->as_string );
+        my $joinner = ($loc =~ /\?/) ? '&' : '?';
+        $loc = $loc . $joinner . "t=@{[ time() ]}";
+        return $res->header( Location => $loc );
     }
 };
 
