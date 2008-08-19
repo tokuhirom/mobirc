@@ -70,6 +70,7 @@ hook httpd => sub {
 
     if ($req->path =~ m{^/channel/([^/]+)/gps_do$}) {
         my $channel_name = uri_unescape $1;
+        my $channel = $global_context->server->get_channel($channel_name);
         my $inv_geocoder = $self->inv_geocoder;
 
         my $point = $req->mobile_agent->get_location( $req->query_params );
@@ -78,7 +79,7 @@ hook httpd => sub {
         my $msg = "App::Mobirc::Plugin::GPS::InvGeocoder::$inv_geocoder"->inv_geocoder($point);
            $msg = uri_escape encode($req->mobile_agent->encoding, $msg);
 
-        my $redirect = tt "/channels/[% channel_name | uri %]?msg=L:[% msg %]";
+        my $redirect = sprintf('/mobile/channel?channel=%s&msg=%s', $channel->name_urlsafe_encoded, $msg);
         return HTTP::Engine::Response->new(
             status  => 302,
             headers => HTTP::Headers->new( Location => $redirect )
