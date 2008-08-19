@@ -5,7 +5,7 @@ use Test::Base;
 use App::Mobirc::Plugin::GPS::InvGeocoder::EkiData;
 use Geo::Coordinates::Converter;
 
-plan tests => 1*blocks;
+plan tests => 2*blocks;
 
 filters {
     input => [qw/yaml point inv_geocoder/],
@@ -19,7 +19,9 @@ sub point {
 
 sub inv_geocoder {
     my $point = shift;
-    App::Mobirc::Plugin::GPS::InvGeocoder::EkiData->inv_geocoder($point);
+    my $pos = App::Mobirc::Plugin::GPS::InvGeocoder::EkiData->inv_geocoder($point);
+    ok Encode::is_utf8($pos);
+    $pos;
 }
 
 run_is input => 'expected';
