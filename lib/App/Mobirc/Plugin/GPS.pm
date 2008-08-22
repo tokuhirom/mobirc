@@ -69,7 +69,7 @@ hook httpd => sub {
     my ( $self, $global_context, $req ) = validate_hook('httpd', @_);
 
     if ($req->path =~ m{^/channel/([^/]+)/gps_do$}) {
-        my $channel_name = uri_unescape $1;
+        my $channel_name = decode_utf8 uri_unescape $1;
         my $channel = $global_context->server->get_channel($channel_name);
         my $inv_geocoder = $self->inv_geocoder;
 
