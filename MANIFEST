@@ -104,6 +104,7 @@ t/Plugins/MessageBodyFilter/decorate-irc-color.t
 t/Plugins/MessageBodyFilter/no-decorate-irc-color.t
 t/Plugins/StickyTime.t
 t/Role/Context.t
+t/Utils.pm
 t/Web/Router.t
 t/Web/Template/Ajax/base.t
 t/Web/Template/Ajax/channel.t

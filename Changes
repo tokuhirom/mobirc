@@ -1,3 +1,8 @@
+1.04
+
+    - no Compat
+    - use HTTP::Engine::Compat 1.04
+
 1.03
 
     - rebirth recent_log_per_page(by hirose31++)
