@@ -26,6 +26,6 @@ test_he_filter {
     my $res = $mobirc->run_hook_first('httpd', $req);
     ok $res;
     is $res->status, 302;
-    is $res->header('Location'), '/channels/%23coderepos?msg=L:Lat%3A%2035.21.03.342%2C%20Lng%3A%20138.34.45.725';
+    is $res->header('Location'), '/mobile/channel?channel=I2NvZGVyZXBvcw&msg=Lat%3A%2035.21.03.342%2C%20Lng%3A%20138.34.45.725';
 };
 
