@@ -11,6 +11,7 @@ use POE::Filter::IRC::Compat;
     # HACK HACK HACK
     # POE::Filter::IRC::Compat->get_one returns undef when invalid CTCP request.
     # POE::Filter::Stackable dies when get the undef!
+    # see also http://rt.cpan.org/Ticket/Display.html?id=38773
     my $meta = Class::MOP::Class->initialize('POE::Filter::IRC::Compat') or die "cannot get meta class of the POE::Filter::IRC::Compat";
     $meta->add_around_method_modifier('get_one', sub {
         my ($next, @args) = @_;
