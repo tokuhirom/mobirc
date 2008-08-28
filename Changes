@@ -1,7 +1,14 @@
+1.05
+
+    - use HTTP::Engine
+    - depended to POE::Component::IRC 5.86
+    - quick & dirty bug fix for
+      http://rt.cpan.org/Ticket/Display.html?id=38773
+
 1.04
 
     - no Compat
-    - use HTTP::Engine::Compat 1.04
+    - use HTTP::Engine 0.0.14
 
 1.03
 
