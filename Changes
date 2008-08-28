@@ -1,3 +1,11 @@
+1.06
+
+    - bump up deps to PoCoIRC 5.88
+      remove quick & dirty hack for
+      http://rt.cpan.org/Ticket/Display.html?id=38773
+      because this bug fixed at PoCoIRC 5.88
+      Bingos++ # fast response
+
 1.05
 
     - use HTTP::Engine
