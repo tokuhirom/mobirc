@@ -14,7 +14,7 @@ requires 'HTTP::Engine'         => '0.0.14'; # TODO: depend to recent version
 # poe
 requires 'POE'                         => '1.003';
 requires 'POE::Sugar::Args'            => '1.3';
-requires 'POE::Component::IRC'         => '5.58';
+requires 'POE::Component::IRC'         => '5.86';
 
 # mobile stuff
 requires 'Encode::JP::Mobile'                       => '0.25';
