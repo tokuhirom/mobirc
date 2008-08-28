@@ -4,22 +4,8 @@ use MooseX::Plaggerize::Plugin;
 
 use POE;
 use POE::Sugar::Args;
-use POE::Component::IRC;
+use POE::Component::IRC 5.88;
 use POE::Filter::IRC::Compat;
-
-{
-    # HACK HACK HACK
-    # POE::Filter::IRC::Compat->get_one returns undef when invalid CTCP request.
-    # POE::Filter::Stackable dies when get the undef!
-    # see also http://rt.cpan.org/Ticket/Display.html?id=38773
-    my $meta = Class::MOP::Class->initialize('POE::Filter::IRC::Compat') or die "cannot get meta class of the POE::Filter::IRC::Compat";
-    $meta->add_around_method_modifier('get_one', sub {
-        my ($next, @args) = @_;
-        my $result = $next->(@args);
-        $result ? $result : [];
-    });
-    $meta->make_immutable;
-}
 
 use Encode;
 use Carp;
