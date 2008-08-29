@@ -24,7 +24,7 @@ has screenname => (
     is      => 'ro',
     isa     => 'Str',
     lazy    => 1,
-    default => { shift->username },
+    default => sub { shift->username },
 );
 
 has username => (
@@ -63,7 +63,7 @@ hook 'process_command' => sub {
 };
 
 hook 'run_component' => sub {
-    my ( $sself $global_context ) = @_;
+    my ( $self, $global_context ) = @_;
 
     my $twitter = POE::Component::Client::Twitter->spawn( %{ $self } );
 
@@ -106,6 +106,7 @@ hook 'run_component' => sub {
     );
 };
 
+no Moose; __PACKAGE__->meta->make_immutable;
 1;
 __END__
 
