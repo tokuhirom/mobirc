@@ -41,4 +41,5 @@ hook run_component => sub {
     $global_context->load_plugin('StickyTime');
 };
 
+no Moose; __PACKAGE__->meta->make_immutable;
 1;
