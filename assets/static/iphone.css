@@ -58,19 +58,29 @@ body {
 form {
 	margin: 0;
 	text-align: center;
-	padding: .5em 0;
+	padding: .5em;
 	border-top: 1px solid #FFF;
 	border-bottom: 1px solid #8499AE;
 }
 
-form input[type="text"] {
-	width: 70%;
-	height: 2em;
+form:after {
+	height: 0;
+	visibility: hidden;
+	content: ".";
+	display: block;
+	clear: both;
 }
 
-form input[type="button"] {
-	width: 20%;
+form textarea {
+	float: left;
+	width: 75%;
 	height: 2.5em;
+}
+
+form input {
+	float: right;
+	width: 20%;
+	height: 3em;
 }
 
 #contents {

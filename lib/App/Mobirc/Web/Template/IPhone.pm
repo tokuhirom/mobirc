@@ -42,8 +42,8 @@ template 'iphone/base' => sub {
                     div { id is 'menu' }
                     form {
                         onsubmit is 'return false';
-                        input { attr { type => 'text', id => 'msg', name => 'msg', size => 30 } };
-                        input { attr { type => 'button', value => 'send', onclick => 'send_message();' } };
+                        textarea { attr { id => 'msg', name => 'msg', onfocus => "clearInterval(load_menu_timer);clearInterval(load_url_timer);", onblur => "lmt();lut();" } };
+                        input { attr { type => 'button', value => 'send', onclick => "send_message();" } };
                     }
                     div { id is 'contents' }
                 }

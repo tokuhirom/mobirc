@@ -1,6 +1,8 @@
 function ts() { return (new Date()).getTime(); }
 
 var load_url;
+var load_menu_timer;
+var load_url_timer;
 
 function contents_load(url) {
     var joinner = (url.indexOf('?') == -1) ? '?' : '&';
@@ -12,17 +14,13 @@ function contents_load(url) {
         }
     );
     load_url = url;
-//    $('#msg').focus();
 }
 
 function send_message() {
     $.post(load_url, {"msg":($('#msg').get())[0].value}, function (html) {
         setTimeout( function () { if (load_url) { contents_load(load_url) } }, 1*1000 );
 
-//        $('#contents br:last').focus();
-
         $('#msg').val('');
-        $('#msg').focus();
     });
 }
 
@@ -48,13 +46,10 @@ function load_menu () {
 
 // onload
 $(function () {
-    $('#msg').focus();
-
-    (function () {
-        load_menu();
-        setInterval(load_menu, 4*1000);
-    })();
-
-    setInterval(function(){ if(load_url){ contents_load(load_url); } }, 5*1000);
+    load_menu();
 });
 
+function lmt() { load_menu_timer = setInterval(load_menu, 11*1000); };
+function lut() { load_url_timer = setInterval(function(){ if(load_url){ contents_load(load_url); } }, 10*1000); };
+lmt();
+lut();
