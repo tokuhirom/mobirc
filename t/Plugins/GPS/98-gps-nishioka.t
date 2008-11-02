@@ -2,7 +2,8 @@ use strict;
 use warnings;
 use utf8;
 use Test::Base;
-use App::Mobirc::Plugin::GPS::InvGeocoder::Nishioka;
+plan skip_all => 'this test requires XML::Simple' unless eval 'use XML::Simple';
+require App::Mobirc::Plugin::GPS::InvGeocoder::Nishioka;
 use Geo::Coordinates::Converter;
 
 plan skip_all => 'env{RUN_NISHIOKA} doesnt set' unless $ENV{RUN_NISHIOKA};

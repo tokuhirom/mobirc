@@ -1,6 +1,8 @@
 use strict;
 use warnings;
-use Test::More tests => 3;
+use Test::More;
+plan skip_all => 'this test requires XML::LibXML' unless eval 'use XML::LibXML';
+plan tests => 3;
 use App::Mobirc;
 use t::Utils;
 

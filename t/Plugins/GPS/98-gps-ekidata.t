@@ -2,7 +2,8 @@ use strict;
 use warnings;
 use utf8;
 use Test::Base;
-use App::Mobirc::Plugin::GPS::InvGeocoder::EkiData;
+plan skip_all => 'this test requires XML:Simple' unless eval "use XML::Simple";
+require App::Mobirc::Plugin::GPS::InvGeocoder::EkiData;
 use Geo::Coordinates::Converter;
 
 plan tests => 2*blocks;
