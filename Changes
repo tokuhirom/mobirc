@@ -1,3 +1,10 @@
+1.07
+
+    - change authentication flow
+    - use HTTP::Session
+    - Plugin::Component::Twitter: deprecated
+    - better iphone mode(retlet++)
+
 1.06
 
     - bump up deps to PoCoIRC 5.88
