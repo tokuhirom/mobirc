@@ -37,8 +37,10 @@ template 'account/login' => sub {
     );
 
     show 'wrapper', $args{mobile_agent}, sub {
-        if ($args{req}->params->{invalid_password}) {
-            div { attr { style => 'color: red' }, 'invalid password' };
+        for my $key (qw/password cidr mobileid/) {
+            if ($args{req}->params->{"invalid_${key}"}) {
+                div { attr { style => 'color: red' }, "invalid $key" };
+            }
         }
         h1 { 'login with mobile id' };
         form {

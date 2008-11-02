@@ -38,11 +38,15 @@ sub post_dispatch_login_mobileid {
     die "missing password in config.global.mobileid" unless $conf->{global}->{mobileid};
     my $ma = HTTP::MobileAttribute->new($req->headers);
     if ($ma->can('user_id') && (my $user_id = $ma->user_id)) {
-        if ($user_id eq $conf->{global}->{mobileid} && $ma->isa_cidr($req->address)) {
-            $args->{session}->set('authorized', 1);
-            return redirect('/');
+        if ($user_id eq $conf->{global}->{mobileid}) {
+            if ($ma->isa_cidr($req->address)) {
+                $args->{session}->set('authorized', 1);
+                return redirect('/');
+            } else {
+                return redirect('/account/login?invalid_cidr=1');
+            }
         } else {
-            return redirect('/account/login?invalid_password=1');
+            return redirect('/account/login?invalid_mobileid=1');
         }
     } else {
         return redirect('/account/login');
