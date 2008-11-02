@@ -41,6 +41,8 @@ my $schema = {
             name    => 'global',
             type    => 'map',
             mapping => {
+                password   => { type => 'str', },
+                mobileid   => { type => 'str', },
                 pid_fname  => { type => 'str', },
                 assets_dir => { type => 'str', },
                 keywords   => {
