@@ -48,6 +48,11 @@ template 'root/index' => sub {
                         a { href is '/iphone/'; 'iphone' };
                     };
                 };
+                form {
+                    method is 'post';
+                    action is '/account/logout';
+                    input { type is 'submit'; value is 'logout' };
+                };
             };
 
             hr { };

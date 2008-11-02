@@ -11,6 +11,9 @@ requires 'MooseX::Plaggerize'  => '0.03';
 # http-engine
 requires 'HTTP::Engine'         => '0.0.15';
 
+# session
+requires 'HTTP::Session'        => '0.07';
+
 # poe
 requires 'POE'                         => '1.003';
 requires 'POE::Sugar::Args'            => '1.3';

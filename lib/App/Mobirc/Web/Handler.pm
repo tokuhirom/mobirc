@@ -4,6 +4,11 @@ use Scalar::Util qw/blessed/;
 use Data::Visitor::Encode;
 use HTTP::MobileAgent;
 use HTTP::MobileAgent::Plugin::Charset;
+use HTTP::Session;
+use HTTP::Session::Store::OnMemory;
+use HTTP::Session::State::Cookie;
+use HTTP::Session::State::GUID;
+use HTTP::Session::State::MobileAttributeID;
 use Module::Find;
 
 use App::Mobirc;
@@ -11,33 +16,56 @@ use App::Mobirc::Util;
 use App::Mobirc::Web::Router;
 useall 'App::Mobirc::Web::C';
 
-my $dve = Data::Visitor::Encode->new;
+my $session_store = HTTP::Session::Store::OnMemory->new(data => {});
 
 sub context () { App::Mobirc->context } ## no critic
 
 sub handler {
     my $req = shift;
 
-    my $res = _handler($req);
+    my $session = _create_session($req);
+    my $res = _handler($req, $session);
     context->run_hook('response_filter', $res);
+    $session->response_filter( $res );
     $res;
 }
 
 sub _handler {
-    my $req = shift;
+    my ($req, $session) = @_;
 
     context->run_hook('request_filter', $req);
 
-    if (authorize($req)) {
-        return process_request($req);
+    if ($session->get('authorized')) {
+        return process_request_authorized($req, $session);
     } else {
-        HTTP::Engine::Response->new(
-            status => 401,
-            headers => HTTP::Headers->new(
-                'WWW-Authenticate' => qq{Basic Realm="mobirc"}
-            ),
-        );
+        return process_request_noauth($req, $session);
     }
+}
+
+sub _create_session {
+    my $req = shift;
+    my $conf = context->config->{global}->{session};
+    my $ma = HTTP::MobileAttribute->new($req->headers);
+    HTTP::Session->new(
+        store   => $session_store,
+        state   => sub {
+            if ($ma->is_docomo) {
+                HTTP::Session::State::GUID->new(
+                    mobile_attribute => $ma,
+                );
+            } elsif ($ma->can('user_id') && $ma->user_id) {
+                HTTP::Session::State::MobileAttributeID->new(
+                    mobile_attribute => $ma,
+                );
+            } else {
+                HTTP::Session::State::Cookie->new(
+                    name    => 'mobirc_sid',
+                    expires => '+1y',
+                )
+            }
+        }->(),
+        request => $req,
+    );
 }
 
 sub authorize {
@@ -51,12 +79,12 @@ sub authorize {
     }
 }
 
-sub process_request {
-    my ($req, ) = @_;
+sub process_request_authorized {
+    my ($req, $session) = @_;
 
-    my $rule = App::Mobirc::Web::Router->match($req);
-
-    unless ($rule) {
+    if (my $rule = App::Mobirc::Web::Router->match($req)) {
+        return do_dispatch($rule, $req, $session);
+    } else {
         # hook by plugins
         if (my $res = context->run_hook_first( 'httpd', $req )) {
             # XXX we should use html filter?
@@ -64,28 +92,53 @@ sub process_request {
         }
 
         # doesn't match.
-        do {
-            my $uri = $req->uri->path;
-            warn "dan the 404 not found: $uri" if $uri ne '/favicon.ico';
-
-            return HTTP::Engine::Response->new(
-                status => 404,
-                body   => "404 not found: $uri",
-            );
-        };
+        return res_404($req);
     }
+}
 
+sub process_request_noauth {
+    my ($req, $session) = @_;
+
+    if (my $rule = App::Mobirc::Web::Router->match($req)) {
+        if ($rule->{controller} eq 'Account') {
+            return do_dispatch($rule, $req, $session);
+        } else {
+            return HTTP::Engine::Response->new(
+                status => 302,
+                headers => {
+                    Location => '/account/login'
+                }
+            );
+        }
+    } else {
+        return res_404($req);
+    }
+}
+
+sub do_dispatch {
+    my ($rule, $req, $session) = @_;
     my $controller = "App::Mobirc::Web::C::$rule->{controller}";
-
     my $meth = $rule->{action};
     my $post_meth = "post_dispatch_$meth";
     my $get_meth  = "dispatch_$meth";
-    my $args = $dve->decode( $req->mobile_agent->encoding, $rule->{args} );
+    my $args = Data::Visitor::Encode->decode( $req->mobile_agent->encoding, $rule->{args} );
+    $args->{session} = $session;
     if ( $req->method =~ /POST/i && $controller->can($post_meth)) {
         return $controller->$post_meth($req, $args);
     } else {
         return $controller->$get_meth($req, $args);
     }
+}
+
+sub res_404 {
+    my ($req, ) = @_;
+
+    my $uri = $req->uri->path;
+    warn "dan the 404 not found: $uri" if $uri ne '/favicon.ico';
+    return HTTP::Engine::Response->new(
+        status => 404,
+        body   => "404 not found: $uri",
+    );
 }
 
 no Moose;__PACKAGE__->meta->make_immutable;

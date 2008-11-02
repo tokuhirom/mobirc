@@ -6,7 +6,7 @@ use App::Mobirc::Web::View;
 use Encode;
 use Carp ();
 
-our @EXPORT = qw/context server irc_nick render_td/;
+our @EXPORT = qw/context server irc_nick render_td redirect/;
 
 sub context  () { App::Mobirc->context } ## no critic
 sub server   () { context->server } ## no critic.
@@ -44,6 +44,16 @@ sub _content_type {
             'text/html; charset=Shift_JIS';
         }
     }
+}
+
+sub redirect {
+    my $path = shift;
+    HTTP::Engine::Response->new(
+        status => 302,
+        headers => {
+            Location => $path
+        },
+    );
 }
 
 1;
