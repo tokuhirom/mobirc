@@ -10,6 +10,8 @@ use HTTP::Engine;
 use App::Mobirc::Web::Middleware::Encoding;
 use App::Mobirc::Web::Middleware::MobileAgent;
 
+use UNIVERSAL::require;
+
 has address => (
     is      => 'ro',
     isa     => 'Str',
@@ -22,8 +24,20 @@ has port => (
     default => 80,
 );
 
+has middlewares => (
+    is      => 'ro',
+    isa     => 'ArrayRef',
+    default => sub { [] },
+);
+
 hook run_component => sub {
     my ( $self, $global_context ) = @_;
+
+    my $request_handler = App::Mobirc::Web::Middleware::Encoding->wrap( \&App::Mobirc::Web::Handler::handler );
+    for my $mw ( @{ $self->middlewares } ) {
+      $mw->require or die $@;
+      $request_handler = $mw->wrap($request_handler);
+    }
 
     HTTP::Engine->new(
         interface => {
@@ -33,7 +47,7 @@ hook run_component => sub {
                 port  => $self->port,
                 alias => 'mobirc_httpd',
             },
-            request_handler => App::Mobirc::Web::Middleware::Encoding->wrap( \&App::Mobirc::Web::Handler::handler ),
+            request_handler => $request_handler,
         }
     )->run;
 
