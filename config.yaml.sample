@@ -1,5 +1,7 @@
 ---
-# global:
+global:
+  password: kogaidan
+  mobileid: 5u9032kjsajlas_tw.ezweb.ne.jp
 #   assets_dir: /usr/local/share/mobirc/assets
 #   pid_fname: /var/run/mobirc-sample.pid
 #   keywords:
@@ -11,16 +13,6 @@
 plugin:
   - module: HTMLFilter::DoCoMoCSS
   - module: IRCCommand::TiarraLog
-  - module: Authorizer::Cookie
-    config:
-      password: 1152
-  - module: Authorizer::BasicAuth
-    config:
-      username: netwatcher
-      password: 0721
-  # - module: Authorizer::EZSubscriberID
-  #   config:
-  #     au_subscriber_id: 25253252_oe.ezweb.ne.jp
   - module: HTMLFilter::ConvertPictograms
   - module: MessageBodyFilter::Clickable
     config:
