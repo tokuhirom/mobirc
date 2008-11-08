@@ -5,7 +5,7 @@ all_from 'lib/App/Mobirc.pm';
 license  'gpl';
 
 # moooooose
-requires 'Moose'               => '0.55';
+requires 'Moose'               => '0.60';
 requires 'MooseX::Plaggerize'  => '0.03';
 
 # http-engine
@@ -33,7 +33,7 @@ requires 'Template::Declare'  => '0.29';
 
 # utilities
 requires 'Carp'                  => '1.04';
-requires 'Data::Visitor::Encode' => '0.10001';
+requires 'Data::Visitor::Encode' => '0.10002';
 requires 'Encode'                => '2.25';
 requires 'Exporter'              => '5.62';
 requires 'File::Spec'            => '3.2701';
@@ -80,7 +80,7 @@ features(
     ],
     'DocRoot' => [
         -default => 0,
-        recommends('XML::LibXML', '1.66'),
+        recommends('XML::LibXML', '1.68'),
     ],
     'Irssi' => [
         -default => 0,
