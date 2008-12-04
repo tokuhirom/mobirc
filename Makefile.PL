@@ -5,14 +5,14 @@ all_from 'lib/App/Mobirc.pm';
 license  'gpl';
 
 # moooooose
-requires 'Moose'               => '0.60';
+requires 'Moose'               => '0.62';
 requires 'MooseX::Plaggerize'  => '0.03';
 
 # http-engine
 requires 'HTTP::Engine'         => '0.0.15';
 
 # session
-requires 'HTTP::Session'        => '0.07';
+requires 'HTTP::Session'        => '0.24';
 
 # poe
 requires 'POE'                         => '1.003';
