@@ -12,7 +12,7 @@ requires 'MooseX::Plaggerize'  => '0.03';
 requires 'HTTP::Engine'         => '0.0.15';
 
 # session
-requires 'HTTP::Session'        => '0.24';
+requires 'HTTP::Session'        => '0.26';
 
 # poe
 requires 'POE'                         => '1.003';
