@@ -9,7 +9,7 @@ requires 'Moose'               => '0.62';
 requires 'MooseX::Plaggerize'  => '0.03';
 
 # http-engine
-requires 'HTTP::Engine'         => '0.0.15';
+requires 'HTTP::Engine'         => '0.0.19';
 
 # session
 requires 'HTTP::Session'        => '0.26';
@@ -30,7 +30,6 @@ requires 'Template' => 2.19;                # new 'uri' is supported from 2.16
 requires 'Template::Declare'  => '0.29';
 
 # utilities
-requires 'Carp'                  => '1.04';
 requires 'Data::Visitor::Encode' => '0.10002';
 requires 'Exporter'              => '5.62'; # recent version supports "use Exporter 'import'" style
 requires 'HTML::Entities'        => '1.35';
