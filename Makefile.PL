@@ -34,10 +34,7 @@ requires 'Template::Declare'  => '0.29';
 # utilities
 requires 'Carp'                  => '1.04';
 requires 'Data::Visitor::Encode' => '0.10002';
-requires 'Encode'                => '2.25';
-requires 'Exporter'              => '5.62';
-requires 'File::Spec'            => '3.2701';
-requires 'FindBin'               => '1.47';
+requires 'Exporter'              => '5.62'; # recent version supports "use Exporter 'import'" style
 requires 'HTML::Entities'        => '1.35';
 requires 'HTML::StickyQuery'     => '0.12';
 requires 'HTTPx::Dispatcher'     => '0.04';
@@ -47,19 +44,10 @@ requires 'MIME::Base64::URLSafe' => '0.01';
 requires 'Module::Find'          => '0.06';
 requires 'Params::Validate'      => '0.91';
 requires 'Path::Class'           => '0.16';
-requires 'Proc::Daemon'          => '0.03';
-requires 'Scalar::Util'          => '0.19';
-requires 'Storable'              => '2.18';
 requires 'UNIVERSAL::require'    => '0.11';
 requires 'URI'                   => '1.36';
 requires 'URI::Find'             => '0.16';
 requires 'YAML'                  => '0.66';
-# Note.
-#  follow modules are contained by other module.
-#  - URI::Escape                 => URI
-#  - POE::Filter::HTTPD          => POE
-#  - POE::Component::Server::TCP => POE
-#  - List::Util                  => Scalar::Util
 
 features(
     'GPS support' => [
@@ -74,10 +62,6 @@ features(
         -default => 1,
         recommends('CSS::Tiny' => '1.15'),
     ],
-    'Authorizer::Cookie support' => [
-        -default => 0,
-        recommends('CGI::Cookie', '1.29'),
-    ],
     'DocRoot' => [
         -default => 0,
         recommends('XML::LibXML', '1.68'),
@@ -88,6 +72,9 @@ features(
         recommends('Glib', '0.4'),
         recommends('POE::Loop::Glib', '0.0034'),
     ],
+    'Daemonize' => [
+        'Proc::Daemon'          => '0.03',
+    ]
 );
 
 tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t';
