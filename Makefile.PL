@@ -46,9 +46,6 @@ requires 'URI::Find'             => '0.16';
 requires 'YAML'                  => '0.66';
 
 features(
-    'validate configuration file' => [
-        recommends('Kwalify', '1.16'),
-    ],
     'DoCoMo CSS support' => [
         -default => 1,
         recommends('CSS::Tiny' => '1.15'),
