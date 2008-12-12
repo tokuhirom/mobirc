@@ -27,6 +27,7 @@ sub handler {
     my $res = _handler($req, $session);
     context->run_hook('response_filter', $res);
     $session->response_filter( $res );
+    $session->finalize();
     $res;
 }
 
