@@ -6,6 +6,7 @@ use HTTP::MobileAgent;
 use Text::Diff;
 use App::Mobirc;
 use App::Mobirc::Util;
+use App::Mobirc::Web::Middleware::MobileAgent;
 
 my $c = App::Mobirc->new(
     {

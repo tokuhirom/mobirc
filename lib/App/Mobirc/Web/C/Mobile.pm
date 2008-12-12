@@ -4,7 +4,6 @@ use App::Mobirc::Web::C;
 use App::Mobirc::Util;
 use URI::Escape qw(uri_escape_utf8);
 use Encode;
-use Encode::JP::Mobile;
 use MIME::Base64::URLSafe qw(urlsafe_b64decode);
 
 sub dispatch_index {

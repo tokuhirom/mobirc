@@ -10,7 +10,6 @@ use URI::Escape;
 use Geo::Coordinates::Converter;
 use UNIVERSAL::require;
 use String::TT ':all';
-use Encode::JP::Mobile;
 use App::Mobirc::Validator;
 
 has inv_geocoder => (

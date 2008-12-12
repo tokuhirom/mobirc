@@ -4,6 +4,7 @@ use App::Mobirc;
 use HTTP::MobileAgent;
 use Test::Base;
 use t::Utils;
+use App::Mobirc::Web::Middleware::MobileAgent;
 
 my $global_context = App::Mobirc->new(
     {

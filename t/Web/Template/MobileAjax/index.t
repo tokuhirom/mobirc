@@ -3,6 +3,7 @@ use warnings;
 use App::Mobirc::Web::View;
 use App::Mobirc::Model::Server;
 use HTTP::MobileAgent;
+use App::Mobirc::Web::Middleware::MobileAgent;
 use Test::More tests => 3;
 
 my $server = App::Mobirc::Model::Server->new;

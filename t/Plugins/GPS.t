@@ -3,6 +3,7 @@ use warnings;
 use App::Mobirc;
 use Test::More;
 use t::Utils;
+use App::Mobirc::Web::Middleware::MobileAgent;
 
 eval q{ use HTTP::MobileAgent::Plugin::Locator };
 plan skip_all => "HTTP::MobileAgent::Plugin::Locator is not installed." if $@;

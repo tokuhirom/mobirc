@@ -5,6 +5,7 @@ use Exporter 'import';
 our @EXPORT = qw/test_he test_he_filter/;
 use HTTP::Engine;
 use App::Mobirc::Web::Middleware::MobileAgent;
+use HTTP::Request;
 
 sub test_he {
     my ($req, $cb) = @_;

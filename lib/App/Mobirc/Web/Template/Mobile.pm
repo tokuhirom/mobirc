@@ -7,7 +7,6 @@ use Params::Validate ':all';
 use List::Util qw/first/;
 use HTML::Entities qw/encode_entities/;
 use URI::Escape qw/uri_escape_utf8/;
-use HTTP::MobileAgent::Plugin::Charset;
 
 template 'mobile/wrapper_mobile' => sub {
     my ($self, $mobile_agent, $code, $subtitle) = @_;

@@ -3,7 +3,6 @@ use Moose;
 use Scalar::Util qw/blessed/;
 use Data::Visitor::Encode;
 use HTTP::MobileAgent;
-use HTTP::MobileAgent::Plugin::Charset;
 use HTTP::Session;
 use HTTP::Session::Store::OnMemory;
 use HTTP::Session::State::Cookie;

@@ -20,9 +20,7 @@ requires 'POE::Sugar::Args'            => '1.3';
 requires 'POE::Component::IRC'         => '5.88';
 
 # mobile stuff
-requires 'Encode::JP::Mobile'                       => '0.25';
 requires 'HTTP::MobileAgent'                        => '0.27';
-requires 'HTTP::MobileAgent::Plugin::Charset'       => '0.03';
 requires 'HTTP::MobileAgent::Plugin::Locator'       => '0.01';
 requires 'HTML::Entities::ConvertPictogramMobileJp' => '0.06';
 requires 'HTML::StickyQuery::DoCoMoGUID'            => '0.01';
