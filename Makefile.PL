@@ -46,11 +46,6 @@ requires 'URI::Find'             => '0.16';
 requires 'YAML'                  => '0.66';
 
 features(
-    'GPS support' => [
-        -default => 0,
-        recommends('HTTP::MobileAgent::Plugin::Locator'),
-        recommends('Template::Plugin::HTMLMobileJp'),
-    ],
     'validate configuration file' => [
         recommends('Kwalify', '1.16'),
     ],
