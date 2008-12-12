@@ -22,7 +22,6 @@ requires 'POE::Component::IRC'         => '5.88';
 # mobile stuff
 requires 'HTTP::MobileAgent'                        => '0.27';
 requires 'HTTP::MobileAgent::Plugin::Locator'       => '0.01';
-requires 'HTML::Entities::ConvertPictogramMobileJp' => '0.06';
 requires 'HTML::StickyQuery::DoCoMoGUID'            => '0.01';
 
 # template engine
