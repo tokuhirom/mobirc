@@ -60,7 +60,8 @@ features(
         recommends('POE::Loop::Glib', '0.0034'),
     ],
     'Daemonize' => [
-        'Proc::Daemon'          => '0.03',
+        -default => 0,
+        recommends('Proc::Daemon'          => '0.03'),
     ]
 );
 
