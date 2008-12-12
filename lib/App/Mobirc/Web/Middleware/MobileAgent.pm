@@ -6,20 +6,10 @@ use HTTP::MobileAgent;
 use HTTP::MobileAgent::Plugin::Charset;
 
 sub import {
-    my $meta = HTTP::Engine::Request->meta;
-    $meta->make_mutable;
-    $meta->add_attribute(
-        mobile_agent => (
-            is      => 'ro',
-            isa     => 'Object',
-            lazy    => 1,
-            default => sub {
-                my $self = shift;
-                HTTP::MobileAgent->new( $self->headers );
-            },
-        )
-    );
-    $meta->make_immutable;
+    *HTTP::Engine::Request::mobile_agent = sub {
+        my $self = shift;
+        $self->{mobile_agent} ||= HTTP::MobileAgent->new( $self->headers );
+    };
 }
 
 1;
