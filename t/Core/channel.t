@@ -8,7 +8,7 @@ use App::Mobirc::Util;
 use App::Mobirc::Model::Server;
 
 App::Mobirc->new(
-    {
+    config => {
         httpd  => { lines => 40 },
         global => { keywords => [qw/foo/], stopwords => [qw/foo31/] }
     }
@@ -48,7 +48,7 @@ describe 'stopword', sub {
 
 describe 'add & get', sub {
     my $channel = App::Mobirc::Model::Channel->new(
-        context, U '#test',
+        name => U '#test',
     );
     context->add_channel($channel);
     isa_ok context->get_channel(U '#test'), 'App::Mobirc::Model::Channel';

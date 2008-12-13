@@ -7,7 +7,7 @@ use t::Utils;
 use App::Mobirc::Web::Middleware::MobileAgent;
 
 my $global_context = App::Mobirc->new(
-    {
+    config => {
         httpd  => { lines => 40 },
         global => { keywords => [qw/foo/] }
     }

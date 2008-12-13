@@ -10,9 +10,10 @@ use Test::More tests => 3;
 my $server = App::Mobirc::Model::Server->new;
 
 my $c = App::Mobirc->new(
-    httpd => { lines => 40 },
-    global => { keywords => [qw/foo/], stopwords => [qw/foo31/], assets_dir => 'assets/' },
-    config => {},
+    config => {
+        httpd => { lines => 40 },
+        global => { keywords => [qw/foo/], stopwords => [qw/foo31/], assets_dir => 'assets/' },
+    }
 );
 
 my $content = App::Mobirc::Web::View->show(

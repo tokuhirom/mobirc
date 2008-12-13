@@ -17,7 +17,7 @@ my $PORT = 9999;
 $SIG{INT} = sub { die };
 
 my $global_context = App::Mobirc->new(
-    {
+    config => {
         httpd => { },
     }
 );

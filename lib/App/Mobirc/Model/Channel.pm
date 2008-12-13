@@ -40,12 +40,6 @@ has name => (
     required => 1,
 );
 
-# TODO: use BUILD
-around 'new' => sub {
-    my ($next, $class, $trash, $name) = @_;
-    $next->($class, name => $name);
-};
-
 sub add_message {
     my ($self, $message) = @_;
 

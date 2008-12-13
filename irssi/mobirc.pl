@@ -268,10 +268,10 @@ sub poe_initialize_mobirc {
     $poe->heap->{mobirc} = $mobirc;
     $poe->heap->{config} = $mobirc->config;
 
-    $mobirc->add_channel( App::Mobirc::Model::Channel->new($mobirc, U '*server*') );
+    $mobirc->add_channel( App::Mobirc::Model::Channel->new(name => U '*server*') );
     for my $channel (Irssi::channels()) {
         my $channel_name = normalize_channel_name(decode_utf8 $channel->{name});
-        $mobirc->add_channel( App::Mobirc::Model::Channel->new($mobirc, $channel_name) );
+        $mobirc->add_channel( App::Mobirc::Model::Channel->new(name => $channel_name) );
     }
 
     $mobirc;
