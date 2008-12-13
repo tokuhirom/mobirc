@@ -259,7 +259,7 @@ sub poe_initialize_mobirc {
     }
 
     my $mobirc;
-    eval { $mobirc = App::Mobirc->new($conffname) };
+    eval { $mobirc = App::Mobirc->new(config => $conffname) };
     if ($@) {
         Irssi::print("can't initialize mobirc: $@");
         return;

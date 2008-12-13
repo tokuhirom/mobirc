@@ -33,7 +33,7 @@ if ($version) {
 die "file does not exist: $conffname" unless -f $conffname;
 
 DEBUG "load config: $conffname";
-my $context = App::Mobirc->new($conffname);
+my $context = App::Mobirc->new(config => $conffname);
 
 # daemonize
 if ( $daemonize_fg ) {
