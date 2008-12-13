@@ -1,6 +1,6 @@
 package App::Mobirc::Plugin::HTMLFilter::NickGroup;
 use strict;
-use MooseX::Plaggerize::Plugin;
+use MouseX::Plaggerize::Plugin;
 use List::Util qw/first/;
 use XML::LibXML;
 use Encode;

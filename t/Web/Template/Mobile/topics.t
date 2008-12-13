@@ -1,5 +1,6 @@
 use strict;
 use warnings;
+use lib 'extlib';
 use App::Mobirc::Web::View;
 use Test::More tests => 1;
 use HTTP::MobileAgent;

@@ -1,5 +1,5 @@
 package App::Mobirc::Web::C::Root;
-use Moose;
+use Mouse;
 use App::Mobirc::Web::C;
 use App::Mobirc::Util;
 use Encode;

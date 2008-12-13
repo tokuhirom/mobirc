@@ -1,5 +1,5 @@
 package App::Mobirc::Model::Channel;
-use Moose;
+use Mouse;
 use Scalar::Util qw/blessed/;
 use Carp;
 use List::MoreUtils qw/any all/;
@@ -40,6 +40,7 @@ has name => (
     required => 1,
 );
 
+# TODO: use BUILD
 around 'new' => sub {
     my ($next, $class, $trash, $name) = @_;
     $next->($class, name => $name);

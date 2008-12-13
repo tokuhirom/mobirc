@@ -1,6 +1,6 @@
 package App::Mobirc::Plugin::HTMLFilter::ConvertPictograms;
 use strict;
-use MooseX::Plaggerize::Plugin;
+use MouseX::Plaggerize::Plugin;
 use HTML::Entities::ConvertPictogramMobileJp qw(convert_pictogram_entities);
 use Params::Validate ':all';
 use App::Mobirc::Validator;

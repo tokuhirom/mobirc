@@ -1,6 +1,6 @@
 package App::Mobirc::Role::Context;
 use strict;
-use Moose::Role;
+use Mouse::Role;
 
 my $context;
 sub context { $context }

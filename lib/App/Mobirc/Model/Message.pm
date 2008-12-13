@@ -1,6 +1,5 @@
 package App::Mobirc::Model::Message;
-use Moose;
-use Moose::Util::TypeConstraints;
+use Mouse;
 
 has channel => (
     is       => 'rw',

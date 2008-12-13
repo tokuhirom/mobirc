@@ -9,6 +9,7 @@ use Carp;
 use Getopt::Long;
 
 use lib catfile( $FindBin::Bin, 'lib');
+use lib catfile( $FindBin::Bin, 'extlib');
 
 use App::Mobirc;
 use App::Mobirc::Util;

@@ -1,5 +1,5 @@
 package App::Mobirc::Web::Middleware::Encoding;
-use Moose;
+use Mouse;
 use Data::Visitor::Encode;
 
 sub wrap {

@@ -17,7 +17,7 @@ unshift @mods, 'HTML::Entities';
 unshift @mods, 'JSON';
 unshift @mods, 'App::Mobirc::Util';
 unshift @mods, 'App::Mobirc';
-unshift @mods, 'MooseX::Plaggerize::Plugin';
+unshift @mods, 'MouseX::Plaggerize::Plugin';
 unshift @mods, 'HTTP::Engine::Interface::POE';
 unshift @mods, 'POE::Component::Server::TCP';
 unshift @mods, 'POE::Filter::HTTPD';

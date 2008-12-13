@@ -1,6 +1,6 @@
 package App::Mobirc::Plugin::MessageBodyFilter::IRCColor;
 use strict;
-use MooseX::Plaggerize::Plugin;
+use MouseX::Plaggerize::Plugin;
 
 has no_decorate => (
     is      => 'ro',

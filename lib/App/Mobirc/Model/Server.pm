@@ -1,6 +1,6 @@
 package App::Mobirc::Model::Server;
 use strict;
-use Moose;
+use Mouse;
 use App::Mobirc::Model::Channel;
 use Carp;
 use App::Mobirc::Util;

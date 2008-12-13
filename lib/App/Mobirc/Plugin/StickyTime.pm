@@ -1,6 +1,6 @@
 package App::Mobirc::Plugin::StickyTime;
 use strict;
-use MooseX::Plaggerize::Plugin;
+use MouseX::Plaggerize::Plugin;
 use App::Mobirc::Util;
 use HTML::StickyQuery;
 use App::Mobirc::Validator;

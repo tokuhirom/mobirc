@@ -1,6 +1,6 @@
 package App::Mobirc::Plugin::HTMLFilter::DoCoMoCSS;
 use strict;
-use MooseX::Plaggerize::Plugin;
+use MouseX::Plaggerize::Plugin;
 use CSS::Tiny;
 use XML::LibXML;
 use HTML::Selector::XPath qw(selector_to_xpath);

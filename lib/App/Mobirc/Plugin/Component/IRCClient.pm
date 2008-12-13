@@ -1,6 +1,6 @@
 package App::Mobirc::Plugin::Component::IRCClient;
 use strict;
-use MooseX::Plaggerize::Plugin;
+use MouseX::Plaggerize::Plugin;
 
 use POE;
 use POE::Sugar::Args;

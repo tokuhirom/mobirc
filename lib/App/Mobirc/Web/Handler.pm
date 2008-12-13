@@ -1,5 +1,5 @@
 package App::Mobirc::Web::Handler;
-use Moose;
+use Mouse;
 use Scalar::Util qw/blessed/;
 use Data::Visitor::Encode;
 use HTTP::MobileAgent;

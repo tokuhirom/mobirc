@@ -1,5 +1,5 @@
 package App::Mobirc::Web::C::Static;
-use Moose;
+use Mouse;
 use App::Mobirc::Web::C;
 use App::Mobirc::Util;
 use Path::Class;

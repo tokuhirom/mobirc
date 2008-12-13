@@ -1,6 +1,6 @@
 package App::Mobirc::Plugin::DocRoot;
 use strict;
-use MooseX::Plaggerize::Plugin;
+use MouseX::Plaggerize::Plugin;
 use App::Mobirc::Util;
 use XML::LibXML;
 use Encode;

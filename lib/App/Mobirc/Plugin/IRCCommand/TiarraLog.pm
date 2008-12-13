@@ -1,6 +1,6 @@
 package App::Mobirc::Plugin::IRCCommand::TiarraLog;
 use strict;
-use MooseX::Plaggerize::Plugin;
+use MouseX::Plaggerize::Plugin;
 use Encode;
 use App::Mobirc::Util;
 
