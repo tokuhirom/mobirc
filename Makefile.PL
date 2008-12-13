@@ -9,7 +9,7 @@ requires 'Moose'               => '0.62';
 requires 'MooseX::Plaggerize'  => '0.03';
 
 # http-engine
-requires 'HTTP::Engine'         => '0.0.19';
+requires 'HTTP::Engine'         => '0.0.19'; # bundled.
 
 # session
 requires 'HTTP::Session'        => '0.26';
@@ -70,6 +70,7 @@ test_requires 'Test::More';
 test_requires 'Text::Diff';
 test_requires 'Test::Exception';
 test_requires 'Sub::Uplevel'; # depended by Test::Exception
+author_tests('xt');
 install_script 'mobirc';
 use_test_base;
 auto_include;
