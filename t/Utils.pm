@@ -1,6 +1,7 @@
 package t::Utils;
 use strict;
 use warnings;
+use lib 'extlib';
 use Exporter 'import';
 our @EXPORT = qw/test_he test_he_filter/;
 use HTTP::Engine;

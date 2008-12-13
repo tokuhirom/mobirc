@@ -2,7 +2,7 @@ package App::Mobirc::Types;
 use strict;
 use warnings;
 use App::Mobirc::ConfigLoader;
-use MooseX::Types -declare => [qw/Config/];
+use MouseX::Types -declare => [qw/Config/];
 
 {
     subtype Config,

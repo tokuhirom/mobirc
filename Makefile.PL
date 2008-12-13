@@ -4,10 +4,6 @@ all_from 'lib/App/Mobirc.pm';
 
 license  'gpl';
 
-# moooooose
-requires 'Moose'               => '0.62';
-requires 'MouseX::Plaggerize'  => '0.03';
-
 # http-engine
 requires 'HTTP::Engine'         => '0.0.19'; # bundled.
 

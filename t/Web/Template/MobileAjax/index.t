@@ -1,5 +1,6 @@
 use strict;
 use warnings;
+use t::Utils;
 use App::Mobirc::Web::View;
 use App::Mobirc::Model::Server;
 use HTTP::MobileAgent;
@@ -9,10 +10,9 @@ use Test::More tests => 3;
 my $server = App::Mobirc::Model::Server->new;
 
 my $c = App::Mobirc->new(
-    {
-        httpd => { lines => 40 },
-        global => { keywords => [qw/foo/], stopwords => [qw/foo31/], assets_dir => 'assets/' },
-    }
+    httpd => { lines => 40 },
+    global => { keywords => [qw/foo/], stopwords => [qw/foo31/], assets_dir => 'assets/' },
+    config => {},
 );
 
 my $content = App::Mobirc::Web::View->show(

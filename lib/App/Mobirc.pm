@@ -1,6 +1,6 @@
 package App::Mobirc;
 use Mouse;
-with 'App::Mobirc::Role::Context', 'MouseX::Plaggerize';
+with 'MouseX::Plaggerize';
 use 5.00800;
 use Scalar::Util qw/blessed/;
 use POE;
@@ -27,9 +27,16 @@ has config => (
     coerce   => 1,
 );
 
+{
+    my $context;
+    sub context { $context }
+    sub _set_context { $context = $_[1] }
+}
+
 sub BUILD {
     my ($self, ) = @_;
     $self->_load_plugins();
+    $self->_set_context($self);
 }
 
 sub _load_plugins {
