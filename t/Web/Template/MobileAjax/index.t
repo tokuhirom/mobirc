@@ -9,7 +9,7 @@ use Test::More tests => 3;
 my $server = App::Mobirc::Model::Server->new;
 
 my $c = App::Mobirc->new(
-    {
+    config => {
         httpd => { lines => 40 },
         global => { keywords => [qw/foo/], stopwords => [qw/foo31/], assets_dir => 'assets/' },
     }

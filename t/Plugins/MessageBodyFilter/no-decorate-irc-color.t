@@ -7,7 +7,7 @@ eval q{ use String::IRC };
 plan skip_all => "String::IRC is not installed." if $@;
 
 my $global_context = App::Mobirc->new(
-    {
+    config => {
         httpd  => { lines => 40 },
         global => { keywords => [qw/foo/] }
     }

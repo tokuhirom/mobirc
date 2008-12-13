@@ -12,7 +12,7 @@ filters {
 sub clickable {
     my $x = shift;
     my $global_context = App::Mobirc->new(
-        {
+        config => {
             httpd  => { lines => 40 },
             global => { keywords => [qw/foo/] }
         }

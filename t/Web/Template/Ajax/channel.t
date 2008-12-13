@@ -12,7 +12,7 @@ local $ENV{TZ} = 'Asia/Tokyo';
 
 # init.
 my $c = App::Mobirc->new(
-    {
+    config => {
         httpd => { lines => 40 },
         global => {},
     }

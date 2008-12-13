@@ -8,7 +8,7 @@ use App::Mobirc::Util;
 use App::Mobirc::Model::Server;
 
 App::Mobirc->new(
-    {
+    config => {
         httpd  => { lines => 40 },
         global => { keywords => [qw/foo/], stopwords => [qw/foo31/] }
     }

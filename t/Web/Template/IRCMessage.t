@@ -8,7 +8,7 @@ plan tests => 1*blocks;
 local $ENV{TZ} = 'Asia/Tokyo';
 
 my $c = App::Mobirc->new(
-    {
+    config => {
         httpd => { lines => 40 },
         global => { keywords => [qw/foo/], stopwords => [qw/foo31/] },
         plugin => [
