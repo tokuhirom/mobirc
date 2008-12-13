@@ -4,12 +4,12 @@ with 'App::Mobirc::Role::Context', 'MouseX::Plaggerize';
 use 5.00800;
 use Scalar::Util qw/blessed/;
 use POE;
-use App::Mobirc::ConfigLoader;
 use App::Mobirc::Util;
 use UNIVERSAL::require;
 use Carp;
 use App::Mobirc::Model::Server;
 use Encode;
+use App::Mobirc::Types 'Config';
 
 our $VERSION = '1.07';
 
@@ -22,20 +22,15 @@ has server => (
 
 has config => (
     is       => 'ro',
-    isa      => 'HashRef',
+    isa      => Config,
     required => 1,
+    coerce   => 1,
 );
 
-around 'new' => sub {
-    my ($next, $class, $config_stuff) = @_;
-    my $config = App::Mobirc::ConfigLoader->load($config_stuff); # TODO: use coercing
-
-    my $self = $next->( $class, config => $config );
-
+sub BUILD {
+    my ($self, ) = @_;
     $self->_load_plugins();
-
-    return $self;
-};
+}
 
 sub _load_plugins {
     my $self = shift;
