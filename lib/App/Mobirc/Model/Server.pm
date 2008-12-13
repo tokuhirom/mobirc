@@ -28,7 +28,7 @@ sub get_channel {
     my ($self, $name) = @_;
     croak "channel name is flagged utf8" unless Encode::is_utf8($name);
     croak "invalid channel name : $name" if $name =~ / /;
-    return $self->channel_map->{$name} ||= App::Mobirc::Model::Channel->new($self, $name);
+    return $self->channel_map->{$name} ||= App::Mobirc::Model::Channel->new(name=> $name);
 }
 
 sub delete_channel {

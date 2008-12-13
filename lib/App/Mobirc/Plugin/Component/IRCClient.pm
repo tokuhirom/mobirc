@@ -156,7 +156,7 @@ hook 'run_component' => sub {
     );
 
     $global_context->add_channel(
-        App::Mobirc::Model::Channel->new( $global_context, U('*server*') ) );
+        App::Mobirc::Model::Channel->new( name => U('*server*') ) );
 };
 
 # -------------------------------------------------------------------------
@@ -213,8 +213,7 @@ sub on_irc_join {
     my $channel = $poe->heap->{global_context}->get_channel($channel_name);
     unless ($channel) {
         $channel =
-          App::Mobirc::Model::Channel->new( $poe->heap->{global_context},
-            $channel_name, );
+          App::Mobirc::Model::Channel->new( name => $channel_name );
         $poe->heap->{global_context}->add_channel($channel);
     }
 
