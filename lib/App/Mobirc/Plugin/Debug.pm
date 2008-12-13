@@ -1,4 +1,5 @@
 package App::Mobirc::Plugin::Debug;
+use strict;
 use MooseX::Plaggerize::Plugin;
 use GTop;
 use utf8;
