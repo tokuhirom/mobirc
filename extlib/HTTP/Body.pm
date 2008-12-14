@@ -1,0 +1,382 @@
+package HTTP::Body;
+
+use strict;
+
+use Carp       qw[ ];
+
+our $VERSION = '1.05';
+
+our $TYPES = {
+    'application/octet-stream'          => 'HTTP::Body::OctetStream',
+    'application/x-www-form-urlencoded' => 'HTTP::Body::UrlEncoded',
+    'multipart/form-data'               => 'HTTP::Body::MultiPart',
+    'multipart/related'                 => 'HTTP::Body::XFormsMultipart',
+    'application/xml'                   => 'HTTP::Body::XForms'
+};
+
+require HTTP::Body::OctetStream;
+require HTTP::Body::UrlEncoded;
+require HTTP::Body::MultiPart;
+require HTTP::Body::XFormsMultipart;
+require HTTP::Body::XForms;
+
+use HTTP::Headers;
+use HTTP::Message;
+
+=head1 NAME
+
+HTTP::Body - HTTP Body Parser
+
+=head1 SYNOPSIS
+
+    use HTTP::Body;
+    
+    sub handler : method {
+        my ( $class, $r ) = @_;
+
+        my $content_type   = $r->headers_in->get('Content-Type');
+        my $content_length = $r->headers_in->get('Content-Length');
+        
+        my $body   = HTTP::Body->new( $content_type, $content_length );
+        my $length = $content_length;
+
+        while ( $length ) {
+
+            $r->read( my $buffer, ( $length < 8192 ) ? $length : 8192 );
+
+            $length -= length($buffer);
+            
+            $body->add($buffer);
+        }
+        
+        my $uploads = $body->upload; # hashref
+        my $params  = $body->param;  # hashref
+        my $body    = $body->body;   # IO::Handle
+    }
+
+=head1 DESCRIPTION
+
+HTTP::Body parses chunks of HTTP POST data and supports 
+application/octet-stream, application/x-www-form-urlencoded, and
+multipart/form-data.
+
+Chunked bodies are supported by not passing a length value to new().
+
+It is currently used by L<Catalyst> to parse POST bodies.
+
+=head1 NOTES
+
+When parsing multipart bodies, temporary files are created to store any
+uploaded files.  You must delete these temporary files yourself after
+processing them.
+
+=head1 METHODS
+
+=over 4 
+
+=item new 
+
+Constructor. Takes content type and content length as parameters,
+returns a L<HTTP::Body> object.
+
+=cut
+
+sub new {
+    my ( $class, $content_type, $content_length ) = @_;
+
+    unless ( @_ >= 2 ) {
+        Carp::croak( $class, '->new( $content_type, [ $content_length ] )' );
+    }
+
+    my $type;
+    foreach my $supported ( keys %{$TYPES} ) {
+        if ( index( lc($content_type), $supported ) >= 0 ) {
+            $type = $supported;
+        }
+    }
+
+    my $body = $TYPES->{ $type || 'application/octet-stream' };
+
+    my $self = {
+        buffer         => '',
+        chunk_buffer   => '',
+        body           => undef,
+        chunked        => !defined $content_length,
+        content_length => defined $content_length ? $content_length : -1,
+        content_type   => $content_type,
+        length         => 0,
+        param          => {},
+        state          => 'buffering',
+        upload         => {},
+        tmpdir         => File::Spec->tmpdir(),
+    };
+
+    bless( $self, $body );
+
+    return $self->init;
+}
+
+=item add
+
+Add string to internal buffer. Will call spin unless done. returns
+length before adding self.
+
+=cut
+
+sub add {
+    my $self = shift;
+    
+    if ( $self->{chunked} ) {
+        $self->{chunk_buffer} .= $_[0];
+        
+        while ( $self->{chunk_buffer} =~ m/^([\da-fA-F]+).*\x0D\x0A/ ) {
+            my $chunk_len = hex($1);
+            
+            if ( $chunk_len == 0 ) {
+                # Strip chunk len
+                $self->{chunk_buffer} =~ s/^([\da-fA-F]+).*\x0D\x0A//;
+                
+                # End of data, there may be trailing headers
+                if (  my ($headers) = $self->{chunk_buffer} =~ m/(.*)\x0D\x0A/s ) {
+                    if ( my $message = HTTP::Message->parse( $headers ) ) {
+                        $self->{trailing_headers} = $message->headers;
+                    }
+                }
+                
+                $self->{chunk_buffer} = '';
+                
+                # Set content_length equal to the amount of data we read,
+                # so the spin methods can finish up.
+                $self->{content_length} = $self->{length};
+            }
+            else {
+                # Make sure we have the whole chunk in the buffer (+CRLF)
+                if ( length( $self->{chunk_buffer} ) >= $chunk_len ) {
+                    # Strip chunk len
+                    $self->{chunk_buffer} =~ s/^([\da-fA-F]+).*\x0D\x0A//;
+                    
+                    # Pull chunk data out of chunk buffer into real buffer
+                    $self->{buffer} .= substr $self->{chunk_buffer}, 0, $chunk_len, '';
+                
+                    # Strip remaining CRLF
+                    $self->{chunk_buffer} =~ s/^\x0D\x0A//;
+                
+                    $self->{length} += $chunk_len;
+                }
+                else {
+                    # Not enough data for this chunk, wait for more calls to add()
+                    return;
+                }
+            }
+            
+            unless ( $self->{state} eq 'done' ) {
+                $self->spin;
+            }
+        }
+        
+        return;
+    }
+    
+    my $cl = $self->content_length;
+
+    if ( defined $_[0] ) {
+        $self->{length} += length( $_[0] );
+        
+        # Don't allow buffer data to exceed content-length
+        if ( $self->{length} > $cl ) {
+            $_[0] = substr $_[0], 0, $cl - $self->{length};
+            $self->{length} = $cl;
+        }
+        
+        $self->{buffer} .= $_[0];
+    }
+
+    unless ( $self->state eq 'done' ) {
+        $self->spin;
+    }
+
+    return ( $self->length - $cl );
+}
+
+=item body
+
+accessor for the body.
+
+=cut
+
+sub body {
+    my $self = shift;
+    $self->{body} = shift if @_;
+    return $self->{body};
+}
+
+=item chunked
+
+Returns 1 if the request is chunked.
+
+=cut
+
+sub chunked {
+    return shift->{chunked};
+}
+
+=item content_length
+
+Returns the content-length for the body data if known.
+Returns -1 if the request is chunked.
+
+=cut
+
+sub content_length {
+    return shift->{content_length};
+}
+
+=item content_type
+
+Returns the content-type of the body data.
+
+=cut
+
+sub content_type {
+    return shift->{content_type};
+}
+
+=item init
+
+return self.
+
+=cut
+
+sub init {
+    return $_[0];
+}
+
+=item length
+
+Returns the total length of data we expect to read if known.
+In the case of a chunked request, returns the amount of data
+read so far.
+
+=cut
+
+sub length {
+    return shift->{length};
+}
+
+=item trailing_headers
+
+If a chunked request body had trailing headers, trailing_headers will
+return an HTTP::Headers object populated with those headers.
+
+=cut
+
+sub trailing_headers {
+    return shift->{trailing_headers};
+}
+
+=item spin
+
+Abstract method to spin the io handle.
+
+=cut
+
+sub spin {
+    Carp::croak('Define abstract method spin() in implementation');
+}
+
+=item state
+
+Returns the current state of the parser.
+
+=cut
+
+sub state {
+    my $self = shift;
+    $self->{state} = shift if @_;
+    return $self->{state};
+}
+
+=item param
+
+Get/set body parameters.
+
+=cut
+
+sub param {
+    my $self = shift;
+
+    if ( @_ == 2 ) {
+
+        my ( $name, $value ) = @_;
+
+        if ( exists $self->{param}->{$name} ) {
+            for ( $self->{param}->{$name} ) {
+                $_ = [$_] unless ref($_) eq "ARRAY";
+                push( @$_, $value );
+            }
+        }
+        else {
+            $self->{param}->{$name} = $value;
+        }
+    }
+
+    return $self->{param};
+}
+
+=item upload
+
+Get/set file uploads.
+
+=cut
+
+sub upload {
+    my $self = shift;
+
+    if ( @_ == 2 ) {
+
+        my ( $name, $upload ) = @_;
+
+        if ( exists $self->{upload}->{$name} ) {
+            for ( $self->{upload}->{$name} ) {
+                $_ = [$_] unless ref($_) eq "ARRAY";
+                push( @$_, $upload );
+            }
+        }
+        else {
+            $self->{upload}->{$name} = $upload;
+        }
+    }
+
+    return $self->{upload};
+}
+
+=item tmpdir 
+
+Specify a different path for temporary files.  Defaults to the system temporary path.
+
+=cut
+
+sub tmpdir {
+    my $self = shift;
+    $self->{tmpdir} = shift if @_;
+    return $self->{tmpdir};
+}
+
+=back
+
+=head1 AUTHOR
+
+Christian Hansen, C<ch@ngmedia.com>
+
+Sebastian Riedel, C<sri@cpan.org>
+
+Andy Grundman, C<andy@hybridized.org>
+
+=head1 LICENSE
+
+This library is free software. You can redistribute it and/or modify 
+it under the same terms as perl itself.
+
+=cut
+
+1;

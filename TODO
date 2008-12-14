@@ -4,3 +4,5 @@
 - make extlib/
     CGI::Simple
     HTTP::Body
+    YAML
+    HTTP::Headers::Fast

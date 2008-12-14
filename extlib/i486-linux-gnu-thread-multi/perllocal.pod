@@ -1,10 +1,10 @@
-=head2 Sun Dec 14 12:27:57 2008: C<Module> L<version|version>
+=head2 Sun Dec 14 12:29:12 2008: C<Module> L<YAML|YAML>
 
 =over 4
 
 =item *
 
-C<installed into: /tmp/GqDvG617Wr/outputdir/lib/perl5>
+C<installed into: /tmp/hFwjDAj7hU/outputdir/lib/perl5>
 
 =item *
 
@@ -12,7 +12,7 @@ C<LINKTYPE: dynamic>
 
 =item *
 
-C<VERSION: 0.76>
+C<VERSION: 0.68>
 
 =item *
 
@@ -20,13 +20,13 @@ C<EXE_FILES: >
 
 =back
 
-=head2 Sun Dec 14 12:28:09 2008: C<Module> L<CGI::Simple|CGI::Simple>
+=head2 Sun Dec 14 12:29:14 2008: C<Module> L<HTTP::Body|HTTP::Body>
 
 =over 4
 
 =item *
 
-C<installed into: /tmp/GqDvG617Wr/outputdir/lib/perl5>
+C<installed into: /tmp/hFwjDAj7hU/outputdir/lib/perl5>
 
 =item *
 
@@ -34,7 +34,7 @@ C<LINKTYPE: dynamic>
 
 =item *
 
-C<VERSION: 1.106>
+C<VERSION: 1.05>
 
 =item *
 
