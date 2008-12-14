@@ -1,3 +1,6 @@
 - purge POE::Sugar::Args
 - purge pictogram related feature
 - purge Template::Declare. use Text::MicroNantoka
+- make extlib/
+    CGI::Simple
+    HTTP::Body
