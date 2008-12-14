@@ -1,10 +1,10 @@
-=head2 Sun Dec 14 12:29:12 2008: C<Module> L<YAML|YAML>
+=head2 Sun Dec 14 12:31:16 2008: C<Module> L<HTTP::Headers::Fast|HTTP::Headers::Fast>
 
 =over 4
 
 =item *
 
-C<installed into: /tmp/hFwjDAj7hU/outputdir/lib/perl5>
+C<installed into: /tmp/UIzzPtE2cd/outputdir/lib/perl5>
 
 =item *
 
@@ -12,29 +12,7 @@ C<LINKTYPE: dynamic>
 
 =item *
 
-C<VERSION: 0.68>
-
-=item *
-
-C<EXE_FILES: >
-
-=back
-
-=head2 Sun Dec 14 12:29:14 2008: C<Module> L<HTTP::Body|HTTP::Body>
-
-=over 4
-
-=item *
-
-C<installed into: /tmp/hFwjDAj7hU/outputdir/lib/perl5>
-
-=item *
-
-C<LINKTYPE: dynamic>
-
-=item *
-
-C<VERSION: 1.05>
+C<VERSION: 0.05>
 
 =item *
 

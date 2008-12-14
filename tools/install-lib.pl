@@ -25,6 +25,7 @@ my %skip_packages = map { $_ => 1 } (
     'HTML::Tagset',   # ditto
     'HTTP::Headers',  # ditto
     'DBI',            # ditto
+    'HTTP::Date',     # ditto
     'WWW::MobileCarrierJP', # only for building
     'Digest::SHA1',   # たいていの場合、Digest::MD5 におきかえればインストール可能
 );
