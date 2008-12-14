@@ -1,10 +1,10 @@
-=head2 Sun Dec 14 13:04:36 2008: C<Module> L<HTTPx::Dispatcher|HTTPx::Dispatcher>
+=head2 Sun Dec 14 13:06:15 2008: C<Module> L<JSON|JSON>
 
 =over 4
 
 =item *
 
-C<installed into: /tmp/GHwVGsEOOB/outputdir/lib/perl5>
+C<installed into: /tmp/lV_FrmySNh/outputdir/lib/perl5>
 
 =item *
 
@@ -12,7 +12,7 @@ C<LINKTYPE: dynamic>
 
 =item *
 
-C<VERSION: 0.05>
+C<VERSION: 2.12>
 
 =item *
 
