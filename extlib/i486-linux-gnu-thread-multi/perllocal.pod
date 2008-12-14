@@ -1,10 +1,10 @@
-=head2 Sun Dec 14 13:28:48 2008: C<Module> L<Exporter::Lite|Exporter::Lite>
+=head2 Sun Dec 14 13:29:46 2008: C<Module> L<HTML::Lint|HTML::Lint>
 
 =over 4
 
 =item *
 
-C<installed into: /tmp/ko7gW3IUDP/outputdir/lib/perl5>
+C<installed into: /tmp/rRpv9rIW_g/outputdir/lib/perl5>
 
 =item *
 
@@ -12,7 +12,29 @@ C<LINKTYPE: dynamic>
 
 =item *
 
-C<VERSION: 0.02>
+C<VERSION: 2.04>
+
+=item *
+
+C<EXE_FILES: bin/weblint>
+
+=back
+
+=head2 Sun Dec 14 13:29:47 2008: C<Module> L<Class::Data::Inheritable|Class::Data::Inheritable>
+
+=over 4
+
+=item *
+
+C<installed into: /tmp/rRpv9rIW_g/outputdir/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.08>
 
 =item *
 
@@ -20,13 +42,13 @@ C<EXE_FILES: >
 
 =back
 
-=head2 Sun Dec 14 13:28:50 2008: C<Module> L<POE::Sugar::Args|POE::Sugar::Args>
+=head2 Sun Dec 14 13:29:50 2008: C<Module> L<Template::Declare|Template::Declare>
 
 =over 4
 
 =item *
 
-C<installed into: /tmp/ko7gW3IUDP/outputdir/lib/perl5>
+C<installed into: /tmp/rRpv9rIW_g/outputdir/lib/perl5>
 
 =item *
 
@@ -34,7 +56,7 @@ C<LINKTYPE: dynamic>
 
 =item *
 
-C<VERSION: 1.3>
+C<VERSION: 0.30>
 
 =item *
 
