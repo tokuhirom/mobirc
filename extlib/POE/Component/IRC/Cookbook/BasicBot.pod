@@ -1,0 +1,75 @@
+=head1 NAME
+
+POE::Component::IRC::Cookbook::BasicBot - A basic IRC bot
+
+=head1 DESCRIPTION
+
+This a very basic bot that connects to IRC, joins a few channels, and announces
+its arrival.
+
+=head1 SYNOPSIS
+
+We start off quite simply:
+
+ #!/usr/bin/env perl
+
+ use strict;
+ use warnings;
+
+Then we C<use> the stuff we're going to...well, use. C<::State> is a subclass
+which keeps track of state information related to channels and nicknames. It is
+needed by the C<AutoJoin> plugin which takes care of keeping us on our channels.
+
+ use POE;
+ use POE::Component::IRC::State;
+ use POE::Component::IRC::Plugin::AutoJoin;
+
+Next up is our POE session. We create it and list our event handlers. We then
+start the POE kernel.
+
+ POE::Session->create(
+     package_states => [
+         main => [ qw(_start irc_join) ]
+     ]
+ );
+
+ $poe_kernel->run();
+
+Now all we have to do is write the handlers for C<_start> and C<irc_join>.
+In C<_start>, we create our IRC component, add an C<AutoJoin> plugin, register
+for the C<irc_join> event, and connect to the IRC server.
+
+ sub _start {
+     my $irc = POE::Component::IRC::State->spawn(
+         Nick   => 'basic_bot',
+         Server => 'irc.freenode.net',
+     );
+
+     $irc->plugin_add('AutoJoin', POE::Component::IRC::Plugin::AutoJoin->new(
+        Channels => [ '#test_channel1', '#test_channel2' ]
+     ));
+
+     $irc->yield(register => 'join');
+     $irc->yield(connect => { });
+ }
+
+Now comes our C<irc_join> event handler. We send a message to the channel
+once we've joined it.
+
+ sub irc_join {
+     my $nick = (split /!/, $_[ARG0])[0];
+     my $channel = $_[ARG1];
+     my $irc = $_[SENDER]->get_heap();
+
+     # only send the message if we were the one joining
+     if ($nick eq $irc->nick_name()) {
+         $irc->yield(privmsg => $channel, 'Hi everybody!');
+     }
+ }
+
+That's it!
+
+=head1 AUTHOR
+
+Hinrik E<Ouml>rn SigurE<eth>sson, hinrik.sig@gmail.com
+

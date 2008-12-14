@@ -1,10 +1,10 @@
-=head2 Sun Dec 14 13:08:16 2008: C<Module> L<MIME::Base64::URLSafe|MIME::Base64::URLSafe>
+=head2 Sun Dec 14 13:10:44 2008: C<Module> L<POE::Component::Pluggable|POE::Component::Pluggable>
 
 =over 4
 
 =item *
 
-C<installed into: /tmp/7DtyDPgMjR/outputdir/lib/perl5>
+C<installed into: /tmp/oduTY93v0P/outputdir/lib/perl5>
 
 =item *
 
@@ -12,7 +12,51 @@ C<LINKTYPE: dynamic>
 
 =item *
 
-C<VERSION: 0.01>
+C<VERSION: 1.10>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Sun Dec 14 13:10:46 2008: C<Module> L<POE::Filter::IRCD|POE::Filter::IRCD>
+
+=over 4
+
+=item *
+
+C<installed into: /tmp/oduTY93v0P/outputdir/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 2.38>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Sun Dec 14 13:12:34 2008: C<Module> L<POE::Component::IRC|POE::Component::IRC>
+
+=over 4
+
+=item *
+
+C<installed into: /tmp/oduTY93v0P/outputdir/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 5.88>
 
 =item *
 

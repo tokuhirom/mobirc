@@ -1,0 +1,40 @@
+=head1 NAME
+
+POE::Component::IRC::Cookbook::MegaHAL - A blabbering IRC bot
+
+=head1 DESCRIPTION
+
+This bot uses L<POE::Component::IRC::Plugin::MegaHAL|POE::Component::IRC::Plugin::MegaHAL>
+for most of its magic. As of yet, this recipe just contains a SYNOPSIS that is
+copied from its documentation.
+
+=head1 SYNOPSIS
+
+ #!/usr/bin/env perl
+ 
+ use strict;
+ use warnings;
+ use POE;
+ use POE::Component::IRC::Plugin::AutoJoin;
+ use POE::Component::IRC::Plugin::Connector;
+ use POE::Component::IRC::Plugin::MegaHAL;
+ use POE::Component::IRC::State;
+ 
+ my $irc = POE::Component::IRC::State->spawn(
+     nick     => 'Brainy',
+     server   => 'irc.freenode.net',
+ );
+ 
+ my @channels = ('#other_chan', '#my_chan');
+ 
+ $irc->plugin_add('MegaHAL', POE::Component::IRC::Plugin::MegaHAL->new(Own_channel => '#my_chan'));
+ $irc->plugin_add('AutoJoin', POE::Component::IRC::Plugin::AutoJoin->new(Channels => \@channels));
+ $irc->plugin_add('Connector', POE::Component::IRC::Plugin::Connector->new());
+ $irc->yield('connect');
+
+ $poe_kernel->run();
+
+=head1 AUTHOR
+
+Hinrik E<Ouml>rn SigurE<eth>sson, hinrik.sig@gmail.com
+
