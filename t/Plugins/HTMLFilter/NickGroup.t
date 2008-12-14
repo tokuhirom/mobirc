@@ -1,13 +1,13 @@
 use t::Utils;
 use warnings;
 use Test::More;
-plan skip_all => 'this test requires XML::LibXML' unless eval 'use XML::LibXML';
+plan skip_all => 'this test requires XML::LibXML' unless eval 'use XML::LibXML;1;';
 plan tests => 3;
 use App::Mobirc;
 use t::Utils;
 
 my $mobirc = App::Mobirc->new(
-    {
+    config => {
         httpd  => { lines => 40 },
         global => { keywords => [qw/foo/] }
     }

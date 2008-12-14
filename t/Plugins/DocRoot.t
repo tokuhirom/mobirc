@@ -5,10 +5,10 @@ use App::Mobirc;
 use Encode;
 use Test::Base;
 use t::Utils;
-plan skip_all => "this test requires XML::LibXML" unless eval "use XML::LibXML";
+plan skip_all => "this test requires XML::LibXML" unless eval "use XML::LibXML;1;";
 
 my $global_context = App::Mobirc->new(
-    {
+    config => {
         httpd  => { lines => 40 },
         global => { keywords => [qw/foo/] }
     }
