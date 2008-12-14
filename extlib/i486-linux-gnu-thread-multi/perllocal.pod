@@ -1,10 +1,10 @@
-=head2 Sun Dec 14 12:45:02 2008: C<Module> L<Class::Accessor|Class::Accessor>
+=head2 Sun Dec 14 12:45:52 2008: C<Module> L<HTML::StickyQuery|HTML::StickyQuery>
 
 =over 4
 
 =item *
 
-C<installed into: /tmp/izAOVMRaiV/outputdir/lib/perl5>
+C<installed into: /tmp/IWPTls1ko0/outputdir/lib/perl5>
 
 =item *
 
@@ -12,7 +12,29 @@ C<LINKTYPE: dynamic>
 
 =item *
 
-C<VERSION: 0.31>
+C<VERSION: 0.12>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Sun Dec 14 12:45:53 2008: C<Module> L<HTML::StickyQuery::DoCoMoGUID|HTML::StickyQuery::DoCoMoGUID>
+
+=over 4
+
+=item *
+
+C<installed into: /tmp/IWPTls1ko0/outputdir/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.01>
 
 =item *
 
