@@ -25,6 +25,7 @@ my %skip_packages = map { $_ => 1 } (
     'HTML::Tagset',   # ditto
     'HTTP::Headers',  # ditto
     'HTTP::Response', # ditto
+    'HTTP::Request',  # ditto
     'DBI',            # ditto
     'HTTP::Date',     # ditto
     'WWW::MobileCarrierJP', # only for building
