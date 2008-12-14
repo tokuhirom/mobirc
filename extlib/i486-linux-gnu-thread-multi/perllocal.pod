@@ -1,10 +1,10 @@
-=head2 Sun Dec 14 13:06:44 2008: C<Module> L<List::MoreUtils|List::MoreUtils>
+=head2 Sun Dec 14 13:08:16 2008: C<Module> L<MIME::Base64::URLSafe|MIME::Base64::URLSafe>
 
 =over 4
 
 =item *
 
-C<installed into: /tmp/3VMfIa2wmP/outputdir/lib/perl5>
+C<installed into: /tmp/7DtyDPgMjR/outputdir/lib/perl5>
 
 =item *
 
@@ -12,7 +12,7 @@ C<LINKTYPE: dynamic>
 
 =item *
 
-C<VERSION: 0.22>
+C<VERSION: 0.01>
 
 =item *
 
