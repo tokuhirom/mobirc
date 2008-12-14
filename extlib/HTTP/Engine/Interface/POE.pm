@@ -17,7 +17,6 @@ use POE qw/
     Component::Server::TCP
     Filter::HTTPD
 /;
-use IO::Scalar;
 use URI::WithBase;
 
 has host => (
@@ -110,7 +109,8 @@ sub _make_request {
         _connection => {
             input_handle  => do {
                 my $buf = $request->content;
-                IO::Scalar->new( \$buf );
+                open my $fh, '<', \$buf;
+                $fh;
             },
             output_handle => undef,
             env           => \%ENV,
