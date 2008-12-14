@@ -6,3 +6,4 @@
     HTTP::Body
     YAML
     HTTP::Headers::Fast
+    IO::Scalar?

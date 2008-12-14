@@ -27,6 +27,7 @@ my %skip_packages = map { $_ => 1 } (
     'DBI',            # ditto
     'HTTP::Date',     # ditto
     'WWW::MobileCarrierJP', # only for building
+    'POE::Test::Loops',     # testing module
     'Digest::SHA1',   # たいていの場合、Digest::MD5 におきかえればインストール可能
 );
 my $target_version = '5.008001';
