@@ -4,6 +4,9 @@ all_from 'lib/App/Mobirc.pm';
 
 license  'gpl';
 
+# Mouse.
+requires 'Mouse';
+
 # http-engine
 requires 'HTTP::Engine'         => '0.0.19'; # bundled.
 
