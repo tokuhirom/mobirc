@@ -3,7 +3,6 @@
 - purge Template::Declare. use Text::MicroNantoka
 - purge Data::Visitor::Encode. because this module have a lot op deps
 - make extlib/
-requires 'Module::Find'          => '0.06';
 requires 'Params::Validate'      => '0.91';
 requires 'Path::Class'           => '0.16';
 requires 'URI::Find'             => '0.16';

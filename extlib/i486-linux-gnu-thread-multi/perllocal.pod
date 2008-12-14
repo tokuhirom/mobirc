@@ -1,10 +1,10 @@
-=head2 Sun Dec 14 13:13:59 2008: C<Module> L<Module::Find|Module::Find>
+=head2 Sun Dec 14 13:14:28 2008: C<Module> L<Params::Validate|Params::Validate>
 
 =over 4
 
 =item *
 
-C<installed into: /tmp/F5UcsHZ6dP/outputdir/lib/perl5>
+C<installed into: /tmp/0XNLlTuy8Z/outputdir/lib/perl5>
 
 =item *
 
@@ -12,7 +12,7 @@ C<LINKTYPE: dynamic>
 
 =item *
 
-C<VERSION: 0.06>
+C<VERSION: 0.91>
 
 =item *
 
