@@ -64,6 +64,7 @@ sub _create_session {
                 )
             }
         }->(),
+        id      => 'HTTP::Session::ID::MD5',
         request => $req,
     );
 }
