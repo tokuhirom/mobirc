@@ -2,11 +2,24 @@ package t::Utils;
 use strict;
 use warnings;
 use lib 'extlib';
-use Exporter 'import';
-our @EXPORT = qw/test_he test_he_filter/;
 use HTTP::Engine;
 use App::Mobirc::Web::Middleware::MobileAgent;
 use HTTP::Request;
+
+sub import {
+    my $pkg = caller(0);
+    my $class = shift;
+
+    strict->import;
+    warnings->import;
+
+    {
+        no strict 'refs';
+        for my $meth (qw/test_he test_he_filter/) {
+            *{"${pkg}::${meth}"} = *{"${class}::${meth}"};
+        }
+    }
+}
 
 sub test_he {
     my ($req, $cb) = @_;

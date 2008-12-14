@@ -1,4 +1,4 @@
-use strict;
+use t::Utils;
 use warnings;
 use App::Mobirc::Plugin::HTMLFilter::CompressHTML;
 use Test::Base;

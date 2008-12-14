@@ -1,5 +1,4 @@
-use strict;
-use warnings;
+use t::Utils;
 use Test::More tests => 8;
 use Test::Exception;
 use Encode;

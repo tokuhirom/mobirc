@@ -17,7 +17,7 @@ sub load_plugin {
     $args = {module => $args} unless ref $args;
     my $module = $args->{module};
        $module = $self->resolve_plugin($module);
-    Class::MOP::load_class($module);
+    Mouse::load_class($module);
     my $plugin = $module->new($args->{config} || {});
     $plugin->register( $self );
 }

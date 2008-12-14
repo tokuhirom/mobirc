@@ -1,5 +1,4 @@
-use strict;
-use warnings;
+use t::Utils;
 use POE;
 use App::Mobirc::Plugin::Component::IRCClient;
 use App::Mobirc;

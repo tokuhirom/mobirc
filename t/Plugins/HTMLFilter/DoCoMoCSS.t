@@ -1,4 +1,4 @@
-use strict;
+use t::Utils;
 use warnings;
 use Test::More;
 plan skip_all => 'this test requires XML::LibXML' unless eval 'use XML::LibXML';

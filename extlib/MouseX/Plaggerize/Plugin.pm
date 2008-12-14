@@ -5,7 +5,6 @@ use Sub::Exporter;
 use Carp;
 
 {
-    my $CALLER;
     my $HOOK_STORE = {};
 
     my %exports = (
@@ -37,15 +36,24 @@ use Carp;
     );
 
     sub import {
-        $CALLER = caller();
+        my $caller = caller();
 
         strict->import;
         warnings->import;
 
-        return if $CALLER eq 'main';
+        return if $caller eq 'main';
 
-        Mouse::init_meta($CALLER);
-        Mouse->import( { into => $CALLER } );
+        my $meta = Mouse::Meta::Class->initialize($caller);
+        $meta->superclasses('Mouse::Object')
+            unless $meta->superclasses;
+
+        no strict 'refs';
+        no warnings 'redefine';
+        *{$caller.'::meta'} = sub { $meta };
+
+        for my $keyword (@Mouse::EXPORT) {
+            *{ $caller . '::' . $keyword } = *{'Mouse::' . $keyword};
+        }
 
         goto $exporter;
     }

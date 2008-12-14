@@ -1,4 +1,4 @@
-use strict;
+use t::Utils;
 use warnings;
 use Test::More tests => 1;
 use App::Mobirc;

@@ -1,4 +1,4 @@
-use strict;
+use t::Utils;
 use warnings;
 use lib 'extlib';
 use App::Mobirc::Web::View;

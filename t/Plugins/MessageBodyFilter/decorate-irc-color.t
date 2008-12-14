@@ -1,4 +1,4 @@
-use strict;
+use t::Utils;
 use warnings;
 use Data::Dumper;
 use App::Mobirc;

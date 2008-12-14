@@ -1,4 +1,4 @@
-use strict;
+use t::Utils;
 use warnings;
 use utf8;
 use App::Mobirc;

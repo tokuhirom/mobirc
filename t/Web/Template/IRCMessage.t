@@ -1,5 +1,4 @@
-use strict;
-use warnings;
+use t::Utils;
 use App::Mobirc::Web::View;
 use App::Mobirc;
 use Test::Base;
