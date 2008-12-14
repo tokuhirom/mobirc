@@ -141,6 +141,6 @@ sub res_404 {
     );
 }
 
-no Moose;__PACKAGE__->meta->make_immutable;
+no Mouse;__PACKAGE__->meta->make_immutable;
 1;
 

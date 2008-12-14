@@ -55,5 +55,5 @@ hook run_component => sub {
     $global_context->load_plugin('StickyTime');
 };
 
-no Moose;
+no Mouse;
 1;
