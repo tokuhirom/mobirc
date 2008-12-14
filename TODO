@@ -7,6 +7,5 @@ requires 'Module::Find'          => '0.06';
 requires 'Params::Validate'      => '0.91';
 requires 'Path::Class'           => '0.16';
 requires 'URI::Find'             => '0.16';
-recommends('CSS::Tiny' => '1.15'),
 recommends('Proc::Daemon'          => '0.03'),
 
