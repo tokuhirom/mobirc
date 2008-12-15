@@ -2,7 +2,6 @@ package App::Mobirc::Web::Handler;
 use Mouse;
 use Scalar::Util qw/blessed/;
 use Data::Visitor::Encode;
-use HTTP::MobileAgent;
 use HTTP::Session;
 use HTTP::Session::Store::OnMemory;
 use HTTP::Session::State::Cookie;
