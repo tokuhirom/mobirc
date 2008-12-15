@@ -1,7 +1,7 @@
 package App::Mobirc::Plugin::ChannelPageParts;
 use strict;
 use App::Mobirc::Plugin;
-use String::TT qw/tt/;
+use Text::MicroTemplate qw/render_mt/;
 
 has template => (
     is       => 'ro',
@@ -12,7 +12,7 @@ has template => (
 hook channel_page_option => sub {
     my ( $self, $global_context, $channel ) = @_;
 
-    return tt $self->template;
+    return render_mt($self->template, {channel => $channel})->as_string;
 };
 
 1;
