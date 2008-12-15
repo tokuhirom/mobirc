@@ -1,0 +1,37 @@
+mobirc
+======================================================
+
+What's this?
+------------------------------------------------------
+
+mobirc is HTTP2IRC gateway.
+
+This application supports following environments:
+
+    - Japanese mobile phones(docomo, softbank, ezweb, willcom)
+    - iPhone
+    - PC(Ajax)
+
+based on
+
+    - pluggable architecture
+    - perl
+    - POE
+
+How to install?
+------------------------------------------------------
+
+    git clone git://github.com/tokuhirom/mobirc.git
+
+or
+
+    wget -O mobirc.tgz http://github.com/tokuhirom/mobirc/tarball/master
+    tar xzvf mobirc.tgz
+    cd tokuhirom-mobirc-*
+
+and, run following command.
+
+    cp config.yaml.sample config.yaml
+    vi config.yaml # edit configuration file for your environemnt
+    ./mobirc
+
