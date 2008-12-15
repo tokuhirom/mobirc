@@ -5,7 +5,6 @@ sub login {
     my ($class, $req) = @_;
 
     mt_cached_with_wrap(<<'...', $req);
-? warn @_;
 ? my ($req, ) = @_
 
 <? for my $key (qw/password cidr mobileid/) {       ?>
