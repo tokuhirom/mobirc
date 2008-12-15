@@ -26,13 +26,6 @@ unshift @mods, 'URI::WithBase';
 unshift @mods, 'HTTP::Engine::Interface';
 unshift @mods, qw/
     XSLoader
-    Encode::JP::Mobile::ConvertPictogramSJIS
-    Encode::JP::Mobile::Charnames
-    Encode::JP::Mobile::Character
-    Encode::JP::Mobile::Vodafone
-    Encode::JP::Mobile::KDDIJIS
-    Encode::JP::Mobile::Fallback
-    Encode::JP::Mobile
     Geo::Coordinates::Converter
     HTTP::MobileAgent::Plugin::Charset
     HTTP::MobileAgent
@@ -52,7 +45,6 @@ unshift @mods, qw/
     HTTP::Engine::Response
     HTTP::Engine
 /;
-unshift @mods, '. XSLoader::load(q{Encode::JP::Mobile}, 0.25);';
 unshift @mods, 'File::ShareDir';
 unshift @mods, 'XML::LibXML';
 unshift @mods, 'Carp';
@@ -60,9 +52,7 @@ unshift @mods, 'Encode::MIME::Name';
 unshift @mods, qw/HTTP::Request HTTP::Date POE URI/;
 unshift @mods, qw/
     MRO::Compat
-    Class::MOP
     Sub::Exporter
-    Moose
     POE
     Carp
     Symbol
