@@ -45,7 +45,7 @@ my $expected = <<'...';
    <span></span>
    <br />
   </div>
-  <hr />&#xE6E9;
+  <hr />8
   <a accesskey="8" href="/mobile/">back to top</a>
  </body>
 </html>
