@@ -1,10 +1,10 @@
-=head2 Mon Dec 15 14:25:33 2008: C<Module> L<Params::Util|Params::Util>
+=head2 Mon Dec 15 15:33:24 2008: C<Module> L<Carp::Clan|Carp::Clan>
 
 =over 4
 
 =item *
 
-C<installed into: /tmp/_Cu7Sb_OZA/outputdir/lib/perl5>
+C<installed into: /tmp/xy1rECOSkm/outputdir/lib/perl5>
 
 =item *
 
@@ -12,7 +12,7 @@ C<LINKTYPE: dynamic>
 
 =item *
 
-C<VERSION: 0.35>
+C<VERSION: 6.00>
 
 =item *
 
@@ -20,13 +20,13 @@ C<EXE_FILES: >
 
 =back
 
-=head2 Mon Dec 15 14:25:35 2008: C<Module> L<Class::Inspector|Class::Inspector>
+=head2 Mon Dec 15 15:33:27 2008: C<Module> L<Class::Component|Class::Component>
 
 =over 4
 
 =item *
 
-C<installed into: /tmp/_Cu7Sb_OZA/outputdir/lib/perl5>
+C<installed into: /tmp/xy1rECOSkm/outputdir/lib/perl5>
 
 =item *
 
@@ -34,7 +34,7 @@ C<LINKTYPE: dynamic>
 
 =item *
 
-C<VERSION: 1.23>
+C<VERSION: 0.17>
 
 =item *
 
@@ -42,13 +42,13 @@ C<EXE_FILES: >
 
 =back
 
-=head2 Mon Dec 15 14:25:36 2008: C<Module> L<File::ShareDir|File::ShareDir>
+=head2 Mon Dec 15 15:33:31 2008: C<Module> L<HTTP::MobileAttribute|HTTP::MobileAttribute>
 
 =over 4
 
 =item *
 
-C<installed into: /tmp/_Cu7Sb_OZA/outputdir/lib/perl5>
+C<installed into: /tmp/xy1rECOSkm/outputdir/lib/perl5>
 
 =item *
 
@@ -56,51 +56,7 @@ C<LINKTYPE: dynamic>
 
 =item *
 
-C<VERSION: 1.00>
-
-=item *
-
-C<EXE_FILES: >
-
-=back
-
-=head2 Mon Dec 15 14:25:37 2008: C<Module> L<Net::CIDR::Lite|Net::CIDR::Lite>
-
-=over 4
-
-=item *
-
-C<installed into: /tmp/_Cu7Sb_OZA/outputdir/lib/perl5>
-
-=item *
-
-C<LINKTYPE: dynamic>
-
-=item *
-
-C<VERSION: 0.20>
-
-=item *
-
-C<EXE_FILES: >
-
-=back
-
-=head2 Mon Dec 15 14:25:38 2008: C<Module> L<Net::CIDR::MobileJP|Net::CIDR::MobileJP>
-
-=over 4
-
-=item *
-
-C<installed into: /tmp/_Cu7Sb_OZA/outputdir/lib/perl5>
-
-=item *
-
-C<LINKTYPE: dynamic>
-
-=item *
-
-C<VERSION: 0.16>
+C<VERSION: 0.11>
 
 =item *
 
