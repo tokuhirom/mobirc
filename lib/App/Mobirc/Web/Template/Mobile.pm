@@ -7,6 +7,7 @@ use Params::Validate ':all';
 use List::Util qw/first/;
 use HTML::Entities qw/encode_entities/;
 use URI::Escape qw/uri_escape_utf8/;
+use App::Mobirc::Pictogram;
 
 template 'mobile/wrapper_mobile' => sub {
     my ($self, $mobile_agent, $code, $subtitle) = @_;
@@ -38,8 +39,14 @@ template 'mobile/wrapper_mobile' => sub {
 };
 
 private template 'mobile/footer' => sub {
+    my $self = shift;
+    my %args = validate(
+        @_ => {
+            mobile_agent => 1,
+        }
+    );
     hr { };
-    outs_raw '&#xE6E9;'; # TODO: pictogram::docomo { '8' }
+    outs_raw pictogram($args{mobile_agent}, '8');
     a { attr { 'accesskey' => "8", 'href' => "/mobile/"}
         'back to top'
     }
@@ -66,7 +73,7 @@ template 'mobile/topics' => sub {
             }
         }
 
-        show 'footer';
+        show 'footer', mobile_agent => $args{mobile_agent};
     }, 'topics';
 };
 
@@ -90,7 +97,7 @@ template 'mobile/keyword' => sub {
             show '../keyword_line', $row, $args{irc_nick};
         }
 
-        show 'footer';
+        show 'footer', mobile_agent => $args{mobile_agent};
     }, 'keyword';
 };
 
@@ -117,7 +124,7 @@ template 'mobile/top' => sub {
         }
 
         for my $channel (@{$args{channels}}) {
-            outs_raw '&#xE6F0;';
+            outs_raw pictogram($args{mobile_agent}, '(^-^)');
             a {
                 href is ('/mobile/channel?channel=' . $channel->name_urlsafe_encoded);
                 $channel->name
@@ -132,7 +139,8 @@ template 'mobile/top' => sub {
         }
         hr { };
         show 'menu' => (
-            exists_recent_entries => $args{exists_recent_entries}
+            exists_recent_entries => $args{exists_recent_entries},
+            mobile_agent          => $args{mobile_agent},
         );
         hr { };
         show '../parts/version_info'
@@ -172,7 +180,7 @@ template 'mobile/recent' => sub {
         }
 
         if ($args{has_next_page}) {
-            outs_raw '&#xE6E7;';
+            outs_raw pictogram($args{mobile_agent}, 6);
             a {
                 href is '/mobile/recent';
                 accesskey is '6';
@@ -182,14 +190,20 @@ template 'mobile/recent' => sub {
 
         hr { };
 
-        show 'go_to_top';
+        show 'go_to_top', mobile_agent => $args{mobile_agent};
     };
 };
 
 private template 'mobile/go_to_top' => sub {
+    my $self = shift;
+    my %args = validate(
+        @_ => {
+            mobile_agent => 1,
+        }
+    );
     div {
         class is 'GoToTop';
-        outs_raw '&#xE6E9;';
+        outs_raw pictogram($args{mobile_agent}, '8');
         a {
             accesskey is "8";
             href is "/mobile/";
@@ -203,10 +217,11 @@ private template 'mobile/menu' => sub {
     my %args = validate(
         @_ => {
             exists_recent_entries => 1,
+            mobile_agent          => 1,
         },
     );
 
-    outs_raw '&#xE6EB;';
+    outs_raw pictogram($args{mobile_agent}, '0');
     a { attr { href => '/mobile/#top', accesskey => 0 }
         'refresh list'
     };
@@ -229,7 +244,7 @@ private template 'mobile/menu' => sub {
     };
     br { };
 
-    outs_raw '&#xE6EA;';
+    outs_raw pictogram($args{mobile_agent}, '9');
     a {
         attr { href => '/mobile/clear_all_unread', accesskey => '9' }
         'clear_all_unread'
@@ -281,7 +296,7 @@ template 'mobile/channel' => sub {
                         br { };
                     }
                     hr { };
-                    outs_raw '&#xE6E6;';
+                    outs_raw pictogram($args{mobile_agent}, '5');
                     a {
                         attr { 'accesskey' => 5, href => '/mobile/channel?channel=' . $channel->name_urlsafe_encoded() };
                         'more'
@@ -301,7 +316,7 @@ template 'mobile/channel' => sub {
 
         hr { };
 
-        show 'go_to_top';
+        show 'go_to_top', mobile_agent => $args{mobile_agent};
     }
 };
 

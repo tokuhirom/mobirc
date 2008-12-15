@@ -20,7 +20,6 @@ requires 'POE::Component::IRC'         => '5.88';
 
 # mobile stuff
 requires 'HTTP::MobileAgent'                        => '0.27';
-requires 'HTML::Entities::ConvertPictogramMobileJp' => '0.06';
 
 # template engine
 requires 'Template::Declare'  => '0.29';

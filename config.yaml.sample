@@ -13,7 +13,6 @@ global:
 plugin:
   - module: HTMLFilter::DoCoMoCSS
   - module: IRCCommand::TiarraLog
-  - module: HTMLFilter::ConvertPictograms
   - module: MessageBodyFilter::Clickable
     config:
       au_pcsv: 0
