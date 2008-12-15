@@ -1,4 +1,4 @@
-package MouseX::Plaggerize::Plugin;
+package App::Mobirc::Plugin;
 use Mouse;
 use Scalar::Util qw/blessed/;
 use Sub::Exporter;
@@ -60,42 +60,3 @@ use Carp;
 }
 
 1;
-__END__
-
-=head1 NAME
-
-MouseX::Plaggerize::Plugin - plugin
-
-=head1 SYNOPSIS
-
-    package Your::Plugin::Foo;
-    use MouseX::Plaggerize::Plugin;
-
-=head1 DESCRIPTION
-
-plugin class for MouseX:Plaggerize.
-
-=head1 METHODS
-
-=over 4
-
-=item register
-
-    $self->register( $c );
-
-internal use only
-
-=item hook
-
-    hook 'hook point' => sub {
-        # do something
-    };
-
-add coderef to hook point.
-
-=back
-
-=head1 SEE ALSO
-
-L<MouseX::Plaggerize>
-

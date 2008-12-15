@@ -1,6 +1,6 @@
 package App::Mobirc::Plugin::ChannelPageParts;
 use strict;
-use MouseX::Plaggerize::Plugin;
+use App::Mobirc::Plugin;
 use String::TT qw/tt/;
 
 has template => (

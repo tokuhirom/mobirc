@@ -1,6 +1,6 @@
 package App::Mobirc::Plugin::Component::HTTPD;
 use strict;
-use MouseX::Plaggerize::Plugin;
+use App::Mobirc::Plugin;
 
 use App::Mobirc;
 use App::Mobirc::Util;

@@ -1,6 +1,6 @@
 package App::Mobirc::Plugin::Debug;
 use strict;
-use MouseX::Plaggerize::Plugin;
+use App::Mobirc::Plugin;
 use GTop;
 use utf8;
 

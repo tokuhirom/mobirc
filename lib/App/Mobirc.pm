@@ -1,6 +1,6 @@
 package App::Mobirc;
 use Mouse;
-with 'MouseX::Plaggerize';
+with 'App::Mobirc::Role::Plaggable';
 use 5.00800;
 use Scalar::Util qw/blessed/;
 use POE;
