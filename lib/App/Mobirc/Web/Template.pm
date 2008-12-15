@@ -2,7 +2,7 @@ package App::Mobirc::Web::Template;
 use strict;
 use warnings;
 use App::Mobirc;
-use Template::MicroTemplate qw/build_mt/;
+use Text::MicroTemplate qw/build_mt/;
 
 sub import {
     my $class = shift;
