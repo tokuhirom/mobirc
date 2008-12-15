@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use App::Mobirc;
 use Text::MicroTemplate qw/build_mt/;
+use App::Mobirc::Web::Template::Wrapper;
 
 sub import {
     my $class = shift;
