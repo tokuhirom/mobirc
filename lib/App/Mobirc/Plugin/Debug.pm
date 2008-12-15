@@ -7,7 +7,9 @@ hook process_command => sub {
     my ( $self, $global_context, $command, $channel ) = @_;
     if (my ($command, ) = ( $command =~ /^!(\S+)/ )) {
         my $meth = "do_$command";
-        __PACKAGE__->$meth;
+        if ( my $code = __PACKAGE__->can($meth) ) {
+            $code->();
+        }
     }
     return 0;
 };
@@ -20,7 +22,8 @@ sub do_memory {
 
 sub do_dumpinc {
     require Data::Dumper;
-    warn Data::Dumper::Dumper(\%INC);
+    print Data::Dumper::Dumper(\%INC);
+    printf "total loaded modules: %d\n", scalar(keys %INC);
 }
 
 sub do_reload {
