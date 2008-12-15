@@ -344,7 +344,7 @@ sub {
     my \$args = \@_ == 1 ? \$_[0] : { \@_ };
     encoded_string((
         $_code
-    )->());
+    )->(\@_));
 }
 ...
     my $die_msg;
