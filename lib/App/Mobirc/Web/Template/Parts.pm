@@ -3,10 +3,6 @@ use strict;
 use warnings;
 use base qw(Template::Declare);
 use Template::Declare::Tags;
-use Params::Validate ':all';
-use List::Util qw/first/;
-use HTML::Entities qw/encode_entities/;
-use URI::Escape qw/uri_escape/;
 
 template 'keyword_line' => sub {
     my ($self, $row, $irc_nick) = @_;
