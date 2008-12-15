@@ -10,8 +10,7 @@ sub dispatch_login {
     render_td(
         $req,
         'Account', 'login' => (
-            mobile_agent => $req->mobile_agent,
-            req => $req,
+            $req,
         )
     );
 }

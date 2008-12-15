@@ -12,7 +12,7 @@ sub import {
 
     {
         no strict 'refs';
-        for my $meth (qw/mt_cached/) {
+        for my $meth (qw/mt_cached mt_cached_with_wrap/) {
             *{"${pkg}::${meth}"} = *{"${class}::${meth}"};
         }
     }
@@ -21,12 +21,24 @@ sub import {
 {
     my $cache;
     sub mt_cached {
-        my $tmpl = shift;
         my ($pkg, $fn, $line) = caller(0);
-        my $caller = join '', $pkg, $fn, $line;
+        my $caller = join ', ', $pkg, $fn, $line;
+        _mt_cached($caller, @_);
+    }
+
+    sub _mt_cached {
+        my $caller = shift;
+        my $tmpl = shift;
         $cache->{$caller} ||= build_mt($tmpl);
         $cache->{$caller}->( @_ )->as_string;
     }
+}
+
+sub mt_cached_with_wrap {
+    my ($pkg, $fn, $line) = caller(0);
+    my $caller = join ', ', $pkg, $fn, $line;
+    my $body = _mt_cached($caller, @_);
+    return App::Mobirc::Web::Template::Wrapper->wrapper( $body );
 }
 
 1;

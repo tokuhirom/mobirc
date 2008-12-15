@@ -9,8 +9,8 @@ sub dispatch_index {
 
     render_td(
         $req,
-        'root/index' => (
-            mobile_agent => $req->mobile_agent,
+        'Root', 'index' => (
+            $req,
         )
     );
 }
