@@ -117,7 +117,7 @@ sub dispatch_channel {
     my $channel = context->get_channel($channel_name);
 
     my $res = render_td(
-        'mobile/channel' => {
+        'Mobile', 'channel' => {
             channel             => $channel,
             recent_mode         => param('recent_mode') || undef,
             message             => param('msg') || '',

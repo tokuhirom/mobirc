@@ -7,6 +7,7 @@ use List::Util qw/first/;
 use HTML::Entities qw/encode_entities/;
 use URI::Escape qw/uri_escape_utf8/;
 use App::Mobirc::Pictogram;
+use Text::MicroTemplate qw/encoded_string/;
 
 sub mobile_agent {
     App::Mobirc::Web::Handler->web_context()->req->mobile_agent()
@@ -187,9 +188,18 @@ template 'mobile/recent' => sub {
 
         hr { };
 
-        show 'go_to_top';
+        outs_raw _go_to_top();
     };
 };
+
+sub _go_to_top {
+    my $pict = pictogram('8');
+    encoded_string qq{
+        <div class="GoToTop">
+            $pict <a accesskey="8" href="/mobile/">ch list</a>
+        </div>
+    };
+}
 
 private template 'mobile/go_to_top' => sub {
     div {
@@ -203,18 +213,7 @@ private template 'mobile/go_to_top' => sub {
     };
 };
 
-private template 'mobile/menu' => sub {
-    my $self = shift;
-    my %args = validate(
-        @_ => {
-            exists_recent_entries => 1,
-        },
-    );
-
-
-};
-
-template 'mobile/channel' => sub {
+sub channel {
     my $self = shift;
     my %args = validate(
         @_ => {
@@ -227,57 +226,41 @@ template 'mobile/channel' => sub {
     );
     my $channel = $args{channel};
 
-    show 'wrapper_mobile', sub {
-        form {
-            attr { action => '/mobile/channel?channel=' . $channel->name_urlsafe_encoded, method => 'post' };
-            input {
-                unless (mobile_agent()->is_non_mobile) {
-                    size is 10;
-                }
-                if ($args{message}) {
-                    value is $args{message};
-                }
-                type is 'text';
-                name is 'msg';
-            };
-            input { attr { type => "submit", accesskey => "1",  value => "OK", } };
-        };
+    # TODO: we need include() syntax in T::MT
+    mt_cached_with_wrap(<<'...', $args{channel}, $args{message}, $args{channel_page_option}, $args{irc_nick}, $args{recent_mode}, _go_to_top());
+? my ($channel, $message, $channel_page_option, $irc_nick, $recent_mode, $go_to_top) = @_
+    <form action='/mobile/channel?channel=<?= $channel->name_urlsafe_encoded?>' method='post'>
+        <input <? if ($message) { ?>value="<?= $message ?><? } ?>
+               type="text" name="msg" size="10" />
+        <input type="submit" accesskey="1" value="OK" />
+    </form>
 
-        for my $html (@{$args{channel_page_option}}) {
-            outs_raw $html;
-        }
-        br { };
+? for my $html (@$channel_page_option) {
+    <?= $html ?>
+? }
 
-        if ($channel) {
-            if (@{$channel->message_log} > 0) {
-                if ($args{recent_mode}) {
-                    for my $message (reverse $channel->recent_log) {
-                        show '../irc_message', $message, $args{irc_nick};
-                        br { };
-                    }
-                    hr { };
-                    outs_raw pictogram('5');
-                    a {
-                        attr { 'accesskey' => 5, href => '/mobile/channel?channel=' . $channel->name_urlsafe_encoded() };
-                        'more'
-                    };
-                } else {
-                    for my $message (reverse $channel->message_log) {
-                        show '../irc_message', $message, $args{irc_nick};
-                        br { };
-                    }
-                }
-            } else {
-                p { 'no message here yet' };
-            }
-        } else {
-            p { 'no such channel.' };
-        }
+? if ($channel) {
+?    if (@{$channel->message_log}) {
+?       my $meth = $recent_mode ? 'recent_log' : 'message_log';
+?       for my $message (reverse $channel->$meth) {
+            <?= encoded_string(App::Mobirc::Web::View->show('irc_message', $message, $irc_nick)) ?>
+            <br />
+?       }
+?       unless ($recent_mode) {
+            <hr />
+            <?= pictogram('5') ?><a href="/mobile/channel?channel=<?= $channel->name_urlsafe_encoded ?>" accesskey="5">more</a>
+?       }
+?    } else {
+        <p>no message here</p>
+?    }
+? } else {
+    <p>no such channel.</p>
+? }
 
-        hr { };
+<hr />
 
-        show 'go_to_top';
-    }
-};
+<?= $go_to_top ?>
+...
+}
 
 1;
