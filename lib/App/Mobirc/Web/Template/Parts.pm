@@ -23,15 +23,4 @@ template 'keyword_line' => sub {
     outs_raw($self->keyword_line($row));
 };
 
-template 'parts/version_info' => sub {
-    div {
-        class is 'VersionInfo';
-        span { 'mobirc - ' };
-        span {
-            class is 'version';
-            $App::Mobirc::VERSION;
-        }
-    }
-};
-
 1;
