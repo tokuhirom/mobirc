@@ -16,8 +16,13 @@ sub wrapper {
         <link rel="stylesheet" href="/static/mobirc.css" type="text/css" />
         <link rel="stylesheet" href="/static/mobile.css" type="text/css" />
         <title>mobirc</title>
+        <meta name="viewport" content="width=device-width" />
+        <meta name="viewport" content="initial-scale=1.0, user-scalable=yes" />
     </head>
-    <body>$body</body>
+    <body>
+        <a name="top"></a>
+        $body
+    </body>
 </html>
 ...
 }

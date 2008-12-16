@@ -9,9 +9,13 @@ use HTML::Entities qw/encode_entities/;
 use URI::Escape qw/uri_escape_utf8/;
 use App::Mobirc::Pictogram;
 
+sub mobile_agent {
+    App::Mobirc::Web::Handler->web_context()->req->mobile_agent()
+}
+
 template 'mobile/wrapper_mobile' => sub {
-    my ($self, $mobile_agent, $code, $subtitle) = @_;
-    my $encoding = $mobile_agent->can_display_utf8 ? 'UTF-8' : 'Shift_JIS';
+    my ($self, $code, $subtitle) = @_;
+    my $encoding = 'UTF-8';
     xml_decl { 'xml', version => '1.0', encoding => $encoding };
     outs_raw qq{<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">};
     html { attr { 'lang' => 'ja', 'xml:lang' => 'ja', xmlns => 'http://www.w3.org/1999/xhtml' }
@@ -21,7 +25,7 @@ template 'mobile/wrapper_mobile' => sub {
             meta { attr { name => 'robots', content => 'noindex, nofollow' } }
             link { attr { rel => 'stylesheet', href => '/static/mobirc.css', type=> "text/css"} };
             link { attr { rel => 'stylesheet', href => '/static/mobile.css', type=> "text/css"} };
-            if ($mobile_agent->user_agent =~ /(?:iPod|iPhone)/) {
+            if (mobile_agent()->user_agent =~ /(?:iPod|iPhone)/) {
                 meta { attr { name => 'viewport', content => 'width=device-width' } }
                 meta { attr { name => 'viewport', content => 'initial-scale=1.0, user-scalable=yes' } }
             }
@@ -39,14 +43,8 @@ template 'mobile/wrapper_mobile' => sub {
 };
 
 private template 'mobile/footer' => sub {
-    my $self = shift;
-    my %args = validate(
-        @_ => {
-            mobile_agent => 1,
-        }
-    );
     hr { };
-    outs_raw pictogram($args{mobile_agent}, '8');
+    outs_raw pictogram('8');
     a { attr { 'accesskey' => "8", 'href' => "/mobile/"}
         'back to top'
     }
@@ -56,12 +54,11 @@ template 'mobile/topics' => sub {
     my $self = shift;
     my %args = validate(
         @_ => {
-            mobile_agent => 1,
             channels     => 1,
         }
     );
 
-    show 'wrapper_mobile', $args{mobile_agent}, sub {
+    show 'wrapper_mobile', sub {
         for my $channel ( @{ $args{channels} } ) {
             div { attr { class => 'OneTopic' }
 
@@ -73,7 +70,7 @@ template 'mobile/topics' => sub {
             }
         }
 
-        show 'footer', mobile_agent => $args{mobile_agent};
+        show 'footer';
     }, 'topics';
 };
 
@@ -81,13 +78,12 @@ template 'mobile/keyword' => sub {
     my $self = shift;
     my %args = validate(
         @_ => {
-            mobile_agent => 1,
             rows         => 1,
             irc_nick     => 1,
         }
     );
 
-    show 'wrapper_mobile', $args{mobile_agent}, sub {
+    show 'wrapper_mobile', sub {
         a { attr { name => "1" } }
         a { attr { accesskey => '7', href => '#1' } };
 
@@ -97,7 +93,7 @@ template 'mobile/keyword' => sub {
             show '../keyword_line', $row, $args{irc_nick};
         }
 
-        show 'footer', mobile_agent => $args{mobile_agent};
+        show 'footer';
     }, 'keyword';
 };
 
@@ -108,11 +104,10 @@ template 'mobile/top' => sub {
             exists_recent_entries => 1,
             keyword_recent_num    => 1,
             channels              => 1,
-            mobile_agent          => 1,
         }
     );
 
-    show 'wrapper_mobile', $args{mobile_agent}, sub {
+    show 'wrapper_mobile', sub {
         if ($args{keyword_recent_num} > 0) {
             div {
                 class is 'keyword_recent_notice';
@@ -124,7 +119,7 @@ template 'mobile/top' => sub {
         }
 
         for my $channel (@{$args{channels}}) {
-            outs_raw pictogram($args{mobile_agent}, '(^-^)');
+            outs_raw pictogram('(^-^)');
             a {
                 href is ('/mobile/channel?channel=' . $channel->name_urlsafe_encoded);
                 $channel->name
@@ -140,7 +135,6 @@ template 'mobile/top' => sub {
         hr { };
         show 'menu' => (
             exists_recent_entries => $args{exists_recent_entries},
-            mobile_agent          => $args{mobile_agent},
         );
         hr { };
         show '../parts/version_info'
@@ -154,11 +148,10 @@ template 'mobile/recent' => sub {
             channels      => 1,
             has_next_page => 1,
             irc_nick      => 1,
-            mobile_agent  => 1,
         }
     );
 
-    show 'wrapper_mobile', $args{mobile_agent}, sub {
+    show 'wrapper_mobile', sub {
         for my $channel ( @{ $args{channels} } ) {
             div {
                 class is 'ChannelHeader';
@@ -180,7 +173,7 @@ template 'mobile/recent' => sub {
         }
 
         if ($args{has_next_page}) {
-            outs_raw pictogram($args{mobile_agent}, 6);
+            outs_raw pictogram(6);
             a {
                 href is '/mobile/recent';
                 accesskey is '6';
@@ -190,20 +183,14 @@ template 'mobile/recent' => sub {
 
         hr { };
 
-        show 'go_to_top', mobile_agent => $args{mobile_agent};
+        show 'go_to_top';
     };
 };
 
 private template 'mobile/go_to_top' => sub {
-    my $self = shift;
-    my %args = validate(
-        @_ => {
-            mobile_agent => 1,
-        }
-    );
     div {
         class is 'GoToTop';
-        outs_raw pictogram($args{mobile_agent}, '8');
+        outs_raw pictogram('8');
         a {
             accesskey is "8";
             href is "/mobile/";
@@ -217,11 +204,10 @@ private template 'mobile/menu' => sub {
     my %args = validate(
         @_ => {
             exists_recent_entries => 1,
-            mobile_agent          => 1,
         },
     );
 
-    outs_raw pictogram($args{mobile_agent}, '0');
+    outs_raw pictogram('0');
     a { attr { href => '/mobile/#top', accesskey => 0 }
         'refresh list'
     };
@@ -244,7 +230,7 @@ private template 'mobile/menu' => sub {
     };
     br { };
 
-    outs_raw pictogram($args{mobile_agent}, '9');
+    outs_raw pictogram('9');
     a {
         attr { href => '/mobile/clear_all_unread', accesskey => '9' }
         'clear_all_unread'
@@ -257,7 +243,6 @@ template 'mobile/channel' => sub {
     my $self = shift;
     my %args = validate(
         @_ => {
-            mobile_agent        => 1,
             channel             => 1,
             channel_page_option => 1,
             irc_nick            => 1,
@@ -267,11 +252,11 @@ template 'mobile/channel' => sub {
     );
     my $channel = $args{channel};
 
-    show 'wrapper_mobile', $args{mobile_agent}, sub {
+    show 'wrapper_mobile', sub {
         form {
             attr { action => '/mobile/channel?channel=' . $channel->name_urlsafe_encoded, method => 'post' };
             input {
-                unless ($args{mobile_agent}->is_non_mobile) {
+                unless (mobile_agent()->is_non_mobile) {
                     size is 10;
                 }
                 if ($args{message}) {
@@ -296,7 +281,7 @@ template 'mobile/channel' => sub {
                         br { };
                     }
                     hr { };
-                    outs_raw pictogram($args{mobile_agent}, '5');
+                    outs_raw pictogram('5');
                     a {
                         attr { 'accesskey' => 5, href => '/mobile/channel?channel=' . $channel->name_urlsafe_encoded() };
                         'more'
@@ -316,7 +301,7 @@ template 'mobile/channel' => sub {
 
         hr { };
 
-        show 'go_to_top', mobile_agent => $args{mobile_agent};
+        show 'go_to_top';
     }
 };
 

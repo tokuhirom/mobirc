@@ -13,7 +13,6 @@ sub dispatch_index {
         $req,
         'mobile/top' => {
             exists_recent_entries => scalar( grep { $_->unread_lines } server->channels ),
-            mobile_agent       => $req->mobile_agent,
             keyword_recent_num => server->keyword_channel->unread_lines(),
             channels           => scalar( server->channels_sorted ),
         }
@@ -47,7 +46,6 @@ sub dispatch_recent {
             channels      => \@target_channels,
             has_next_page => $has_next_page,
             irc_nick      => irc_nick,
-            mobile_agent  => $req->mobile_agent,
         },
     );
 
@@ -83,7 +81,6 @@ sub dispatch_topics {
     render_td(
         $req => (
             'mobile/topics' => {
-                mobile_agent => $req->mobile_agent,
                 channels     => scalar( server->channels ),
             }
         )
@@ -98,7 +95,6 @@ sub dispatch_keyword {
     my $res = render_td(
         $req,
         'mobile/keyword' => {
-            mobile_agent => $req->mobile_agent,
             rows         => (
                   $req->params->{recent_mode}
                 ? scalar($channel->recent_log)
@@ -129,7 +125,6 @@ sub dispatch_channel {
     my $res = render_td(
         $req,
         'mobile/channel' => {
-            mobile_agent        => $req->mobile_agent,
             channel             => $channel,
             recent_mode         => $req->params->{recent_mode} || undef,
             message             => $req->params->{'msg'} || '',

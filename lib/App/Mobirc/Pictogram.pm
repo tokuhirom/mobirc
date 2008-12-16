@@ -44,7 +44,9 @@ my $PICTMAP = {
 };
 
 sub pictogram {
-    my ($ma, $name) = @_;
+    my ($name) = @_;
+
+    my $ma = App::Mobirc::Web::Handler->web_context()->req->mobile_agent();
 
     my $key = do {
         if ($ma->is_docomo) {
