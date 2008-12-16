@@ -52,7 +52,7 @@ hook 'html_filter' => sub {
     $html = $doc->toStringHTML();
     $html =~ s{<!DOCTYPE[^>]*>\s*}{};
     $html =~ s{(<a[^>]+)/>}{$1></a>}gi;
-    return ($req, decode($doc->encoding || "UTF-8", $html));
+    return ($req, decode_utf8($html));
 };
 
 sub _class {

@@ -127,7 +127,7 @@ sub do_dispatch {
     my $meth = $rule->{action};
     my $post_meth = "post_dispatch_$meth";
     my $get_meth  = "dispatch_$meth";
-    my $args = Data::Visitor::Encode->decode( $req->mobile_agent->encoding, $rule->{args} );
+    my $args = Data::Visitor::Encode->decode_utf8( $rule->{args} );
     $args->{session} = $session;
     if ( $req->method =~ /POST/i && $controller->can($post_meth)) {
         return $controller->$post_meth($req, $args);

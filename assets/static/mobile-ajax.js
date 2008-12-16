@@ -14,7 +14,7 @@ var SubmitUtil = {
     }
     , initialize : function () {
         if (!this.hasXHR) {
-            try { this.submitIframe.contentWindow.document.charset = "Shift_JIS"; } catch (e) {}
+            try { this.submitIframe.contentWindow.document.charset = "UTF-8"; } catch (e) {}
             this.submitIframe.contentWindow.document.writeln("<body></body>");
         }
     }
@@ -44,7 +44,7 @@ var SubmitUtil = {
         }
 
         var form = doc.createElement('form');
-        form.acceptCharset = "Shift_JIS";
+        form.acceptCharset = "UTF-8";
         form.action = Mobirc.docroot + 'mobile-ajax/channel?channel=' + encodeURIComponent(channelEsc);
         form.method = 'POST';
         var input = doc.createElement('input');
@@ -101,7 +101,7 @@ var Mobirc = {
     , createFormIframe : function (container) {
         var styleSheet = document.getElementsByTagName("style")[0];
         var iframe = IFrameUtil.createAndInsertIframe(container, this.onFormIframeLoaded, false);
-        //iframe.contentWindow.document.charset = "Shift_JIS";
+        //iframe.contentWindow.document.charset = "UTF-8";
         //iframe.contentWindow.document.writeln("<body></body>");
         return iframe;
     }
@@ -110,7 +110,7 @@ var Mobirc = {
         var iframe = IFrameUtil.createAndInsertIframe(container, this.onInheritedIframeCreated, false);
         if (iframe.contentWindow) {
             iframe.init = true;
-            iframe.contentWindow.document.charset = "Shift_JIS";
+            iframe.contentWindow.document.charset = "UTF-8";
             iframe.contentWindow.document.writeln("<style type='text/css'>"+styleSheet.innerHTML+"</style><body><ul class='log' id='lines'><li>Loading</li></ul></body>");
         }
         return iframe;

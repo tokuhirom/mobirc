@@ -80,7 +80,7 @@ hook html_filter => sub {
     my $html = $doc->toStringHTML;
     $html =~ s{<!DOCTYPE[^>]*>\s*}{};
 
-    return ($req, decode($doc->encoding || "UTF-8", $html));
+    return ($req, decode_utf8($html));
 };
 
 1;

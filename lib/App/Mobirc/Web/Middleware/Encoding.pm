@@ -8,9 +8,8 @@ sub wrap {
     sub {
         my $req = shift;
 
-        my $encoding = $req->mobile_agent->encoding;
         for my $method (qw/params query_params body_params/) {
-            $req->$method( Data::Visitor::Encode->decode($encoding, $req->$method) );
+            $req->$method( Data::Visitor::Encode->decode_utf8($req->$method) );
         }
 
         $next->($req);

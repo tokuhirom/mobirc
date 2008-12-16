@@ -15,7 +15,7 @@ sub import {
     warnings->import;
 
     no strict 'refs';
-    for my $meth (qw/context server render_irc_message render_td redirect session req param/) {
+    for my $meth (qw/context server render_irc_message render_td redirect session req param mobile_attribute/) {
         *{"$pkg\::$meth"} = *{"$class\::$meth"};
     }
 }
@@ -26,7 +26,7 @@ sub web_context () { App::Mobirc::Web::Handler->web_context } ## no critic
 sub session  () { web_context->session } ## no critic
 sub req      () { web_context->req } ## no critic
 sub param    ($) { req->param($_[0]) } ## no critic
-sub mobile_attribute () { web_context->mobile_attribute($_[0]) } ## no critic
+sub mobile_attribute () { web_context->mobile_attribute() } ## no critic
 sub render_irc_message { App::Mobirc::Web::Template::IRCMessage->render_irc_message(shift) }
 
 sub render_td {
@@ -36,7 +36,7 @@ sub render_td {
     my $html = sub {
         my $out = App::Mobirc::Web::View->show(@args);
         ($req, $out) = context->run_hook_filter('html_filter', $req, $out);
-        $out = encode( $req->mobile_agent->encoding, $out);
+        $out = encode_utf8($out);
     }->();
 
     HTTP::Engine::Response->new(
@@ -54,12 +54,7 @@ sub _content_type {
         'application/xhtml+xml; charset=UTF-8';
     }
     else {
-        if ( $req->mobile_agent->can_display_utf8 ) {
-            'text/html; charset=UTF-8';
-        }
-        else {
-            'text/html; charset=Shift_JIS';
-        }
+        'text/html; charset=UTF-8';
     }
 }
 
