@@ -39,7 +39,7 @@ sub dispatch_recent {
     }
 
     my $res = render_td(
-        'mobile/recent' => {
+        'Mobile', 'recent' => {
             channels      => \@target_channels,
             has_next_page => $has_next_page,
         },

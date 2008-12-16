@@ -1,46 +1,8 @@
 package App::Mobirc::Web::Template::Mobile;
 use App::Mobirc::Web::Template;
-use base qw(Template::Declare);
-use Template::Declare::Tags;
 use Params::Validate ':all';
-use List::Util qw/first/;
-use HTML::Entities qw/encode_entities/;
-use URI::Escape qw/uri_escape_utf8/;
-use App::Mobirc::Pictogram;
 use Text::MicroTemplate qw/encoded_string/;
-
-sub mobile_agent {
-    App::Mobirc::Web::Handler->web_context()->req->mobile_agent()
-}
-
-template 'mobile/wrapper_mobile' => sub {
-    my ($self, $code, $subtitle) = @_;
-    my $encoding = 'UTF-8';
-    xml_decl { 'xml', version => '1.0', encoding => $encoding };
-    outs_raw qq{<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">};
-    html { attr { 'lang' => 'ja', 'xml:lang' => 'ja', xmlns => 'http://www.w3.org/1999/xhtml' }
-        head {
-            meta { attr { 'http-equiv' => 'Content-Type', 'content' => "text/html; charset=$encoding" } }
-            meta { attr { 'http-equiv' => 'Cache-Control', content => 'max-age=0' } }
-            meta { attr { name => 'robots', content => 'noindex, nofollow' } }
-            link { attr { rel => 'stylesheet', href => '/static/mobirc.css', type=> "text/css"} };
-            link { attr { rel => 'stylesheet', href => '/static/mobile.css', type=> "text/css"} };
-            if (mobile_agent()->user_agent =~ /(?:iPod|iPhone)/) {
-                meta { attr { name => 'viewport', content => 'width=device-width' } }
-                meta { attr { name => 'viewport', content => 'initial-scale=1.0, user-scalable=yes' } }
-            }
-            title {
-                my $title = $subtitle ? "$subtitle - " : '';
-                   $title .= "mobirc";
-                   $title;
-            }
-        }
-        body {
-            a { name is 'top' };
-            $code->()
-        }
-    };
-};
+use App::Mobirc::Pictogram qw/pictogram/;
 
 sub topics {
     my $class = shift;
@@ -126,8 +88,8 @@ App::Mobirc <?= $App::Mobirc::VERSION ?>
 ...
 }
 
-template 'mobile/recent' => sub {
-    my $self = shift;
+sub recent {
+    my $class = shift;
     my %args = validate(
         @_ => {
             channels      => 1,
@@ -135,41 +97,29 @@ template 'mobile/recent' => sub {
         }
     );
 
-    show 'wrapper_mobile', sub {
-        for my $channel ( @{ $args{channels} } ) {
-            div {
-                class is 'ChannelHeader';
-                a {
-                    class is 'ChannelName';
-                    $channel->name;
-                };
-                a {
-                    href is '/mobile/channel?channel=' . $channel->name_urlsafe_encoded();
-                    'more...';
-                };
-            };
+    mt_cached_with_wrap(<<'...', $args{channels}, $args{has_next_page}, _go_to_top());
+? my ($channels, $has_next_page, $go_to_top) = @_;
+? for my $channel (@$channels) {
+    <div class="ChannelHeader">
+        <a class="ChannelName"><?= $channel->name ?></a>
+        <a href="/mobile/channel?channel=<?= $channel->name_urlsafe_encoded ?>">more...</a>
+    </div>
+?    for my $message (@{$channel->recent_log}) {
+        <?= render_irc_message($message) ?>
+        <br />
+?    }
+    <hr />
+? }
 
-            for my $message (@{$channel->recent_log}) {
-                show '../irc_message', $message;
-                br { };
-            }
-            hr {};
-        }
+? if ($has_next_page) {
+    <?= pictogram(6) ?><a href="/mobile/recent" accesskey="6">next</a>
+? }
 
-        if ($args{has_next_page}) {
-            outs_raw pictogram(6);
-            a {
-                href is '/mobile/recent';
-                accesskey is '6';
-                'next';
-            }
-        }
+<hr />
 
-        hr { };
-
-        outs_raw _go_to_top();
-    };
-};
+<?= $go_to_top ?>
+...
+}
 
 sub _go_to_top {
     my $pict = pictogram('8');
@@ -209,7 +159,7 @@ sub channel {
 ?    if (@{$channel->message_log}) {
 ?       my $meth = $recent_mode ? 'recent_log' : 'message_log';
 ?       for my $message (reverse $channel->$meth) {
-            <?= encoded_string(App::Mobirc::Web::View->show('irc_message', $message)) ?>
+            <?= render_irc_message($message) ?>
             <br />
 ?       }
 ?       unless ($recent_mode) {

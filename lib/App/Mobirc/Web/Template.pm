@@ -48,6 +48,7 @@ sub mt_cached_with_wrap {
     *encoded_string = *Text::MicroTemplate::encoded_string;
     use App::Mobirc::Pictogram;
     sub param { App::Mobirc::Web::Handler->web_context()->req->param($_[0]) }
+    sub render_irc_message { encoded_string(App::Mobirc::Web::View->show('irc_message', shift)) }
 }
 
 1;
