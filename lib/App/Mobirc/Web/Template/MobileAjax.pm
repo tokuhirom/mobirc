@@ -1,6 +1,5 @@
 package App::Mobirc::Web::Template::MobileAjax;
-use strict;
-use warnings;
+use App::Mobirc::Web::Template
 use base qw(Template::Declare);
 use Template::Declare::Tags;
 use Params::Validate ':all';
@@ -8,8 +7,8 @@ use App::Mobirc;
 use Path::Class;
 
 private template 'mobile-ajax/wrapper_mobile' => sub {
-    my ($self, $mobile_agent, $code) = @_;
-    my $encoding = $mobile_agent->can_display_utf8 ? 'UTF-8' : 'Shift_JIS';
+    my ($self, $code) = @_;
+    my $encoding = 'UTF-8';
 
     xml_decl { 'xml', version => '1.0', encoding => $encoding };
     outs_raw qq{<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">};
@@ -21,7 +20,7 @@ private template 'mobile-ajax/wrapper_mobile' => sub {
             meta { attr { name => 'robots', content => 'noindex, nofollow' } }
             link { attr { rel => 'stylesheet', href => '/static/mobirc.css', type=> "text/css"} };
             link { attr { rel => 'stylesheet', href => '/static/mobile-ajax.css', type=> "text/css"} };
-            if ($mobile_agent->user_agent =~ /(?:iPod|iPhone)/) {
+            if (mobile_agent()->user_agent =~ /(?:iPod|iPhone)/) {
                 meta { attr { name => 'viewport', content => 'width=device-width' } }
                 meta { attr { name => 'viewport', content => 'initial-scale=1.0, user-scalable=yes' } }
             }
@@ -41,13 +40,12 @@ template 'mobile-ajax/index' => sub {
     my $self = shift;
     my %args = validate(
         @_ => {
-            mobile_agent => 1,
             channels     => 1,
             docroot      => 1,
         },
     );
 
-    show 'wrapper_mobile', $args{mobile_agent}, sub {
+    show 'wrapper_mobile', sub {
         textarea {
             id is 'stylesheet';
             style is 'display: none';
@@ -76,7 +74,7 @@ template 'mobile-ajax/index' => sub {
             action is '/mobirc-ajax/channel';
             method is 'post';
 
-            if ($args{mobile_agent}->user_agent =~ /(?:iPod|iPhone)/) {
+            if (mobile_agent()->user_agent =~ /(?:iPod|iPhone)/) {
                 input {
                     type is 'text';
                     id is 'msg';

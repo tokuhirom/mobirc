@@ -10,7 +10,6 @@ sub dispatch_index {
 
     render_td(
         'mobile-ajax/index' => (
-            mobile_agent => $req->mobile_agent,
             docroot =>
               ( App::Mobirc->context->{config}->{httpd}->{root} || '/' ),
             channels => [ server->channels ],
@@ -33,7 +32,7 @@ sub dispatch_channel {
                   } reverse $channel->$meth
             ]
         );
-        $body = encode($req->mobile_agent->encoding, "Mobirc.callbackChannel($json);" );
+        $body = encode(mobile_agent()->encoding, "Mobirc.callbackChannel($json);" );
 
         $channel->clear_unread();
     } else {
@@ -59,11 +58,6 @@ sub post_dispatch_channel {
         body         => 'ok',
     );
 }
-
-#   sub dispatch_recent {
-#       my ($class, $c) = @_;
-#       $c->res->body('');
-#   }
 
 1;
 __END__
