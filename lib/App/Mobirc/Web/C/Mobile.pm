@@ -100,13 +100,13 @@ sub dispatch_keyword {
 
 sub decode_urlsafe_encoded {
     my $name = shift;
-    decode_utf8 urlsafe_b64decode($name);
+    decode_utf8 urlsafe_b64decode(param($name));
 }
 
 sub dispatch_channel {
     my ($class, $req, $args, ) = @_;
 
-    my $channel_name = decode_urlsafe_encoded param('channel');
+    my $channel_name = decode_urlsafe_encoded('channel');
     DEBUG "show channel page: $channel_name";
 
     my $channel = context->get_channel($channel_name);
@@ -129,7 +129,7 @@ sub dispatch_channel {
 sub post_dispatch_channel {
     my ( $class, $req, $args) = @_;
 
-    my $channel_name = decode_urlsafe_encoded param('channel');
+    my $channel_name = decode_urlsafe_encoded('channel');
     my $message = param('msg');
 
     DEBUG "POST MESSAGE $message";
