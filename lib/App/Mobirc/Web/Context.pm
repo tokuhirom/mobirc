@@ -1,6 +1,6 @@
 package App::Mobirc::Web::Context;
 use Mouse;
-use HTTP::MobileAttribute plugins => ['Encoding'];
+use HTTP::MobileAttribute;
 
 has session => (
     is       => 'rw',
