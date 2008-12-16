@@ -110,7 +110,7 @@ template 'ajax/keyword' => sub {
 
     div {
         for my $row ( @{ $args{logs} } ) {
-            show '../keyword_line', $row;
+            outs_raw(App::Mobirc::Web::Template::Parts->keyword_line($row));
         }
     }
 };

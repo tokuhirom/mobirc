@@ -1,8 +1,5 @@
 package App::Mobirc::Web::Template::Parts;
 use App::Mobirc::Web::Template;
-use base qw(Template::Declare);
-use Template::Declare::Tags;
-use App::Mobirc::Web::Template;
 
 sub keyword_line {
     my ($class, $row) = @_;
@@ -16,11 +13,5 @@ sub keyword_line {
 <br />
 ...
 }
-
-# TODO: remove this
-template 'keyword_line' => sub {
-    my ($self, $row) = @_;
-    outs_raw($self->keyword_line($row));
-};
 
 1;
