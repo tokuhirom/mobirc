@@ -4,12 +4,7 @@ use App::Mobirc::Web::C;
 sub dispatch_index {
     my ($class, $req) = @_;
 
-    render_td(
-        $req,
-        'Root', 'index' => (
-            $req,
-        )
-    );
+    render_td( 'Root', 'index' );
 }
 
 1;

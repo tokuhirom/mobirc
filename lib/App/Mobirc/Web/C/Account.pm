@@ -7,7 +7,6 @@ sub dispatch_login {
     my ($class, $req) = @_;
 
     render_td(
-        $req,
         'Account', 'login' => ()
     );
 }
@@ -16,7 +15,7 @@ sub post_dispatch_login_password {
     my ($class, $req, $args) = @_;
     my $conf = App::Mobirc->context->config;
     die "missing password in config.global.password" unless $conf->{global}->{password};
-    if (my $pw = $req->params->{password}) {
+    if (my $pw = param('password')) {
         if ($pw eq $conf->{global}->{password}) {
             session->set('authorized', 1);
             redirect('/');

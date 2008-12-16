@@ -9,7 +9,6 @@ sub dispatch_index {
     my ($class, $req) = @_;
 
     return render_td(
-        $req,
         'Mobile', 'top' => {
             exists_recent_entries => scalar( grep { $_->unread_lines } server->channels ),
             keyword_recent_num => server->keyword_channel->unread_lines(),
@@ -40,7 +39,6 @@ sub dispatch_recent {
     }
 
     my $res = render_td(
-        $req,
         'mobile/recent' => {
             channels      => \@target_channels,
             has_next_page => $has_next_page,
@@ -78,11 +76,9 @@ sub dispatch_topics {
     my ($class, $req) = @_;
 
     render_td(
-        $req => (
-            'Mobile', 'topics' => {
-                channels     => scalar( server->channels ),
-            }
-        )
+        'Mobile', 'topics' => {
+            channels     => scalar( server->channels ),
+        }
     );
 }
 
@@ -92,10 +88,9 @@ sub dispatch_keyword {
     my $channel = server->keyword_channel;
 
     my $res = render_td(
-        $req,
         'mobile/keyword' => {
             rows         => (
-                  $req->params->{recent_mode}
+                  param('recent_mode')
                 ? scalar($channel->recent_log)
                 : scalar($channel->message_log)
             ),
@@ -116,17 +111,16 @@ sub decode_urlsafe_encoded {
 sub dispatch_channel {
     my ($class, $req, $args, ) = @_;
 
-    my $channel_name = decode_urlsafe_encoded $req->params->{channel};
+    my $channel_name = decode_urlsafe_encoded param('channel');
     DEBUG "show channel page: $channel_name";
 
     my $channel = context->get_channel($channel_name);
 
     my $res = render_td(
-        $req,
         'mobile/channel' => {
             channel             => $channel,
-            recent_mode         => $req->params->{recent_mode} || undef,
-            message             => $req->params->{'msg'} || '',
+            recent_mode         => param('recent_mode') || undef,
+            message             => param('msg') || '',
             channel_page_option => context->run_hook('channel_page_option', $channel) || [],
             irc_nick            => irc_nick,
         }
@@ -140,8 +134,8 @@ sub dispatch_channel {
 sub post_dispatch_channel {
     my ( $class, $req, $args) = @_;
 
-    my $channel_name = decode_urlsafe_encoded $req->params->{channel};
-    my $message = $req->params->{'msg'};
+    my $channel_name = decode_urlsafe_encoded param('channel');
+    my $message = params('msg');
 
     DEBUG "POST MESSAGE $message";
 

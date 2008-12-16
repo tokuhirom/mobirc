@@ -13,7 +13,7 @@ sub import {
     warnings->import;
 
     no strict 'refs';
-    for my $meth (qw/context server irc_nick render_td redirect session/) {
+    for my $meth (qw/context server irc_nick render_td redirect session req param/) {
         *{"$pkg\::$meth"} = *{"$class\::$meth"};
     }
 }
@@ -21,11 +21,15 @@ sub import {
 sub context  () { App::Mobirc->context } ## no critic
 sub server   () { context->server } ## no critic.
 sub irc_nick () { POE::Kernel->alias_resolve('irc_session')->get_heap->{irc}->nick_name } ## no critic
-sub session  () { App::Mobirc::Web::Handler->web_context->session } ## no critic
+sub web_context () { App::Mobirc::Web::Handler->web_context } ## no critic
+sub session  () { web_context->session } ## no critic
+sub req      () { web_context->req } ## no critic
+sub param    ($) { req->param($_[0]) } ## no critic
+sub mobile_attribute () { web_context->mobile_attribute($_[0]) } ## no critic
 
 sub render_td {
-    my ($req, @args) = @_;
-    Carp::croak "invalid arguments for render_td" unless ref $req eq 'HTTP::Engine::Request';
+    my @args = @_;
+    my $req = req();
 
     my $html = sub {
         my $out = App::Mobirc::Web::View->show(@args);

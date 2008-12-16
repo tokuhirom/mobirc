@@ -8,7 +8,6 @@ sub dispatch_base {
     my ($class, $req) = @_;
 
     render_td(
-        $req,
         'iphone/base' => (
             user_agent => $req->user_agent,
             docroot    => (App::Mobirc->context->{config}->{httpd}->{root} || '/'),
@@ -18,12 +17,12 @@ sub dispatch_base {
 
 sub dispatch_channel {
     my ($class, $req,) = @_;
-    my $channel_name = $req->params->{channel};
+    my $channel_name = param('channel');
 
     my $channel = server->get_channel($channel_name);
     my $body;
     if (@{$channel->message_log}) {
-        my $meth = $req->query_params->{recent} ? 'recent_log' : 'message_log';
+        my $meth = param('recent') ? 'recent_log' : 'message_log';
         $body = encode_json(
             {
                 messages => [
@@ -50,8 +49,8 @@ sub dispatch_channel {
 
 sub post_dispatch_channel {
     my ( $class, $req, ) = @_;
-    my $channel = $req->params->{'channel'};
-    my $message = $req->params->{'msg'};
+    my $channel = param('channel');
+    my $message = param('msg');
 
     DEBUG "POST MESSAGE $message";
 
@@ -68,7 +67,6 @@ sub dispatch_menu {
     my ($class, $req ) = @_;
 
     render_td(
-        $req,
         'iphone/menu' => (
             server             => server,
             keyword_recent_num => server->keyword_channel->unread_lines,
@@ -80,7 +78,6 @@ sub dispatch_keyword {
     my ($class, $req ) = @_;
 
     my $res = render_td(
-        $req,
         'iphone/keyword' => {
             logs     => scalar(server->keyword_channel->message_log),
             irc_nick => irc_nick,

@@ -9,7 +9,6 @@ sub dispatch_index {
     my ($class, $req) = @_;
 
     render_td(
-        $req,
         'mobile-ajax/index' => (
             mobile_agent => $req->mobile_agent,
             docroot =>
@@ -21,12 +20,12 @@ sub dispatch_index {
 
 sub dispatch_channel {
     my ($class, $req) = @_;
-    my $channel_name = $req->query_params->{channel} or die 'missing channel name';
+    my $channel_name = param('channel') or die 'missing channel name';
     my $channel = server->get_channel($channel_name);
 
     my $body;
     if (@{$channel->message_log}) {
-        my $meth = $req->query_params->{recent} ? 'recent_log' : 'message_log';
+        my $meth = param('recent') ? 'recent_log' : 'message_log';
         my $json = to_json(
             [
                 map {
@@ -49,8 +48,8 @@ sub dispatch_channel {
 
 sub post_dispatch_channel {
     my ( $class, $req, $args) = @_;
-    my $channel = $req->params->{'channel'};
-    my $message = $req->params->{'msg'};
+    my $channel = param('channel');
+    my $message = param('msg');
 
     context->get_channel($channel)->post_command($message);
 
