@@ -7,23 +7,24 @@ use Params::Validate ':all';
 use List::Util qw/first/;
 use HTML::Entities qw/encode_entities/;
 use App::Mobirc::Web::View;
+use App::Mobirc::Util qw/irc_nick/;
 
 template 'irc_message' => sub {
-    my ($self, $message, $my_nick) = validate_pos(@_, OBJECT, { isa => 'App::Mobirc::Model::Message' }, SCALAR);
+    my ($self, $message, ) = validate_pos(@_, OBJECT, { isa => 'App::Mobirc::Model::Message' });
 
     # i want to strip spaces. cellphone hates spaces.
-    my $html = App::Mobirc::Web::View->show( '_irc_message', $message, $my_nick );
+    my $html = App::Mobirc::Web::View->show( '_irc_message', $message);
     $html =~ s/^\s+//smg;
     $html =~ s/\n//g;
     outs_raw $html;
 };
 
 template '_irc_message' => sub {
-    my ($self, $message, $my_nick) = validate_pos(@_, OBJECT, { isa => 'App::Mobirc::Model::Message' }, SCALAR);
+    my ($self, $message) = validate_pos(@_, OBJECT, { isa => 'App::Mobirc::Model::Message' });
 
     show 'irc_time', $message->time;
     if ($message->who) {
-        show 'irc_who',  $message->who, $my_nick;
+        show 'irc_who',  $message->who;
     }
     show 'irc_body', $message->class, $message->body;
 };
@@ -47,9 +48,9 @@ private template 'irc_time' => sub {
 };
 
 private template 'irc_who' => sub {
-    my ( $self, $who, $my_nick ) = validate_pos( @_, OBJECT, SCALAR, SCALAR );
+    my ( $self, $who, ) = validate_pos( @_, OBJECT, SCALAR );
 
-    my $who_class = ( $who eq $my_nick ) ?  'nick_myself' : 'nick_normal';
+    my $who_class = ( $who eq irc_nick() ) ?  'nick_myself' : 'nick_normal';
 
     span { attr { class => $who_class };
         "($who)"

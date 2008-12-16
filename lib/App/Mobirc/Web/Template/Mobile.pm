@@ -42,22 +42,6 @@ template 'mobile/wrapper_mobile' => sub {
     };
 };
 
-private template 'mobile/footer' => sub {
-    hr { };
-    outs_raw pictogram('8');
-    a { attr { 'accesskey' => "8", 'href' => "/mobile/"}
-        'back to top'
-    }
-};
-
-sub _footer {
-    my $pict = pictogram('8');
-    <<"...";
-<hr />
-$pict <a href="/mobile/" accesskey="8">back to top</a>
-...
-}
-
 sub topics {
     my $class = shift;
     my %args = validate(
@@ -76,28 +60,24 @@ sub topics {
 ...
 }
 
-template 'mobile/keyword' => sub {
+sub keyword {
     my $self = shift;
     my %args = validate(
         @_ => {
             rows         => 1,
-            irc_nick     => 1,
         }
     );
 
-    show 'wrapper_mobile', sub {
-        a { attr { name => "1" } }
-        a { attr { accesskey => '7', href => '#1' } };
+    mt_cached_with_wrap(<<'...', $args{rows}, _go_to_top());
+? my ($rows, $footer) = @_;
+<div class="ttlLv1">keyword</div>
+? for my $row (@$rows) {
+    <?= encoded_string App::Mobirc::Web::Template::Parts->keyword_line( $row ) ?>
+? }
 
-        div { attr { class => 'ttlLv1' } 'keyword' };
-
-        for my $row ( @{$args{rows}} ) {
-            show '../keyword_line', $row, $args{irc_nick};
-        }
-
-        show 'footer';
-    }, 'keyword';
-};
+<?= $footer ?>
+...
+}
 
 sub top {
     my $self = shift;
@@ -152,7 +132,6 @@ template 'mobile/recent' => sub {
         @_ => {
             channels      => 1,
             has_next_page => 1,
-            irc_nick      => 1,
         }
     );
 
@@ -171,7 +150,7 @@ template 'mobile/recent' => sub {
             };
 
             for my $message (@{$channel->recent_log}) {
-                show '../irc_message', $message, $args{irc_nick};
+                show '../irc_message', $message;
                 br { };
             }
             hr {};
@@ -201,25 +180,12 @@ sub _go_to_top {
     };
 }
 
-private template 'mobile/go_to_top' => sub {
-    div {
-        class is 'GoToTop';
-        outs_raw pictogram('8');
-        a {
-            accesskey is "8";
-            href is "/mobile/";
-            'ch list'
-        };
-    };
-};
-
 sub channel {
     my $self = shift;
     my %args = validate(
         @_ => {
             channel             => 1,
             channel_page_option => 1,
-            irc_nick            => 1,
             recent_mode         => 1,
             message             => 1,
         }
@@ -227,8 +193,8 @@ sub channel {
     my $channel = $args{channel};
 
     # TODO: we need include() syntax in T::MT
-    mt_cached_with_wrap(<<'...', $args{channel}, $args{message}, $args{channel_page_option}, $args{irc_nick}, $args{recent_mode}, _go_to_top());
-? my ($channel, $message, $channel_page_option, $irc_nick, $recent_mode, $go_to_top) = @_
+    mt_cached_with_wrap(<<'...', $args{channel}, $args{message}, $args{channel_page_option}, $args{recent_mode}, _go_to_top());
+? my ($channel, $message, $channel_page_option, $recent_mode, $go_to_top) = @_
     <form action='/mobile/channel?channel=<?= $channel->name_urlsafe_encoded?>' method='post'>
         <input <? if ($message) { ?>value="<?= $message ?><? } ?>
                type="text" name="msg" size="10" />
@@ -243,7 +209,7 @@ sub channel {
 ?    if (@{$channel->message_log}) {
 ?       my $meth = $recent_mode ? 'recent_log' : 'message_log';
 ?       for my $message (reverse $channel->$meth) {
-            <?= encoded_string(App::Mobirc::Web::View->show('irc_message', $message, $irc_nick)) ?>
+            <?= encoded_string(App::Mobirc::Web::View->show('irc_message', $message)) ?>
             <br />
 ?       }
 ?       unless ($recent_mode) {

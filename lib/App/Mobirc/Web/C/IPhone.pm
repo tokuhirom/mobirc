@@ -27,7 +27,7 @@ sub dispatch_channel {
             {
                 messages => [
                     map {
-                        App::Mobirc::Web::View->show( 'irc_message', $_, irc_nick )
+                        App::Mobirc::Web::View->show( 'irc_message', $_ )
                     } reverse $channel->$meth
                 ],
                 channel_name => $channel->name,
@@ -80,7 +80,6 @@ sub dispatch_keyword {
     my $res = render_td(
         'iphone/keyword' => {
             logs     => scalar(server->keyword_channel->message_log),
-            irc_nick => irc_nick,
         }
     );
     server->keyword_channel->clear_unread();

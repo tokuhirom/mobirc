@@ -22,7 +22,6 @@ sub dispatch_channel {
     my $res = render_td(
         'ajax/channel' => (
             channel  => $channel,
-            irc_nick => irc_nick,
         )
     );
     $channel->clear_unread();
@@ -62,7 +61,6 @@ sub dispatch_keyword {
     my $res = render_td(
         'ajax/keyword' => {
             logs     => scalar(server->keyword_channel->message_log),
-            irc_nick => irc_nick,
         }
     );
     server->keyword_channel->clear_unread();

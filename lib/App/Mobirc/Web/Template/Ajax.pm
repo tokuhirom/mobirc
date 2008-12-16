@@ -106,13 +106,12 @@ template 'ajax/keyword' => sub {
     my %args = validate(
         @_ => {
             logs     => 1,
-            irc_nick => 1,
         },
     );
 
     div {
         for my $row ( @{ $args{logs} } ) {
-            show '../keyword_line', $row, $args{irc_nick};
+            show '../keyword_line', $row;
         }
     }
 };
@@ -122,12 +121,11 @@ template 'ajax/channel' => sub {
     my %args = validate(
         @_ => {
             channel  => 1,
-            irc_nick => 1,
         },
     );
     div {
         for my $message ($args{channel}->message_log) {
-            show '../irc_message', $message, $args{irc_nick};
+            show '../irc_message', $message;
             br { };
         }
     }

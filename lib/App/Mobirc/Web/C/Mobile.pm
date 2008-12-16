@@ -42,7 +42,6 @@ sub dispatch_recent {
         'mobile/recent' => {
             channels      => \@target_channels,
             has_next_page => $has_next_page,
-            irc_nick      => irc_nick,
         },
     );
 
@@ -83,13 +82,12 @@ sub dispatch_keyword {
     my $channel = server->keyword_channel;
 
     my $res = render_td(
-        'mobile/keyword' => {
+        'Mobile', 'keyword' => {
             rows         => (
                   param('recent_mode')
                 ? scalar($channel->recent_log)
                 : scalar($channel->message_log)
             ),
-            irc_nick => irc_nick,
         },
     );
 
@@ -117,7 +115,6 @@ sub dispatch_channel {
             recent_mode         => param('recent_mode') || undef,
             message             => param('msg') || '',
             channel_page_option => context->run_hook('channel_page_option', $channel) || [],
-            irc_nick            => irc_nick,
         }
     );
 

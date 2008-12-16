@@ -1,6 +1,7 @@
 package App::Mobirc::Web::C;
 use strict;
 use warnings;
+use App::Mobirc::Util;
 use App::Mobirc::Web::View;
 use Encode;
 use Carp ();
@@ -13,14 +14,13 @@ sub import {
     warnings->import;
 
     no strict 'refs';
-    for my $meth (qw/context server irc_nick render_td redirect session req param/) {
+    for my $meth (qw/context server render_td redirect session req param/) {
         *{"$pkg\::$meth"} = *{"$class\::$meth"};
     }
 }
 
 sub context  () { App::Mobirc->context } ## no critic
 sub server   () { context->server } ## no critic.
-sub irc_nick () { POE::Kernel->alias_resolve('irc_session')->get_heap->{irc}->nick_name } ## no critic
 sub web_context () { App::Mobirc::Web::Handler->web_context } ## no critic
 sub session  () { web_context->session } ## no critic
 sub req      () { web_context->req } ## no critic

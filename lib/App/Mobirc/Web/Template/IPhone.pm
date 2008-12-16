@@ -106,13 +106,12 @@ template 'iphone/keyword' => sub {
     my %args = validate(
         @_ => {
             logs     => 1,
-            irc_nick => 1,
         },
     );
 
     div {
         for my $row ( @{ $args{logs} } ) {
-            show '../keyword_line', $row, $args{irc_nick};
+            show '../keyword_line', $row;
         }
     }
 };
