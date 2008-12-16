@@ -13,7 +13,7 @@ sub import {
     warnings->import;
 
     no strict 'refs';
-    for my $meth (qw/context server irc_nick render_td redirect/) {
+    for my $meth (qw/context server irc_nick render_td redirect session/) {
         *{"$pkg\::$meth"} = *{"$class\::$meth"};
     }
 }
@@ -21,6 +21,7 @@ sub import {
 sub context  () { App::Mobirc->context } ## no critic
 sub server   () { context->server } ## no critic.
 sub irc_nick () { POE::Kernel->alias_resolve('irc_session')->get_heap->{irc}->nick_name } ## no critic
+sub session  () { App::Mobirc::Web::Handler->web_context->session } ## no critic
 
 sub render_td {
     my ($req, @args) = @_;

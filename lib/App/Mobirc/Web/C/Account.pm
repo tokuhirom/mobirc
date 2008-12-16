@@ -18,7 +18,7 @@ sub post_dispatch_login_password {
     die "missing password in config.global.password" unless $conf->{global}->{password};
     if (my $pw = $req->params->{password}) {
         if ($pw eq $conf->{global}->{password}) {
-            $args->{session}->set('authorized', 1);
+            session->set('authorized', 1);
             redirect('/');
         } else {
             redirect('/account/login?invalid_password=1');
@@ -36,7 +36,7 @@ sub post_dispatch_login_mobileid {
     if ($ma->can('user_id') && (my $user_id = $ma->user_id)) {
         if ($user_id eq $conf->{global}->{mobileid}) {
             if ($ma->isa_cidr($req->address)) {
-                $args->{session}->set('authorized', 1);
+                session->set('authorized', 1);
                 return redirect('/');
             } else {
                 return redirect('/account/login?invalid_cidr=1');
@@ -51,7 +51,7 @@ sub post_dispatch_login_mobileid {
 
 sub post_dispatch_logout {
     my ($class, $req, $args) = @_;
-    $args->{session}->expire();
+    session->expire();
 
     return redirect('/account/login');
 }
