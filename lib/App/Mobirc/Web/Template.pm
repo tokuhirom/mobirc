@@ -45,7 +45,7 @@ sub mt_cached_with_wrap {
 {
     # template eval. context.
     package App::Mobirc::Web::Template::Run;
-    use Encode qw/encode_utf8/;
+    use Encode qw/encode_utf8 decode_utf8/;
     use App::Mobirc::Pictogram qw/pictogram/;
 
     *encoded_string = *Text::MicroTemplate::encoded_string;
