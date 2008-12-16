@@ -124,7 +124,7 @@ template 'ajax/channel' => sub {
     );
     div {
         for my $message ($args{channel}->message_log) {
-            outs_raw(render_irc_message($message)->as_string);
+            outs_raw(App::Mobirc::Web::Template::IRCMessage->render_irc_message($message));
             br { };
         }
     }

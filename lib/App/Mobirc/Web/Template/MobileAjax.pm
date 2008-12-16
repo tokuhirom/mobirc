@@ -6,6 +6,8 @@ use Params::Validate ':all';
 use App::Mobirc;
 use Path::Class;
 
+sub mobile_attribute () { App::Mobirc::Web::C::mobile_attribute() } ## no critic
+
 private template 'mobile-ajax/wrapper_mobile' => sub {
     my ($self, $code) = @_;
     my $encoding = 'UTF-8';
@@ -20,7 +22,7 @@ private template 'mobile-ajax/wrapper_mobile' => sub {
             meta { attr { name => 'robots', content => 'noindex, nofollow' } }
             link { attr { rel => 'stylesheet', href => '/static/mobirc.css', type=> "text/css"} };
             link { attr { rel => 'stylesheet', href => '/static/mobile-ajax.css', type=> "text/css"} };
-            if (mobile_agent()->user_agent =~ /(?:iPod|iPhone)/) {
+            if (mobile_attribute()->user_agent =~ /(?:iPod|iPhone)/) {
                 meta { attr { name => 'viewport', content => 'width=device-width' } }
                 meta { attr { name => 'viewport', content => 'initial-scale=1.0, user-scalable=yes' } }
             }
@@ -74,7 +76,7 @@ template 'mobile-ajax/index' => sub {
             action is '/mobirc-ajax/channel';
             method is 'post';
 
-            if (mobile_agent()->user_agent =~ /(?:iPod|iPhone)/) {
+            if (mobile_attribute()->user_agent =~ /(?:iPod|iPhone)/) {
                 input {
                     type is 'text';
                     id is 'msg';
