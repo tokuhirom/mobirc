@@ -9,9 +9,7 @@ sub dispatch_login {
 
     render_td(
         $req,
-        'Account', 'login' => (
-            $req,
-        )
+        'Account', 'login' => ()
     );
 }
 
