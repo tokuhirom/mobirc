@@ -63,12 +63,7 @@ sub dispatch_clear_all_unread {
         $channel->clear_unread;
     }
 
-    HTTP::Engine::Response->new(
-        status   => 302,
-        headers  => HTTP::Headers->new(
-            Location => '/mobile/',
-        ),
-    );
+    redirect('/mobile/');
 }
 
 # topic on every channel
@@ -135,19 +130,14 @@ sub post_dispatch_channel {
     my ( $class, $req, $args) = @_;
 
     my $channel_name = decode_urlsafe_encoded param('channel');
-    my $message = params('msg');
+    my $message = param('msg');
 
     DEBUG "POST MESSAGE $message";
 
     my $channel = context->get_channel($channel_name);
     $channel->post_command($message);
 
-    HTTP::Engine::Response->new(
-        status  => 302,
-        headers => {
-            Location => $req->uri->path . "?channel=" . $channel->name_urlsafe_encoded,
-        },
-    );
+    redirect($req->uri->path . "?channel=" . $channel->name_urlsafe_encoded);
 }
 
 1;
