@@ -1,6 +1,5 @@
 package App::Mobirc::Web::Template::Mobile;
-use strict;
-use warnings;
+use App::Mobirc::Web::Template;
 use base qw(Template::Declare);
 use Template::Declare::Tags;
 use Params::Validate ':all';
@@ -50,29 +49,31 @@ private template 'mobile/footer' => sub {
     }
 };
 
-template 'mobile/topics' => sub {
-    my $self = shift;
+sub _footer {
+    my $pict = pictogram('8');
+    <<"...";
+<hr />
+$pict <a href="/mobile/" accesskey="8">back to top</a>
+...
+}
+
+sub topics {
+    my $class = shift;
     my %args = validate(
         @_ => {
             channels     => 1,
         }
     );
-
-    show 'wrapper_mobile', sub {
-        for my $channel ( @{ $args{channels} } ) {
-            div { attr { class => 'OneTopic' }
-
-                a { attr { href => sprintf('/mobile/channel?channel=%s', $channel->name_urlsafe_encoded) }
-                    $channel->name;
-                } br { }
-
-                span { $channel->topic } br { }
-            }
-        }
-
-        show 'footer';
-    }, 'topics';
-};
+    mt_cached_with_wrap(<<'...', $args{channels});
+? my $channels = shift;
+? for my $channel (@{$channels}) {
+    <div class="OneTopic">
+        <a href="/mobile/channel?channel=<?= $channel->name_urlsafe_encoded ?>"><?= $channel->name ?></a><br />
+        <span><?= $channel->topic ?></span><br />
+    </div>
+? }
+...
+}
 
 template 'mobile/keyword' => sub {
     my $self = shift;

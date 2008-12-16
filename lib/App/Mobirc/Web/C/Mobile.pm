@@ -79,7 +79,7 @@ sub dispatch_topics {
 
     render_td(
         $req => (
-            'mobile/topics' => {
+            'Mobile', 'topics' => {
                 channels     => scalar( server->channels ),
             }
         )
