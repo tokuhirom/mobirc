@@ -68,6 +68,7 @@ sub mt_cached_with_wrap {
     # template eval. context.
     package App::Mobirc::Web::Template::Run;
     *encoded_string = *Text::MicroTemplate::encoded_string;
+    use App::Mobirc::Pictogram;
     sub param { App::Mobirc::Web::Handler->web_context()->req->param($_[0]) }
 }
 

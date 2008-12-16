@@ -10,7 +10,7 @@ sub dispatch_index {
 
     return render_td(
         $req,
-        'mobile/top' => {
+        'Mobile', 'top' => {
             exists_recent_entries => scalar( grep { $_->unread_lines } server->channels ),
             keyword_recent_num => server->keyword_channel->unread_lines(),
             channels           => scalar( server->channels_sorted ),

@@ -98,7 +98,7 @@ template 'mobile/keyword' => sub {
     }, 'keyword';
 };
 
-template 'mobile/top' => sub {
+sub top {
     my $self = shift;
     my %args = validate(
         @_ => {
@@ -108,39 +108,42 @@ template 'mobile/top' => sub {
         }
     );
 
-    show 'wrapper_mobile', sub {
-        if ($args{keyword_recent_num} > 0) {
-            div {
-                class is 'keyword_recent_notice';
-                a {
-                    href is '/mobile/keyword?recent_mode=on';
-                    "Keyword($args{keyword_recent_num})"
-                }
-            };
-        }
+    mt_cached_with_wrap(<<'...', $args{exists_recent_entries}, $args{keyword_recent_num}, $args{channels});
+? my ($exists_recent_entries, $keyword_recent_num, $channels) = @_
 
-        for my $channel (@{$args{channels}}) {
-            outs_raw pictogram('(^-^)');
-            a {
-                href is ('/mobile/channel?channel=' . $channel->name_urlsafe_encoded);
-                $channel->name
-            };
-            if ($channel->unread_lines) {
-                a {
-                    href is ('/mobile/channel?recent_mode=on&channel=' . $channel->name_urlsafe_encoded);
-                    $channel->unread_lines
-                }
-            }
-            br { };
-        }
-        hr { };
-        show 'menu' => (
-            exists_recent_entries => $args{exists_recent_entries},
-        );
-        hr { };
-        show '../parts/version_info'
-    };
-};
+? if ($keyword_recent_num) {
+    <div class="keyword_recent_notice">
+        <a href="/mobile/keyword?recent_mode=on">Keyword(<?= $keyword_recent_num ?>)</a>
+    </div>
+? }
+
+? for my $channel (@$channels) {
+    <?= pictogram('(^-^)') ?>
+    <a href="/mobile/channel?channel=<?= $channel->name_urlsafe_encoded ?>"><?= $channel->name ?></a>
+    <? if ($channel->unread_lines) { ?>
+        <a href="/mobile/channel?recent_mode=on&channel=<?= $channel->name_urlsafe_encoded ?>">
+            <?= $channel->unread_lines ?>
+        </a>
+    <? }                             ?>
+    <br />
+? }
+
+<hr />
+
+<?= pictogram('0') ?><a href="/mobile/#top" accesskey="0">refresh list</a><br />
+? if ($exists_recent_entries) {
+    <span>*</span><a href="/mobile/recent" accesskey="*">recent</a><br />
+? }
+<? # TODO: use pictogram for '#' & '*' ?>
+<span>#</span><a href="/mobile/topics" accesskey="#">topics</a><br />
+<span>!</span><a href="/mobile/keyword" accesskey="!">keyword</a><br />
+<span><?= pictogram('9') ?></span><a href="/mobile/clear_all_unread" accesskey="9">clear_all_unread</a><br />
+
+<hr />
+
+App::Mobirc <?= $App::Mobirc::VERSION ?>
+...
+}
 
 template 'mobile/recent' => sub {
     my $self = shift;
@@ -208,35 +211,6 @@ private template 'mobile/menu' => sub {
         },
     );
 
-    outs_raw pictogram('0');
-    a { attr { href => '/mobile/#top', accesskey => 0 }
-        'refresh list'
-    };
-    br { };
-
-    if ($args{exists_recent_entries}) {
-        span { '*' }
-        a { attr { href => '/mobile/recent', accesskey => '*' }
-            'recent'
-        }
-        br { }
-    }
-    a { attr { href => '/mobile/topics', accesskey => '#' }
-        'topics'
-    }
-    br { };
-
-    a { attr { 'href' => '/mobile/keyword' }
-        'keyword'
-    };
-    br { };
-
-    outs_raw pictogram('9');
-    a {
-        attr { href => '/mobile/clear_all_unread', accesskey => '9' }
-        'clear_all_unread'
-    }
-    br { };
 
 };
 
