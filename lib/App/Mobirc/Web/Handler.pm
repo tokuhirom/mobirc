@@ -20,7 +20,7 @@ my $session_store = HTTP::Session::Store::OnMemory->new(data => {});
 sub global_context () { App::Mobirc->context } ## no critic
 
 our $CONTEXT;
-sub web_context () { $CONTEXT }
+sub web_context () { $CONTEXT } ## no critic
 
 sub handler {
     my $req = shift;
