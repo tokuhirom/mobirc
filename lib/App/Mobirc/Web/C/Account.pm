@@ -1,5 +1,4 @@
 package App::Mobirc::Web::C::Account;
-use Mouse;
 use App::Mobirc::Web::C;
 use App::Mobirc::Util;
 use Encode;

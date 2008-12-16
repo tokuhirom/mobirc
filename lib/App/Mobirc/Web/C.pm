@@ -1,12 +1,22 @@
 package App::Mobirc::Web::C;
 use strict;
 use warnings;
-use Exporter 'import';
 use App::Mobirc::Web::View;
 use Encode;
 use Carp ();
 
-our @EXPORT = qw/context server irc_nick render_td redirect/;
+sub import {
+    my $class = __PACKAGE__;
+    my $pkg = caller(0);
+
+    strict->import;
+    warnings->import;
+
+    no strict 'refs';
+    for my $meth (qw/context server irc_nick render_td redirect/) {
+        *{"$pkg\::$meth"} = *{"$class\::$meth"};
+    }
+}
 
 sub context  () { App::Mobirc->context } ## no critic
 sub server   () { context->server } ## no critic.

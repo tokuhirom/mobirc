@@ -1,5 +1,4 @@
 package App::Mobirc::Web::C::Mobile;
-use Mouse;
 use App::Mobirc::Web::C;
 use App::Mobirc::Util;
 use URI::Escape qw(uri_escape_utf8);

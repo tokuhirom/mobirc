@@ -1,5 +1,4 @@
 package App::Mobirc::Web::C::IPhone;
-use Mouse;
 use App::Mobirc::Web::C;
 use App::Mobirc::Util;
 use Encode;
