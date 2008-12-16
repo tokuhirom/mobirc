@@ -45,7 +45,7 @@ sub _who {
     my $who = shift;
 
     my $who_class = ( $who eq irc_nick() ) ?  'nick_myself' : 'nick_normal';
-    sprintf(q{<span class="%s">(%s)<span>}, $who_class, encode_entities($who));
+    sprintf(q{<span class="%s">(%s)</span>}, $who_class, encode_entities($who));
 }
 
 sub _body {
