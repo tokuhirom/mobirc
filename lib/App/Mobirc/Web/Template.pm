@@ -30,7 +30,29 @@ sub import {
     sub _mt_cached {
         my $caller = shift;
         my $tmpl = shift;
-        $cache->{$caller} ||= build_mt($tmpl);
+        $cache->{$caller} ||= sub {
+            my $_mt = Text::MicroTemplate->new($tmpl);
+            my $_code = $_mt->code;
+            my $expr = << "...";
+package App::Mobirc::Web::Template::Run;
+
+sub {
+    my \$args = \@_ == 1 ? \$_[0] : { \@_ };
+    encoded_string((
+        $_code
+    )->(\@_));
+}
+...
+            my $die_msg;
+            {
+                local $@;
+                if (my $_builder = eval($expr)) {
+                    return $_builder;
+                }
+                $die_msg = $_mt->_error($@, 3);
+            }
+            die $die_msg;
+        }->();
         $cache->{$caller}->( @_ )->as_string;
     }
 }
@@ -40,6 +62,13 @@ sub mt_cached_with_wrap {
     my $caller = join ', ', $pkg, $fn, $line;
     my $body = _mt_cached($caller, @_);
     return App::Mobirc::Web::Template::Wrapper->wrapper( $body );
+}
+
+{
+    # template eval. context.
+    package App::Mobirc::Web::Template::Run;
+    *encoded_string = *Text::MicroTemplate::encoded_string;
+    sub param { App::Mobirc::Web::Handler->web_context()->req->param($_[0]) }
 }
 
 1;

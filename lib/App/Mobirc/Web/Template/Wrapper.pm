@@ -3,6 +3,7 @@ use App::Mobirc::Web::Template;
 
 sub wrapper {
     my ($class, $body) = @_;
+    Carp::croak "missing body" unless $body;
 
     <<"..."
 <?xml version="1.0" encoding="UTF-8" ?>

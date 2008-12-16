@@ -4,11 +4,9 @@ use App::Mobirc::Web::Template;
 sub login {
     my ($class, $req) = @_;
 
-    mt_cached_with_wrap(<<'...', $req);
-? my ($req, ) = @_
-
+    mt_cached_with_wrap(<<'...');
 <? for my $key (qw/password cidr mobileid/) {       ?>
-<?    if ($req->query_params->{"invalid_${key}"}) { ?>
+<?    if (param("invalid_${key}")) { ?>
         <div style='color: red'>invalid <?= $key ?></div>
 <?    }                                             ?>
 <? }                                                ?>

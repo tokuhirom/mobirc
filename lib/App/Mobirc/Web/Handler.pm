@@ -12,18 +12,24 @@ use Module::Find;
 use App::Mobirc;
 use App::Mobirc::Util;
 use App::Mobirc::Web::Router;
+use App::Mobirc::Web::Context;
 useall 'App::Mobirc::Web::C';
 
 my $session_store = HTTP::Session::Store::OnMemory->new(data => {});
 
-sub context () { App::Mobirc->context } ## no critic
+sub global_context () { App::Mobirc->context } ## no critic
+
+our $CONTEXT;
+sub web_context () { $CONTEXT }
 
 sub handler {
     my $req = shift;
 
     my $session = _create_session($req);
+
+    local $CONTEXT = App::Mobirc::Web::Context->new(req => $req, session => $session);
     my $res = _handler($req, $session);
-    context->run_hook('response_filter', $res);
+    global_context->run_hook('response_filter', $res);
     $session->response_filter( $res );
     $session->finalize();
     $res;
@@ -32,7 +38,7 @@ sub handler {
 sub _handler {
     my ($req, $session) = @_;
 
-    context->run_hook('request_filter', $req);
+    global_context->run_hook('request_filter', $req);
 
     if ($session->get('authorized')) {
         return process_request_authorized($req, $session);
@@ -43,7 +49,7 @@ sub _handler {
 
 sub _create_session {
     my $req = shift;
-    my $conf = context->config->{global}->{session};
+    my $conf = global_context->config->{global}->{session};
     my $ma = HTTP::MobileAttribute->new($req->headers);
     HTTP::Session->new(
         store   => $session_store,
@@ -71,7 +77,7 @@ sub _create_session {
 sub authorize {
     my $req = shift;
 
-    if (context->run_hook_first('authorize', $req)) {
+    if (global_context->run_hook_first('authorize', $req)) {
         DEBUG "AUTHORIZATION SUCCEEDED";
         return 1; # authorization succeeded.
     } else {
@@ -86,7 +92,7 @@ sub process_request_authorized {
         return do_dispatch($rule, $req, $session);
     } else {
         # hook by plugins
-        if (my $res = context->run_hook_first( 'httpd', $req )) {
+        if (my $res = global_context->run_hook_first( 'httpd', $req )) {
             # XXX we should use html filter?
             return $res;
         }
