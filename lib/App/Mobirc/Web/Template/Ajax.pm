@@ -1,6 +1,5 @@
 package App::Mobirc::Web::Template::Ajax;
-use strict;
-use warnings;
+use App::Mobirc::Web::Template;
 use base qw(Template::Declare);
 use Template::Declare::Tags;
 use Params::Validate ':all';
@@ -125,7 +124,7 @@ template 'ajax/channel' => sub {
     );
     div {
         for my $message ($args{channel}->message_log) {
-            show '../irc_message', $message;
+            outs_raw(render_irc_message($message)->as_string);
             br { };
         }
     }

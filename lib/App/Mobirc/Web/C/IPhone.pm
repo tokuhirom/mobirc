@@ -27,7 +27,7 @@ sub dispatch_channel {
             {
                 messages => [
                     map {
-                        App::Mobirc::Web::View->show( 'irc_message', $_ )
+                        render_irc_message( $_ )
                     } reverse $channel->$meth
                 ],
                 channel_name => $channel->name,

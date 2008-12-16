@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use App::Mobirc::Util;
 use App::Mobirc::Web::View;
+use App::Mobirc::Web::Template::IRCMessage;
 use Encode;
 use Carp ();
 
@@ -14,7 +15,7 @@ sub import {
     warnings->import;
 
     no strict 'refs';
-    for my $meth (qw/context server render_td redirect session req param/) {
+    for my $meth (qw/context server render_irc_message render_td redirect session req param/) {
         *{"$pkg\::$meth"} = *{"$class\::$meth"};
     }
 }
@@ -26,6 +27,7 @@ sub session  () { web_context->session } ## no critic
 sub req      () { web_context->req } ## no critic
 sub param    ($) { req->param($_[0]) } ## no critic
 sub mobile_attribute () { web_context->mobile_attribute($_[0]) } ## no critic
+sub render_irc_message { App::Mobirc::Web::Template::IRCMessage->render_irc_message(shift) }
 
 sub render_td {
     my @args = @_;

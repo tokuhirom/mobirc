@@ -28,7 +28,7 @@ sub dispatch_channel {
         my $json = to_json(
             [
                 map {
-                    App::Mobirc::Web::View->show( 'irc_message', $_ )
+                    render_irc_message( $_ )
                   } reverse $channel->$meth
             ]
         );
