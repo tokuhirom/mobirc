@@ -1,4 +1,2 @@
 - purge Template::Declare. use Text::MicroNantoka
-- purge Data::Visitor::Encode. because this module have a lot op deps
-- make extlib/
 
