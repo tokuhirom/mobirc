@@ -30,29 +30,7 @@ sub import {
     sub _mt_cached {
         my $caller = shift;
         my $tmpl = shift;
-        $cache->{$caller} ||= sub {
-            my $_mt = Text::MicroTemplate->new($tmpl);
-            my $_code = $_mt->code;
-            my $expr = << "...";
-package App::Mobirc::Web::Template::Run;
-
-sub {
-    my \$args = \@_ == 1 ? \$_[0] : { \@_ };
-    encoded_string((
-        $_code
-    )->(\@_));
-}
-...
-            my $die_msg;
-            {
-                local $@;
-                if (my $_builder = eval($expr)) {
-                    return $_builder;
-                }
-                $die_msg = $_mt->_error($@, 3);
-            }
-            die $die_msg;
-        }->();
+        $cache->{$caller} ||= build_mt(template => $tmpl, package_name => "App::Mobirc::Web::Template::Run");
         $cache->{$caller}->( @_ )->as_string;
     }
 }

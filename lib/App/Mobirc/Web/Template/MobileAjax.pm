@@ -1,5 +1,5 @@
 package App::Mobirc::Web::Template::MobileAjax;
-use App::Mobirc::Web::Template
+use App::Mobirc::Web::Template;
 use base qw(Template::Declare);
 use Template::Declare::Tags;
 use Params::Validate ':all';
