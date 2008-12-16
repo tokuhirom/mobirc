@@ -1,7 +1,6 @@
 package App::Mobirc::Web::Handler;
 use Mouse;
 use Scalar::Util qw/blessed/;
-use Data::Visitor::Encode;
 use HTTP::Session;
 use HTTP::Session::Store::OnMemory;
 use HTTP::Session::State::Cookie;
@@ -127,7 +126,7 @@ sub do_dispatch {
     my $meth = $rule->{action};
     my $post_meth = "post_dispatch_$meth";
     my $get_meth  = "dispatch_$meth";
-    my $args = Data::Visitor::Encode->decode_utf8( $rule->{args} );
+    my $args = $rule->{args};
     $args->{session} = $session;
     if ( $req->method =~ /POST/i && $controller->can($post_meth)) {
         return $controller->$post_meth($req, $args);

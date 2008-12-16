@@ -25,7 +25,6 @@ requires 'HTTP::MobileAgent'                        => '0.27';
 requires 'Template::Declare'  => '0.29';
 
 # utilities
-requires 'Data::Visitor::Encode' => '0.10002';
 requires 'Exporter'              => '5.62'; # recent version supports "use Exporter 'import'" style
 requires 'HTML::Entities'        => '1.35';
 requires 'HTML::StickyQuery'     => '0.12';

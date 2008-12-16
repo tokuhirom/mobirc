@@ -45,9 +45,11 @@ sub mt_cached_with_wrap {
 {
     # template eval. context.
     package App::Mobirc::Web::Template::Run;
+    use Encode qw/encode_utf8/;
+    use App::Mobirc::Pictogram qw/pictogram/;
+
     *encoded_string = *Text::MicroTemplate::encoded_string;
-    use App::Mobirc::Pictogram;
-    sub param { App::Mobirc::Web::Handler->web_context()->req->param($_[0]) }
+    sub param { decode_utf8(App::Mobirc::Web::Handler->web_context()->req->param($_[0])) }
     sub render_irc_message { encoded_string(App::Mobirc::Web::Template::IRCMessage->render_irc_message(shift)) }
 }
 

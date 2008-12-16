@@ -6,7 +6,6 @@ use Perl6::Say;
 my $gtop = GTop->new;
 my @mods = findallmod 'App::Mobirc';
 unshift @mods, 'App::Mobirc::Web::Middleware::MobileAgent';
-unshift @mods, 'App::Mobirc::Web::Middleware::Encoding';
 unshift @mods, 'App::Mobirc::Web::Handler';
 unshift @mods, findallmod 'App::Mobirc::Web::C';
 unshift @mods, 'App::Mobirc::Web::C';
@@ -29,7 +28,6 @@ unshift @mods, qw/
     Geo::Coordinates::Converter
     HTTP::MobileAgent::Plugin::Charset
     HTTP::MobileAgent
-    Data::Visitor::Encode
     URI
     Template
     Template::Declare::Tags

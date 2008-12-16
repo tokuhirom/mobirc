@@ -25,7 +25,7 @@ sub server   () { context->server } ## no critic.
 sub web_context () { App::Mobirc::Web::Handler->web_context } ## no critic
 sub session  () { web_context->session } ## no critic
 sub req      () { web_context->req } ## no critic
-sub param    ($) { req->param($_[0]) } ## no critic
+sub param    ($) { decode_utf8(req->param($_[0])) } ## no critic
 sub mobile_attribute () { web_context->mobile_attribute() } ## no critic
 sub render_irc_message { App::Mobirc::Web::Template::IRCMessage->render_irc_message(shift) }
 

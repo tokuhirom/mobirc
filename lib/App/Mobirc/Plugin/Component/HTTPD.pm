@@ -7,7 +7,6 @@ use App::Mobirc::Util;
 use App::Mobirc::Web::Handler;
 
 use HTTP::Engine;
-use App::Mobirc::Web::Middleware::Encoding;
 use App::Mobirc::Web::Middleware::MobileAgent;
 
 use UNIVERSAL::require;
@@ -33,7 +32,7 @@ has middlewares => (
 hook run_component => sub {
     my ( $self, $global_context ) = @_;
 
-    my $request_handler = App::Mobirc::Web::Middleware::Encoding->wrap( \&App::Mobirc::Web::Handler::handler );
+    my $request_handler = \&App::Mobirc::Web::Handler::handler;
     for my $mw ( @{ $self->middlewares } ) {
       $mw->require or die $@;
       $request_handler = $mw->wrap($request_handler);
