@@ -1,11 +1,4 @@
-package App::Mobirc::Web::Template::Wrapper;
-use App::Mobirc::Web::Template;
-
-sub wrapper {
-    my ($class, $body) = @_;
-    Carp::croak "missing body" unless $body;
-
-    mt_cached(<<"...")
+? my $body = shift or die "missing body';
 ?= xml_header()
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
@@ -22,11 +15,6 @@ sub wrapper {
     </head>
     <body>
         <a name="top"></a>
-$body
+<?= $body ?>
     </body>
 </html>
-...
-}
-
-1;
-
