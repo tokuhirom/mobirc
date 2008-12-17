@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use lib 'extlib';
 use HTTP::Engine;
-use App::Mobirc::Web::Middleware::MobileAgent;
+
 use HTTP::Request;
 
 sub import {

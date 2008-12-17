@@ -3,7 +3,7 @@ use warnings;
 use Test::Base;
 use App::Mobirc;
 use t::Utils;
-use App::Mobirc::Web::Middleware::MobileAgent;
+
 
 my $global_context = App::Mobirc->new(
     config => {
