@@ -36,7 +36,7 @@ sub _time {
 <span class="time">
     <span class="hour"><?= sprintf "%02d", $hour ?></span>
     <span class="colon">:</span>
-    <span class="minute"><?= sprintf "%02d", $hour ?></span>
+    <span class="minute"><?= sprintf "%02d", $min ?></span>
 </span>
 ...
 }
