@@ -3,8 +3,10 @@ use strict;
 use warnings;
 use lib 'extlib';
 use HTTP::Engine;
-
 use HTTP::Request;
+use HTTP::Session::Store::OnMemory;
+use HTTP::Session::State::Null;
+use CGI;
 
 sub import {
     my $pkg = caller(0);
@@ -27,7 +29,18 @@ sub test_he {
     HTTP::Engine->new(
         interface => {
             module          => 'Test',
-            request_handler => $cb,
+            request_handler => sub {
+                my $req = shift;
+                local $App::Mobirc::Web::Handler::CONTEXT = App::Mobirc::Web::Context->new(
+                    req     => $req,
+                    session => HTTP::Session->new(
+                        store   => HTTP::Session::Store::OnMemory->new(),
+                        state   => HTTP::Session::State::Null->new(),
+                        request => CGI->new(),
+                    ),
+                  );
+                $cb->($req),
+            }
         }
     )->run( $req );
 }

@@ -1,12 +1,11 @@
 use t::Utils;
-use warnings;
 use Test::More;
 plan skip_all => 'this test requires XML::LibXML' unless eval 'use XML::LibXML;1;';
 plan tests => 1;
 use HTTP::MobileAgent;
 use App::Mobirc;
 require App::Mobirc::Plugin::HTMLFilter::DoCoMoCSS;
-use t::Utils;
+require App::Mobirc::Web::Handler;
 
 my $global_context = App::Mobirc->new(
     config => {
