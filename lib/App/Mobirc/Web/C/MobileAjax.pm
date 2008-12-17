@@ -3,18 +3,9 @@ use App::Mobirc::Web::C;
 use App::Mobirc::Util;
 use Encode;
 use JSON qw/to_json/;
-use URI::Escape qw/uri_escape/;
 
 sub dispatch_index {
-    my ($class, $req) = @_;
-
-    render_td(
-        'mobile-ajax/index' => (
-            docroot =>
-              ( App::Mobirc->context->{config}->{httpd}->{root} || '/' ),
-            channels => [ server->channels ],
-        )
-    );
+    render_td( 'MobileAjax', 'index' );
 }
 
 sub dispatch_channel {
