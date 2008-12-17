@@ -20,3 +20,4 @@
 ^\.shipit$
 ^t/Plugins/GPS/
 .git
+extlib/
