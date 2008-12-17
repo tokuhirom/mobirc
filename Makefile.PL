@@ -25,6 +25,7 @@ requires 'HTTP::MobileAttribute'                    => '0.07';
 requires 'Text::MicroTemplate'  => '0.04';
 
 # utilities
+requires 'String::CamelCase'     => '0.01';
 requires 'Exporter'              => '5.62'; # recent version supports "use Exporter 'import'" style
 requires 'HTML::Entities'        => '1.35';
 requires 'HTML::StickyQuery'     => '0.12';

@@ -10,6 +10,7 @@ use Carp;
 use App::Mobirc::Model::Server;
 use Encode;
 use App::Mobirc::Types 'Config';
+use Text::MicroTemplate::File;
 
 our $VERSION = '1.07';
 
@@ -25,6 +26,20 @@ has config => (
     isa      => Config,
     required => 1,
     coerce   => 1,
+);
+
+has mt => (
+    is => 'ro',
+    isa => 'Text::MicroTemplate::File',
+    lazy => 1,
+    default => sub {
+        my $self = shift;
+        Text::MicroTemplate::File->new(
+            include_path => [ $self->config->{global}->assets_dir ],
+            package_name => "App::Mobirc::Web::Template::Run",
+            use_cache    => 1,
+        );
+    },
 );
 
 {

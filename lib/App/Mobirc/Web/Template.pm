@@ -6,42 +6,6 @@ use Text::MicroTemplate qw/build_mt/;
 
 our $REQUIRE_WRAP;
 
-sub import {
-    my $class = shift;
-    my $pkg = caller(0);
-    strict->import;
-    warnings->import;
-
-    {
-        no strict 'refs';
-        for my $meth (qw/mt_cached mt_cached/) {
-            *{"${pkg}::${meth}"} = *{"${class}::${meth}"};
-        }
-    }
-}
-
-{
-    my $cache;
-    sub _mt_cached {
-        my $caller = shift;
-        my $tmpl = shift;
-        local $REQUIRE_WRAP;
-        $cache->{$caller} ||= build_mt(template => $tmpl, package_name => "App::Mobirc::Web::Template::Run");
-        my $res = $cache->{$caller}->( @_ )->as_string;
-        if ($REQUIRE_WRAP) {
-            return App::Mobirc::Web::View->show('Wrapper', 'wrapper', $res);
-        } else {
-            return $res;
-        }
-    }
-}
-
-sub mt_cached {
-    my ($pkg, $fn, $line) = caller(0);
-    my $caller = join ', ', $pkg, $fn, $line;
-    _mt_cached($caller, @_);
-}
-
 {
     # template eval. context.
     package App::Mobirc::Web::Template::Run;

@@ -14,6 +14,11 @@ has req => (
     required => 1,
 );
 
+has action => (
+    is  => 'rw',
+    isa => 'Str',
+);
+
 has mobile_attribute => (
     is => 'rw',
     default => sub {

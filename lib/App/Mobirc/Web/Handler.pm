@@ -134,6 +134,7 @@ sub do_dispatch {
     my $get_meth  = "dispatch_$meth";
     my $args = $rule->{args};
     $args->{session} = $session;
+    $CONTEXT->action( $rule->{action} );
     if ( $req->method =~ /POST/i && $controller->can($post_meth)) {
         return $controller->$post_meth($req, $args);
     } else {

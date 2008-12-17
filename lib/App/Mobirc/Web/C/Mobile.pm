@@ -5,7 +5,7 @@ use Encode;
 use MIME::Base64::URLSafe qw(urlsafe_b64decode);
 
 sub dispatch_index {
-    render_td( 'Mobile', 'index' );
+    render_td();
 }
 
 # recent messages on every channel
@@ -25,7 +25,7 @@ sub dispatch_recent {
     }
 
     my $res = render_td(
-        'Mobile', 'recent', \@target_channels, $has_next_page,
+        \@target_channels, $has_next_page,
     );
 
     # reset counter.
@@ -46,7 +46,7 @@ sub dispatch_clear_all_unread {
 
 # topic on every channel
 sub dispatch_topics {
-    render_td('Mobile', 'topics');
+    render_td();
 }
 
 sub dispatch_keyword {
@@ -55,7 +55,7 @@ sub dispatch_keyword {
                ? scalar($channel->recent_log)
                : scalar($channel->message_log)
 
-    my $res = render_td( 'Mobile', 'keyword', $rows );
+    my $res = render_td( $rows );
 
     $channel->clear_unread;
 
@@ -74,7 +74,7 @@ sub dispatch_channel {
     my $channel = server->get_channel($channel_name);
 
     my $res = render_td(
-        'Mobile', 'channel', $channel,
+        $channel,
         context->run_hook( 'channel_page_option', $channel ) || [],
     );
 
