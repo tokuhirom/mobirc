@@ -7,13 +7,7 @@ use App::Mobirc;
 require App::Mobirc::Plugin::HTMLFilter::DoCoMoCSS;
 require App::Mobirc::Web::Handler;
 
-my $global_context = App::Mobirc->new(
-    config => {
-        httpd  => { },
-        global => { keywords => [qw/foo/], assets_dir => 'assets' }
-    }
-);
-$global_context->load_plugin('HTMLFilter::DoCoMoCSS');
+global_context->load_plugin('HTMLFilter::DoCoMoCSS');
 
 my $got = <<'...';
 <?xml version="1.0"?>
@@ -22,7 +16,7 @@ my $got = <<'...';
 test_he_filter {
     my $req = shift;
     $req->user_agent('DoCoMo/2.0 P2101V(c100)');
-    ($req, $got) = $global_context->run_hook_filter('html_filter', $req, $got);
+    ($req, $got) = global_context->run_hook_filter('html_filter', $req, $got);
 };
 
 my $expected = <<'...';

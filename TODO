@@ -1,3 +1,2 @@
-- purge Template::Declare. use Text::MicroTemplate
-- support /me
-- support persistent session
+- support /me in POE
+- bundle String::IRC

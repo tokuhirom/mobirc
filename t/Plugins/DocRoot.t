@@ -1,5 +1,4 @@
 use t::Utils;
-use warnings;
 use utf8;
 use App::Mobirc;
 use Encode;
@@ -7,12 +6,7 @@ use Test::Base;
 use t::Utils;
 plan skip_all => "this test requires XML::LibXML" unless eval "use XML::LibXML;1;";
 
-my $global_context = App::Mobirc->new(
-    config => {
-        httpd  => { lines => 40 },
-        global => { keywords => [qw/foo/] }
-    }
-);
+my $global_context = global_context();
 $global_context->load_plugin( {module => 'DocRoot', config => {root => '/foo/'}} );
 
 filters {
@@ -24,8 +18,7 @@ sub convert {
     ok Encode::is_utf8($html);
     test_he_filter {
         my $req = shift;
-        my $global_context = App::Mobirc->context;
-        ($req, $html, ) = $global_context->run_hook_filter( 'html_filter', $req, $html );
+        ($req, $html, ) = global_context->run_hook_filter( 'html_filter', $req, $html );
     };
     ok Encode::is_utf8($html);
     $html;

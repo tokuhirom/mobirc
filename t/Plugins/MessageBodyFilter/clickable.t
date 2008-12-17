@@ -1,5 +1,4 @@
 use t::Utils;
-use warnings;
 use Test::Base;
 use App::Mobirc;
 
@@ -11,14 +10,10 @@ filters {
 
 sub clickable {
     my $x = shift;
-    my $global_context = App::Mobirc->new(
-        config => {
-            httpd  => { lines => 40 },
-            global => { keywords => [qw/foo/] }
-        }
-    );
-    $global_context->load_plugin( { module => 'MessageBodyFilter::Clickable', config => $x->{conf} } );
-    my ($res, ) = $global_context->run_hook_filter('message_body_filter', $x->{text});
+    create_global_context(); # create fresh context :)
+
+    global_context->load_plugin( { module => 'MessageBodyFilter::Clickable', config => $x->{conf} } );
+    my ($res, ) = global_context->run_hook_filter('message_body_filter', $x->{text});
     $res;
 }
 

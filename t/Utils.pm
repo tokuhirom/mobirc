@@ -21,7 +21,7 @@ sub import {
 
     {
         no strict 'refs';
-        for my $meth (qw/test_he test_he_filter create_global_context global_context server hack_irc_nick/) {
+        for my $meth (qw/test_he test_he_filter create_global_context global_context server hack_irc_nick describe keyword_channel test_channel/) {
             *{"${pkg}::${meth}"} = *{"${class}::${meth}"};
         }
     }
@@ -91,5 +91,17 @@ sub hack_irc_nick {
     local *App::Mobirc::Web::Template::IRCMessage::irc_nick = sub () { $nick };
     $code->();
 }
+
+sub keyword_channel () { server->get_channel(U "*keyword*") }
+
+sub test_channel    () { server->get_channel(U '#test') }
+
+sub describe ($&) {
+    my ($name, $code) = @_;
+
+    $code->();
+    keyword_channel->clear_unread();
+}
+
 
 1;

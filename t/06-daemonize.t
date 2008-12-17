@@ -1,5 +1,4 @@
 use t::Utils;
-use warnings;
 use Test::More;
 use App::Mobirc::Util;
 eval "use Proc::Daemon; use File::Temp;";

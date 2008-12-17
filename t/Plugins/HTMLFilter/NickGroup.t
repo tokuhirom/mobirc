@@ -1,18 +1,10 @@
 use t::Utils;
-use warnings;
 use Test::More;
 plan skip_all => 'this test requires XML::LibXML' unless eval 'use XML::LibXML;1;';
 plan tests => 3;
 use App::Mobirc;
-use t::Utils;
 
-my $mobirc = App::Mobirc->new(
-    config => {
-        httpd  => { lines => 40 },
-        global => { keywords => [qw/foo/] }
-    }
-);
-$mobirc->load_plugin(
+global_context->load_plugin(
     {
         module => 'HTMLFilter::NickGroup',
         config => { 'map' => { initialJ => [qw(jknaoya jkondo jagayam)], subtech => [qw/cho45 miyagawa/] } }
@@ -30,7 +22,7 @@ sub get {
     my $html = shift;
     test_he_filter {
         my $req = shift;
-        ($req, $html) = $mobirc->run_hook_filter('html_filter', $req, $html);
+        ($req, $html) = global_context->run_hook_filter('html_filter', $req, $html);
     };
     $html =~ s/\n$//;
     return $html;
