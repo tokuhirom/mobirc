@@ -110,7 +110,7 @@ sub post_dispatch_channel {
 
     DEBUG "POST MESSAGE $message";
 
-    my $channel = context->get_channel($channel_name);
+    my $channel = server->get_channel($channel_name);
     $channel->post_command($message);
 
     redirect($req->uri->path . "?channel=" . $channel->name_urlsafe_encoded);
