@@ -154,6 +154,7 @@ sub channel {
 ? for my $html (@$channel_page_option) {
     <?= $html ?>
 ? }
+    <br />
 
 ? if ($channel) {
 ?    if (@{$channel->message_log}) {
