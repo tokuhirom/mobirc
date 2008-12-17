@@ -1,17 +1,17 @@
 package App::Mobirc::Web::View;
 use strict;
 use warnings;
-use UNIVERSAL::require;
 use File::Spec;
-use String::CamelCase qw/decamerize/;
+use String::CamelCase qw/decamelize/;
+use App::Mobirc::Util;
 
 sub show {
     my ($class, @args) = @_;
-    my $c = App::Mobirc::Web::Handler->context() or die "this module requires web_context!";
+    my $c = App::Mobirc::Web::Handler->web_context() or die "this module requires web_context!";
 
-    my $pkg = decamerize(caller(0));
+    my $pkg = decamelize(caller(0));
     my $action = $c->action;
-    my $mt = App::Mobirc->context->mt;
+    my $mt = global_context->mt;
 
     local $App::Mobirc::Template::REQUIRE_WRAP;
     my $res = $mt->render_file(
@@ -20,7 +20,7 @@ sub show {
     );
     if ($App::Mobirc::Template::REQUIRE_WRAP) {
         my $res = $mt->render_file(
-            File::Spec->catfile('wrapper/wrapper.mt')
+            File::Spec->catfile('parts/wrapper.mt')
         );
     } else {
         return $res;

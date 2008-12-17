@@ -31,7 +31,12 @@ has 'time' => (
 
 sub who_class {
     my $self = shift;
-    return ( $self->who eq irc_nick() ) ?  'nick_myself' : 'nick_normal';
+    my $who = $self->who;
+    if ($who && $who eq irc_nick()) {
+        return 'nick_myself';
+    } else {
+        return 'nick_normal';
+    }
 }
 
 sub minute {

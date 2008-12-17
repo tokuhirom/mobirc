@@ -11,6 +11,7 @@ use HTTP::Session;
 use HTTP::Session::Store::OnMemory;
 use HTTP::Session::State::Null;
 use App::Mobirc::Util;
+use Cwd;
 
 sub import {
     my $pkg = caller(0);
@@ -21,7 +22,7 @@ sub import {
 
     {
         no strict 'refs';
-        for my $meth (qw/test_he test_he_filter create_global_context global_context server hack_irc_nick describe keyword_channel test_channel/) {
+        for my $meth (qw/test_he test_he_filter create_global_context global_context server describe keyword_channel test_channel test_view/) {
             *{"${pkg}::${meth}"} = *{"${class}::${meth}"};
         }
     }
@@ -33,7 +34,7 @@ sub create_global_context {
             httpd  => { lines => 40 },
             global => {
                 keywords => [qw/foo/], stopwords => [qw/foo31/],
-                assets_dir => 'assets',
+                assets_dir => File::Spec->catfile(Cwd::cwd(), 'assets'),
             }
         }
     );
@@ -61,14 +62,6 @@ sub test_he {
     )->run( $req );
 }
 
-sub global_context () {
-    unless (App::Mobirc->context) {
-        create_global_context();
-    }
-    App::Mobirc->context
-}
-
-
 sub test_he_filter(&) {
     my $cb = shift;
 
@@ -85,11 +78,11 @@ sub server () {
     global_context->server
 }
 
-sub hack_irc_nick {
-    my ($nick, $code) = @_;
+{
     no warnings 'redefine';
-    local *App::Mobirc::Web::Template::IRCMessage::irc_nick = sub () { $nick };
-    $code->();
+    *App::Mobirc::Web::Template::Run::irc_nick = sub () { 'tokuhirom' };
+    *App::Mobirc::Model::Message::irc_nick = sub () { 'tokuhirom' };
+    *App::Mobirc::Util::irc_nick = sub () { 'tokuhirom' };
 }
 
 sub keyword_channel () { server->get_channel(U "*keyword*") }
@@ -103,5 +96,29 @@ sub describe ($&) {
     keyword_channel->clear_unread();
 }
 
+sub test_view {
+    my ($path, @args) = @_;
+    my $res;
+    test_he_filter {
+        my $mt = global_context->mt;
+
+        local $App::Mobirc::Template::REQUIRE_WRAP;
+        $res = $mt->render_file(
+            $path,
+            @args,
+        );
+        if ($App::Mobirc::Template::REQUIRE_WRAP) {
+            $res = $mt->render_file(
+                File::Spec->catfile('parts/wrapper.mt'),
+                $res,
+            );
+        } else {
+            $res;
+        }
+    };
+    $res->as_string;
+}
+
+create_global_context();
 
 1;

@@ -22,8 +22,6 @@ if ($ENV{MOBIRC_DEBUG}) {
     );
 }
 
-sub global_context () { App::Mobirc->context } ## no critic
-
 our $CONTEXT;
 sub web_context () { $CONTEXT } ## no critic
 

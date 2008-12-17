@@ -2,7 +2,6 @@ use t::Utils;
 use lib 'extlib';
 use App::Mobirc::Web::View;
 use Test::More tests => 1;
-use HTTP::MobileAgent;
 use Text::Diff;
 use App::Mobirc;
 use App::Mobirc::Util;
@@ -10,12 +9,7 @@ use App::Mobirc::Util;
 my $channel = server->get_channel(U '#tester');
 $channel->topic('hoge');
 
-my $got;
-test_he_filter {
-    $got = App::Mobirc::Web::View->show(
-        'Mobile', 'topics',
-    )
-};
+my $got = test_view('mobile/topics.mt');
 
 my $expected = <<'...';
 <?xml version="1.0" encoding="UTF-8" ?>
@@ -31,6 +25,7 @@ my $expected = <<'...';
     </head>
     <body>
         <a name="top"></a>
+
     <div class="OneTopic">
         <a href="/mobile/channel?channel=I3Rlc3Rlcg">#tester</a><br />
         <span>hoge</span><br />

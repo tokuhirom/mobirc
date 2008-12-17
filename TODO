@@ -1,6 +1,7 @@
 - support /me in POE + tiarra
 - bundle String::IRC
 - auto detect template file in render_td()
+- rewrite irssi support
 - use wrapper_file style.
     sub wrapper_file {
         my ( $mtf, $wrapper_file, $inner, @args ) = @_;

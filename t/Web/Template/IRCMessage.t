@@ -6,8 +6,6 @@ plan tests => 1*blocks;
 
 local $ENV{TZ} = 'Asia/Tokyo';
 
-my $c = global_context();
-
 filters {
     input => [qw/yaml message render strip/],
     expected => ['strip'],
@@ -22,18 +20,14 @@ sub message {
 
 sub render {
     my $msg = shift;
-    my $got;
-    hack_irc_nick 'tokuhirom', sub {
-        test_he_filter {
-            $got = App::Mobirc::Web::View->show('IRCMessage', 'render_irc_message', $msg);
-        };
-    };
-    $got;
+    test_view('parts/irc_message.mt', $msg);
 }
 
 sub strip {
     s!^\n!!;
     s!\n$!!;
+    s!^\s*$!!smg;
+    $_ .= "\n";
 }
 
 __END__
@@ -46,7 +40,14 @@ body   : YAY<>
 time   : 1211726004
 class  : public
 --- expected
-<span class="time"><span class="hour">23</span><span class="colon">:</span><span class="minute">33</span></span><span class="nick_normal">(yappo)</span><span class="public">YAY&lt;&gt;</span>
+<span class="time">
+    <span class="hour">23</span>
+    <span class="colon">:</span>
+    <span class="minute">33</span>
+</span>
+
+<span class="nick_normal">(yappo)</span>
+<span class="public">YAY&lt;&gt;</span>
 
 === mine
 --- input
@@ -56,7 +57,14 @@ time: 1211726004
 who: tokuhirom
 body: uh*aww
 --- expected
-<span class="time"><span class="hour">23</span><span class="colon">:</span><span class="minute">33</span></span><span class="nick_myself">(tokuhirom)</span><span class="public">uh*aww</span>
+<span class="time">
+    <span class="hour">23</span>
+    <span class="colon">:</span>
+    <span class="minute">33</span>
+</span>
+
+<span class="nick_myself">(tokuhirom)</span>
+<span class="public">uh*aww</span>
 
 === XSS check
 --- input
@@ -66,5 +74,12 @@ time: 212
 who: tokuhirom<
 body: uh*aww<
 --- expected
-<span class="time"><span class="hour">09</span><span class="colon">:</span><span class="minute">03</span></span><span class="nick_normal">(tokuhirom&lt;)</span><span class="public&lt;">uh*aww&lt;</span>
+<span class="time">
+    <span class="hour">09</span>
+    <span class="colon">:</span>
+    <span class="minute">03</span>
+</span>
+
+<span class="nick_normal">(tokuhirom&lt;)</span>
+<span class="public&lt;">uh*aww&lt;</span>
 

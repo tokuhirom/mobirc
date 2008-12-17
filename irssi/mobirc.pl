@@ -133,7 +133,7 @@ sub irssi_print_text {
     my ($dest, $text, $stripped) = @{ $poe->args->[1] };
 
     if ($dest->{level} & MSGLEVEL_HILIGHT) {
-        App::Mobirc::Model::Channel->update_keyword_buffer($poe->heap->{mobirc}, $poe->heap->{__last_row});
+        App::Mobirc::Model::Channel->update_keyword_buffer($poe->heap->{__last_row});
     }
 }
 

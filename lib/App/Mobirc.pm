@@ -35,7 +35,7 @@ has mt => (
     default => sub {
         my $self = shift;
         Text::MicroTemplate::File->new(
-            include_path => [ $self->config->{global}->assets_dir ],
+            include_path => [ File::Spec->catdir($self->config->{global}->{assets_dir}, 'tmpl') ],
             package_name => "App::Mobirc::Web::Template::Run",
             use_cache    => 1,
         );

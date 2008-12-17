@@ -28,12 +28,6 @@ has topic => (
     default => '',
 );
 
-has global_context => (
-    is      => 'rw',
-    isa     => 'App::Mobirc',
-    default => sub { App::Mobirc->context },
-);
-
 has name => (
     is       => 'rw',
     isa      => 'Str',
@@ -54,9 +48,9 @@ sub add_message {
 
     # update keyword buffer.
     if ($message->class eq 'public' && $self->name ne '*keyword*') {
-        if ((any { $message->body =~ /$_/i } @{$self->{global_context}->config->{global}->{keywords} || []})
-         && (all { $message->body !~ /$_/i } @{$self->{global_context}->config->{global}->{stopwords} || ["\0"]})) {
-            App::Mobirc::Model::Channel->update_keyword_buffer($self->{global_context}, $message);
+        if ((any { $message->body =~ /$_/i } @{global_context->config->{global}->{keywords} || []})
+         && (all { $message->body !~ /$_/i } @{global_context->config->{global}->{stopwords} || ["\0"]})) {
+            App::Mobirc::Model::Channel->update_keyword_buffer($message);
         }
     }
 }
@@ -64,7 +58,7 @@ sub add_message {
 sub _add_to_log {
     my ($self, $key, $row) = @_;
 
-    my $log_max = $self->{global_context}->config->{httpd}->{lines} || 20;
+    my $log_max = global_context->config->{httpd}->{lines} || 20;
 
     push @{$self->{$key}}, $row;
     if ( @{$self->{$key}} > $log_max ) {
@@ -73,12 +67,11 @@ sub _add_to_log {
 }
 
 sub update_keyword_buffer {
-    my ($class, $global_context, $message) = @_;
+    my ($class, $message) = @_;
     croak "this is class method" if blessed $class;
-    croak "global context required" unless blessed $global_context;
 
     DEBUG "UPDATE KEYWORD: $message";
-    $global_context->get_channel(U '*keyword*')->add_message( $message );
+    global_context->get_channel(U '*keyword*')->add_message( $message );
 }
 
 sub unread_lines {
@@ -98,7 +91,7 @@ sub clear_unread {
 sub post_command {
     my ($self, $command) = @_;
 
-    $self->{global_context}->run_hook_first('process_command', $command, $self);
+    global_context->run_hook_first('process_command', $command, $self);
 }
 
 sub recent_log_count {

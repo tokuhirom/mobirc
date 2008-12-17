@@ -3,7 +3,6 @@ use strict;
 use warnings;
 use App::Mobirc::Util;
 use App::Mobirc::Web::View;
-use App::Mobirc::Web::Template::IRCMessage;
 use Encode;
 use Carp ();
 
@@ -28,7 +27,13 @@ sub session  () { web_context->session } ## no critic
 sub req      () { web_context->req } ## no critic
 sub param    ($) { decode_utf8(req->param($_[0])) } ## no critic
 sub mobile_attribute () { web_context->mobile_attribute() } ## no critic
-sub render_irc_message { App::Mobirc::Web::Template::IRCMessage->render_irc_message(shift) }
+sub render_irc_message {
+    my $message = shift;
+    App::Mobirc->context->mt->render_file(
+        "parts/irc_message.mt",
+        $message
+    )->as_string;
+}
 
 sub render_td {
     my @args = @_;

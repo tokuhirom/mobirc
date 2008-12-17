@@ -1,20 +1,11 @@
 use t::Utils;
 use App::Mobirc::Web::View;
 use Test::More tests => 1;
-use HTTP::MobileAgent;
 use Text::Diff;
 use App::Mobirc;
 
 local $App::Mobirc::VERSION = 0.01;
-my $got;
-test_he_filter {
-    $got = App::Mobirc::Web::View->show(
-        'Ajax', 'base' => (
-            user_agent => 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)',
-            docroot    => '/'
-        )
-    );
-};
+my $got = test_view('ajax/base.mt');
 
 my $expected = <<'...';
 <?xml version="1.0" encoding="UTF-8" ?>

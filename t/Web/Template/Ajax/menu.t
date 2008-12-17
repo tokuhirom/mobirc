@@ -1,7 +1,6 @@
 use t::Utils;
 use App::Mobirc::Web::View;
 use Test::More tests => 1;
-use HTTP::MobileAgent;
 use Text::Diff;
 use App::Mobirc;
 use App::Mobirc::Model::Server;
@@ -21,14 +20,7 @@ $channel->add_message(
     )
 );
 
-my $got;
-test_he_filter {
-    local $_ = App::Mobirc::Web::View->show(
-        'Ajax', 'menu',
-    );
-    s/^\n//;
-    $got = $_;
-};
+my $got = test_view('ajax/menu.mt');
 
 my $expected = do {
     local $_ = <<'...';
