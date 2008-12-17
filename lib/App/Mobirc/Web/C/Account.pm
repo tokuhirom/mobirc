@@ -4,9 +4,7 @@ use App::Mobirc::Util;
 use Encode;
 
 sub dispatch_login {
-    render_td(
-        'Account', 'login' => ()
-    );
+    render_td();
 }
 
 sub post_dispatch_login_password {

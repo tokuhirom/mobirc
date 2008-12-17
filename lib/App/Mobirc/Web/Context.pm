@@ -19,6 +19,11 @@ has action => (
     isa => 'Str',
 );
 
+has controller => (
+    is  => 'rw',
+    isa => 'Str',
+);
+
 has mobile_attribute => (
     is => 'rw',
     default => sub {

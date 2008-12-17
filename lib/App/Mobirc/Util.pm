@@ -20,7 +20,7 @@ sub DEBUG($) { ## no critic.
     print STDERR "$txt\n" if $ENV{DEBUG};
 }
 
-sub irc_nick () { Carp::carp("HOGE"); POE::Kernel->alias_resolve('irc_session')->get_heap->{irc}->nick_name } ## no critic
+sub irc_nick () { POE::Kernel->alias_resolve('irc_session')->get_heap->{irc}->nick_name } ## no critic
 
 # -------------------------------------------------------------------------
 

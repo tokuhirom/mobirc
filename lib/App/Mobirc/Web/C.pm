@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use App::Mobirc::Util;
 use App::Mobirc::Web::View;
+use App::Mobirc::Web::Template;
 use Encode;
 use Carp ();
 

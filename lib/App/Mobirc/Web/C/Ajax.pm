@@ -4,14 +4,14 @@ use App::Mobirc::Util;
 use Encode;
 
 sub dispatch_base {
-    render_td('Ajax', 'base');
+    render_td();
 }
 
 sub dispatch_channel {
     my $channel_name = param('channel') or die "missing channel name";
 
     my $channel = server->get_channel($channel_name);
-    my $res = render_td( 'Ajax', 'channel', $channel );
+    my $res = render_td( $channel );
     $channel->clear_unread();
     return $res;
 }
@@ -32,11 +32,11 @@ sub post_dispatch_channel {
 }
 
 sub dispatch_menu {
-    render_td( 'Ajax', 'menu' );
+    render_td();
 }
 
 sub dispatch_keyword {
-    my $res = render_td('Ajax', 'keyword');
+    my $res = render_td();
     server->keyword_channel->clear_unread();
     $res;
 }

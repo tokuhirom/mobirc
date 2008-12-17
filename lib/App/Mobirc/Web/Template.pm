@@ -2,7 +2,6 @@ package App::Mobirc::Web::Template;
 use strict;
 use warnings;
 use App::Mobirc;
-use Text::MicroTemplate qw/build_mt/;
 
 our $REQUIRE_WRAP;
 
@@ -18,7 +17,6 @@ our $REQUIRE_WRAP;
     sub global_context  () { App::Mobirc->context   } ## no critic
     sub web_context () { App::Mobirc::Web::Handler->web_context } ## no critic
     sub param { decode_utf8(web_context()->req->param($_[0])) }
-    sub render_irc_message { include('parts/irc_message', shift) }
     sub xml_header {
         encoded_string( join "\n",
             q{<?xml version="1.0" encoding="UTF-8" ?>},
@@ -32,6 +30,7 @@ our $REQUIRE_WRAP;
             @args,
         );
     }
+    sub render_irc_message { include('parts/irc_message', shift) }
     sub server          () { global_context->server } ## no critic.
     sub config          () { global_context->config } ## no critic.
     sub docroot {

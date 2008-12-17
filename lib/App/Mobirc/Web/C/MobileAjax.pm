@@ -5,7 +5,7 @@ use Encode;
 use JSON qw/to_json/;
 
 sub dispatch_index {
-    render_td( 'MobileAjax', 'index' );
+    render_td( );
 }
 
 sub dispatch_channel {
