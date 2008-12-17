@@ -49,7 +49,7 @@ sub render_td {
 sub _content_type {
     my $req = shift;
 
-    if ( $req->mobile_agent->is_docomo ) {
+    if ( mobile_attribute->is_docomo ) {
         # docomo phone cannot apply css without this content_type
         'application/xhtml+xml; charset=UTF-8';
     }

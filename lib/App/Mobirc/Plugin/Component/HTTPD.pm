@@ -7,7 +7,6 @@ use App::Mobirc::Util;
 use App::Mobirc::Web::Handler;
 
 use HTTP::Engine;
-use App::Mobirc::Web::Middleware::MobileAgent;
 
 use UNIVERSAL::require;
 

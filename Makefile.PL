@@ -19,7 +19,7 @@ requires 'POE::Sugar::Args'            => '1.3';
 requires 'POE::Component::IRC'         => '5.88';
 
 # mobile stuff
-requires 'HTTP::MobileAgent'                        => '0.27';
+requires 'HTTP::MobileAttribute'                    => '0.07';
 
 # template engine
 requires 'Text::MicroTemplate'  => '0.03';
