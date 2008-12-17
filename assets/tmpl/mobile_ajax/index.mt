@@ -1,9 +1,3 @@
-package App::Mobirc::Web::Template::MobileAjax;
-use App::Mobirc::Web::Template;
-use App::Mobirc;
-
-sub index {
-    mt_cached(<<'...');
 ?= xml_header();
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
@@ -57,7 +51,3 @@ sub index {
         <script type="text/javascript">
             <?= encoded_string(load_assets('static', 'mobile-ajax.js')) ?>
         </script>
-...
-}
-
-1;
