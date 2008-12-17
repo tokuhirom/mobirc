@@ -31,6 +31,8 @@ sub _irc_message {
 # render time likes: 12:25
 sub _time {
     my $time = shift;
+    die "missing time" unless $time;
+
     mt_cached(<<'...', $time);
 ? my ( $sec, $min, $hour ) = localtime(shift);
 <span class="time">
@@ -55,7 +57,7 @@ sub _body {
         my $body = $message->body;
         $body = encode_entities($body, q{<>&"'});
         ($body, ) = App::Mobirc->context->run_hook_filter('message_body_filter', $body);
-        $body;
+        $body || '';
     }->();
 
     sprintf(q{<span class="%s">%s</span>}, encode_entities($message->class), $body);

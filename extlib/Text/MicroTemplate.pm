@@ -11,7 +11,7 @@ use constant DEBUG => $ENV{MICRO_TEMPLATE_DEBUG} || 0;
 
 use Carp 'croak';
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(encoded_string build_mt render_mt);
 our %EXPORT_TAGS = (
@@ -41,7 +41,7 @@ sub new {
         $self->{package_name} = 'main';
         my $i = 0;
         while (my $c = caller(++$i)) {
-            if ($c ne __PACKAGE__) {
+            if ($c !~ /^Text::MicroTemplate($|::)/) {
                 $self->{package_name} = $c;
                 last;
             }
@@ -71,12 +71,12 @@ sub template { shift->{template} }
 sub code {
     my $self = shift;
     unless (defined $self->{code}) {
-        $self->build();
+        $self->_build();
     }
     $self->{code};
 }
 
-sub build {
+sub _build {
     my $self = shift;
     
     my $escape_func = $self->{escape_func} || '';
@@ -151,6 +151,7 @@ sub parse {
 
     # Clean start
     delete $self->{tree};
+    delete $self->{code};
 
     # Tags
     my $line_start    = quotemeta $self->{line_start};
@@ -343,7 +344,12 @@ sub escape_html {
 }
 
 sub build_mt {
-    my $_mt = Text::MicroTemplate->new(@_);
+    my $mt = Text::MicroTemplate->new(@_);
+    $mt->build();
+}
+
+sub build {
+    my $_mt = shift;
     my $_code = $_mt->code;
     my $_from = sub {
         my $i = 0;
@@ -434,7 +440,7 @@ Text::MicroTemplate does not rely on other CPAN modules.
 
 =head2 fast
 
-Based on C<Mojo::Template>, expressions in the template is perl code.
+Based on L<Mojo::Template>, expressions in the template is perl code.
 
 =head2 intelligent
 
@@ -443,6 +449,8 @@ Text::MicroTemplate automatically escapes variables when and only when necessary
 =head2 extensible
 
 Text::MicroTemplate does not provide features like template cache or including other files by itself.  However, it is easy to add you own (that suites the most to your application), by wrapping the result of the module (which is a perl expression).
+
+The module only provides basic building blocks for a template engine.  Refer to L<Text::MicroTemplate::File> for higher-level interface.
 
 =head1 TEMPLATE SYNTAX
 
@@ -484,7 +492,7 @@ Returns a subref that renders given template.  Parameters are equivalent to Text
         ...
     }
 
-=head2 render_mt($template, $args)
+=head2 render_mt($template, @args)
 
 Utility function that combines build_mt and call to the generated template builder.
 
@@ -523,7 +531,7 @@ template string (mandatory)
 
 =head3 escape_func
 
-escape function (defaults to C<Text::MicroTemplate::escape_html), no escape when set to undef
+escape function (defaults to L<Text::MicroTemplate::escape_html>), no escape when set to undef
 
 =head3 package_name
 
@@ -532,6 +540,10 @@ package under where the renderer is compiled (defaults to caller package)
 =head2 code()
 
 returns perl code that renders the template when evaluated
+
+=head1 SEE ALSO
+
+L<Text::MicroTemplate::File>
 
 =head1 AUTHOR
 

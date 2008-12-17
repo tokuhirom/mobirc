@@ -8,38 +8,44 @@ use App::Mobirc::Model::Server;
 use App::Mobirc::Util;
 
 # init.
-my $c = App::Mobirc->new(
-    config => {
-        httpd => { lines => 40 },
-        global => { keywords => [qw/foo/], stopwords => [qw/foo31/] },
-    }
+create_global_context();
+
+my $channel = server->get_channel(U '#tester');
+$channel->add_message(
+    App::Mobirc::Model::Message->new(
+        channel => '#tester',
+        who     => 'hoge',
+        body    => 'foo',
+        class   => 'public',
+        time    => time(),
+    )
 );
 
-my $server = App::Mobirc::Model::Server->new();
-$server->get_channel(U '#tester');
-
-my $got = do {
+my $got;
+test_he_filter {
     local $_ = App::Mobirc::Web::View->show(
-        'ajax/menu',
-        server             => $server,
-        keyword_recent_num => 3
+        'Ajax', 'menu',
     );
     s/^\n//;
-    $_;
+    $got = $_;
 };
 
 my $expected = do {
     local $_ = <<'...';
 <div>
- <div class="keyword_recent_notice">
-  <a href="#">Keyword&#40;3&#41;</a>
- </div>
- <div class="channel">
-  <a href="#">#tester</a>
- </div>
+    <div class="keyword_recent_notice">
+        <a href="#">Keyword(1)</a>
+    </div>
+
+    <div class="unread channel">
+        <a href="#">#tester</a>
+    </div>
+    <div class="unread channel">
+        <a href="#">*keyword*</a>
+    </div>
+
 </div>
 ...
-    s/\n$//;
     $_;
 };
 

@@ -14,6 +14,8 @@ sub topics {
         <span><?= $channel->topic ?></span><br />
     </div>
 ? }
+
+?= include('Mobile', '_go_to_top')
 ...
 }
 
@@ -110,11 +112,12 @@ sub recent {
 
 sub _go_to_top {
     my $pict = pictogram('8');
-    qq{
-        <div class="GoToTop">
-            $pict <a accesskey="8" href="/mobile/">ch list</a>
-        </div>
-    };
+    <<"...";
+<hr />
+<div class="GoToTop">
+    $pict <a accesskey="8" href="/mobile/">ch list</a>
+</div>
+...
 }
 
 sub channel {

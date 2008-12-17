@@ -54,8 +54,8 @@ sub menu {
 
     mt_cached(<<'...');
 <div>
-    <?= include('Ajax', '_keyword_channel') ?>
-    <?= include('Ajax', '_channel_list') ?>
+<?= include('Ajax', '_keyword_channel') ?>
+<?= include('Ajax', '_channel_list') ?>
 </div>
 ...
 }
@@ -78,10 +78,10 @@ sub _channel_list {
 
     mt_cached(<<'...');
 ? for my $channel ( server()->channels ) {
-?     my $class = $channel->unread_lines ? 'unread channel' : 'channel';
-      <div class="<?= $class ?>">
+?   my $class = $channel->unread_lines ? 'unread channel' : 'channel';
+    <div class="<?= $class ?>">
         <a href="#"><?= $channel->name ?></a>
-      </div>
+    </div>
 ? }
 ...
 }
@@ -98,6 +98,8 @@ sub keyword {
 
 sub channel {
     my ($class, $channel) = @_;
+    die "missing channel" unless $channel;
+
     mt_cached(<<'...', $channel);
 ? my $channel = shift;
 <div>

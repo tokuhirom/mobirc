@@ -6,15 +6,6 @@ use App::Mobirc;
 use App::Mobirc::Util;
 use App::Mobirc::Model::Server;
 
-App::Mobirc->new(
-    config => {
-        httpd  => { lines => 40 },
-        global => { keywords => [qw/foo/], stopwords => [qw/foo31/] }
-    }
-);
-
-sub context () { App::Mobirc->context }
-sub server () { context->server }
 sub keyword_channel () { server->get_channel(U "*keyword*") }
 sub test_channel    () { server->get_channel(U '#test') }
 
@@ -49,8 +40,8 @@ describe 'add & get', sub {
     my $channel = App::Mobirc::Model::Channel->new(
         name => U '#test',
     );
-    context->add_channel($channel);
-    isa_ok context->get_channel(U '#test'), 'App::Mobirc::Model::Channel';
+    global_context->add_channel($channel);
+    isa_ok global_context->get_channel(U '#test'), 'App::Mobirc::Model::Channel';
 };
 
 # TODO: move to Model/Server.t
