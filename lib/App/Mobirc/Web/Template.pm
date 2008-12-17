@@ -54,7 +54,7 @@ sub mt_cached_with_wrap {
     sub global_context  () { App::Mobirc->context   } ## no critic
     sub web_context () { App::Mobirc::Web::Handler->web_context } ## no critic
     sub param { decode_utf8(web_context()->req->param($_[0])) }
-    sub render_irc_message { encoded_string(App::Mobirc::Web::Template::IRCMessage->render_irc_message(shift)) }
+    sub render_irc_message { include('IRCMessage', 'render_irc_message', shift) }
     sub xml_header {
         encoded_string( join "\n",
             q{<?xml version="1.0" encoding="UTF-8" ?>},

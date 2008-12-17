@@ -4,32 +4,19 @@ use App::Mobirc::Util;
 use Encode;
 
 sub dispatch_base {
-    my ($class, $req) = @_;
-
-    render_td(
-        'ajax/base' => (
-            user_agent => $req->user_agent,
-            docroot    => (App::Mobirc->context->{config}->{httpd}->{root} || '/'),
-        )
-    );
+    render_td('Ajax', 'base');
 }
 
 sub dispatch_channel {
-    my ($class, $req,) = @_;
-    my $channel_name = param('channel');
+    my $channel_name = param('channel') or die "missing channel name";
 
     my $channel = server->get_channel($channel_name);
-    my $res = render_td(
-        'ajax/channel' => (
-            channel  => $channel,
-        )
-    );
+    my $res = render_td( 'Ajax', 'channel', $channel );
     $channel->clear_unread();
     return $res;
 }
 
 sub post_dispatch_channel {
-    my ( $class, $req, ) = @_;
     my $channel = param('channel');
     my $message = param('msg');
 
@@ -45,24 +32,11 @@ sub post_dispatch_channel {
 }
 
 sub dispatch_menu {
-    my ($class, $req) = @_;
-
-    render_td(
-        'ajax/menu' => (
-            server             => server,
-            keyword_recent_num => server->keyword_channel->unread_lines,
-        )
-    );
+    render_td( 'Ajax', 'menu' );
 }
 
 sub dispatch_keyword {
-    my ($class, $req ) = @_;
-
-    my $res = render_td(
-        'ajax/keyword' => {
-            logs     => scalar(server->keyword_channel->message_log),
-        }
-    );
+    my $res = render_td('Ajax', 'keyword');
     server->keyword_channel->clear_unread();
     $res;
 }
