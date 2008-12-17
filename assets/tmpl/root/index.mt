@@ -1,4 +1,4 @@
-? require_wrap()
+? wrap {
 
 <h1>mobirc</h1>
 <div class="TopMenu">
@@ -15,3 +15,5 @@
 <div class="footer">
     <a href="http://coderepos.org/share/wiki/mobirc">mobirc</a>
 </div>
+
+? };

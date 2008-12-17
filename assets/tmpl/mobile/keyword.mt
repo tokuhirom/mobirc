@@ -1,4 +1,4 @@
-? require_wrap()
+? wrap {
 
 ? my $rows = shift;
 <div class="ttlLv1">keyword</div>
@@ -7,3 +7,5 @@
 ? }
 
 ?= include('mobile/_go_to_top')
+
+? }

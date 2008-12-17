@@ -1,4 +1,4 @@
-? require_wrap()
+? wrap {
 
 ? my ($channel, $channel_page_option) = @_
 
@@ -37,3 +37,4 @@
 
 ?= include('mobile/_go_to_top')
 
+? }

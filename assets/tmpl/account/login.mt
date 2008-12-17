@@ -1,4 +1,4 @@
-? require_wrap()
+? wrap {
 
 <? for my $key (qw/password cidr mobileid/) {       ?>
 <?    if (param("invalid_${key}")) { ?>
@@ -16,3 +16,5 @@
     <input type='password' name='password' />
     <input type='submit'   value='login' />
 </form>
+
+? }

@@ -14,20 +14,11 @@ sub show {
         my $action = $c->action;
         File::Spec->catfile($pkg, "${action}.mt");
     };
-    my $mt = global_context->mt;
 
-    local $App::Mobirc::Template::REQUIRE_WRAP;
-    my $res = $mt->render_file(
+    global_context->mt->render_file(
         $fname,
         @args,
-    );
-    if ($App::Mobirc::Template::REQUIRE_WRAP) {
-        $res = $mt->render_file(
-            File::Spec->catfile('parts', 'wrapper.mt'),
-            $res
-        );
-    }
-    $res->as_string;
+    )->as_string;
 }
 
 1;

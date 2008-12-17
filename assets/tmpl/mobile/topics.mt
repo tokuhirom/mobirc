@@ -1,4 +1,4 @@
-? require_wrap()
+? wrap {
 
 ? for my $channel (server->channels) {
     <div class="OneTopic">
@@ -8,3 +8,5 @@
 ? }
 
 ?= include('mobile/_go_to_top')
+
+? }

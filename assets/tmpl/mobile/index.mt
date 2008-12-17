@@ -1,4 +1,4 @@
-? require_wrap()
+? wrap {
 
 ? my $keyword_recent_num = server->keyword_channel->unread_lines();
 ? if ($keyword_recent_num) {
@@ -32,3 +32,5 @@
 <hr />
 
 App::Mobirc <?= $App::Mobirc::VERSION ?>
+
+? }

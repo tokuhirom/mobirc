@@ -1,4 +1,4 @@
-? require_wrap()
+? wrap {
 
 ? my ($channels, $has_next_page,) = @_;
 ? for my $channel (@$channels) {
@@ -20,3 +20,5 @@
 <hr />
 
 ?= include('mobile/_go_to_top')
+
+? }

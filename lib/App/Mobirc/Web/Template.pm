@@ -1,9 +1,6 @@
 package App::Mobirc::Web::Template;
 use strict;
 use warnings;
-use App::Mobirc;
-
-our $REQUIRE_WRAP;
 
 {
     # template eval. context.
@@ -11,6 +8,7 @@ our $REQUIRE_WRAP;
     use Encode qw/encode_utf8 decode_utf8/;
     use App::Mobirc::Pictogram ();
     use Path::Class;
+    use Devel::Caller::Perl () ;
 
     *encoded_string = *Text::MicroTemplate::encoded_string;
     sub pictogram { encoded_string(App::Mobirc::Pictogram::pictogram(@_)) }
@@ -42,7 +40,14 @@ our $REQUIRE_WRAP;
     }
     sub mobile_attribute () { web_context()->mobile_attribute() }
     sub is_iphone { (mobile_attribute()->user_agent =~ /(?:iPod|iPhone)/) ? 1 : 0 }
-    sub require_wrap { $App::Mobirc::Template::REQUIRE_WRAP++ };
+    sub wrap (&) {
+        my $code = shift;
+        my $_MT = '';
+        my $_MT_T = '';
+        my @args = Devel::Caller::Perl::called_args(0);
+        $code->(@args);
+        global_context->mt->render_file('parts/wrapper.mt', $_MT);
+    }
 }
 
 1;
