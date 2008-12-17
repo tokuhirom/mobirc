@@ -2,8 +2,6 @@ package App::Mobirc::Web::Template::Account;
 use App::Mobirc::Web::Template;
 
 sub login {
-    my ($class, $req) = @_;
-
     mt_cached_with_wrap(<<'...');
 <? for my $key (qw/password cidr mobileid/) {       ?>
 <?    if (param("invalid_${key}")) { ?>
