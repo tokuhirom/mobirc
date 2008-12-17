@@ -1,10 +1,3 @@
-package App::Mobirc::Web::Template::Root;
-use App::Mobirc::Web::Template;
-
-sub index {
-    my $class = shift;
-
-    mt_cached(<<'...');
 ? require_wrap()
 
 <h1>mobirc</h1>
@@ -22,7 +15,3 @@ sub index {
 <div class="footer">
     <a href="http://coderepos.org/share/wiki/mobirc">mobirc</a>
 </div>
-...
-}
-
-1;

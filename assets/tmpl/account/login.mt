@@ -1,8 +1,3 @@
-package App::Mobirc::Web::Template::Account;
-use App::Mobirc::Web::Template;
-
-sub login {
-    mt_cached(<<'...');
 ? require_wrap()
 
 <? for my $key (qw/password cidr mobileid/) {       ?>
@@ -21,8 +16,3 @@ sub login {
     <input type='password' name='password' />
     <input type='submit'   value='login' />
 </form>
-...
-}
-
-1;
-

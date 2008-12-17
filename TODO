@@ -1,2 +1,18 @@
-- support /me in POE
+- support /me in POE + tiarra
 - bundle String::IRC
+- auto detect template file in render_td()
+- use wrapper_file style.
+    sub wrapper_file {
+        my ( $mtf, $wrapper_file, $inner, @args ) = @_;
+        my $_MT   = '';
+        my $_MT_T = '';
+        $inner->(@args);
+        $mtf->render_file( $wrapper_file, $_MT );
+    }
+
+
+    # &#20351;&#12356;&#26041;
+    ? my ($arg1, $arg2) = @_;
+    ? $mtf->wrapper_file('wrapper.tmpl', sub {
+    ...
+    ? });

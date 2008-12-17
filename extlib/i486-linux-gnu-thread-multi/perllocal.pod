@@ -1,10 +1,10 @@
-=head2 Mon Dec 15 15:33:24 2008: C<Module> L<Carp::Clan|Carp::Clan>
+=head2 Wed Dec 17 19:08:28 2008: C<Module> L<String::CamelCase|String::CamelCase>
 
 =over 4
 
 =item *
 
-C<installed into: /tmp/xy1rECOSkm/outputdir/lib/perl5>
+C<installed into: /tmp/nwXU9lepTt/outputdir/lib/perl5>
 
 =item *
 
@@ -12,51 +12,7 @@ C<LINKTYPE: dynamic>
 
 =item *
 
-C<VERSION: 6.00>
-
-=item *
-
-C<EXE_FILES: >
-
-=back
-
-=head2 Mon Dec 15 15:33:27 2008: C<Module> L<Class::Component|Class::Component>
-
-=over 4
-
-=item *
-
-C<installed into: /tmp/xy1rECOSkm/outputdir/lib/perl5>
-
-=item *
-
-C<LINKTYPE: dynamic>
-
-=item *
-
-C<VERSION: 0.17>
-
-=item *
-
-C<EXE_FILES: >
-
-=back
-
-=head2 Mon Dec 15 15:33:31 2008: C<Module> L<HTTP::MobileAttribute|HTTP::MobileAttribute>
-
-=over 4
-
-=item *
-
-C<installed into: /tmp/xy1rECOSkm/outputdir/lib/perl5>
-
-=item *
-
-C<LINKTYPE: dynamic>
-
-=item *
-
-C<VERSION: 0.11>
+C<VERSION: 0.01>
 
 =item *
 
