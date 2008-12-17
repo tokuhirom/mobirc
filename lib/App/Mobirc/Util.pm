@@ -6,10 +6,12 @@ use Carp;
 use List::MoreUtils qw/any/;
 use Encode;
 
-our @EXPORT = qw/true false DEBUG normalize_channel_name daemonize decorate_irc_color U irc_nick/;
+our @EXPORT = qw/true false DEBUG normalize_channel_name daemonize decorate_irc_color U irc_nick global_context/;
 
 sub true  () { 1 } ## no critic.
 sub false () { 0 } ## no critic.
+
+sub global_context () { App::Mobirc->context }
 
 sub U ($) { decode('utf-8', shift) } ## no critic.
 

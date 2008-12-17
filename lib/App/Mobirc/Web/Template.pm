@@ -26,8 +26,11 @@ our $REQUIRE_WRAP;
         );
     }
     sub include {
-        my ($pkg, $sub, @args) = @_;
-        encoded_string( "App::Mobirc::Web::Template::${pkg}"->$sub( @args ) );
+        my ($path, @args) = @_;
+        App::Mobirc->context->mt->render_file(
+            "${path}.mt",
+            @args,
+        );
     }
     sub server          () { global_context->server } ## no critic.
     sub config          () { global_context->config } ## no critic.
