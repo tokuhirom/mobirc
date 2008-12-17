@@ -22,7 +22,7 @@ requires 'POE::Component::IRC'         => '5.88';
 requires 'HTTP::MobileAttribute'                    => '0.07';
 
 # template engine
-requires 'Text::MicroTemplate'  => '0.03';
+requires 'Text::MicroTemplate'  => '0.04';
 
 # utilities
 requires 'Exporter'              => '5.62'; # recent version supports "use Exporter 'import'" style
