@@ -11,6 +11,7 @@ use App::Mobirc::Model::Server;
 use Encode;
 use App::Mobirc::Types 'Config';
 use Text::MicroTemplate::File;
+use App::Mobirc::Web::Template;
 
 our $VERSION = '1.07';
 
@@ -36,7 +37,7 @@ has mt => (
         my $self = shift;
         Text::MicroTemplate::File->new(
             include_path => [ File::Spec->catdir($self->config->{global}->{assets_dir}, 'tmpl') ],
-            package_name => "App::Mobirc::Web::Template::Run",
+            package_name => "App::Mobirc::Web::Template",
             use_cache    => 1,
         );
     },
