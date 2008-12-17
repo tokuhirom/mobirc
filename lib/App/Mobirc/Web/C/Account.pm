@@ -4,19 +4,15 @@ use App::Mobirc::Util;
 use Encode;
 
 sub dispatch_login {
-    my ($class, $req) = @_;
-
     render_td(
         'Account', 'login' => ()
     );
 }
 
 sub post_dispatch_login_password {
-    my ($class, $req, $args) = @_;
-    my $conf = App::Mobirc->context->config;
-    die "missing password in config.global.password" unless $conf->{global}->{password};
+    die "missing password in config.global.password" unless config->{global}->{password};
     if (my $pw = param('password')) {
-        if ($pw eq $conf->{global}->{password}) {
+        if ($pw eq config->{global}->{password}) {
             session->set('authorized', 1);
             redirect('/');
         } else {
@@ -28,13 +24,11 @@ sub post_dispatch_login_password {
 }
 
 sub post_dispatch_login_mobileid {
-    my ($class, $req, $args) = @_;
-    my $conf = App::Mobirc->context->config;
-    die "missing password in config.global.mobileid" unless $conf->{global}->{mobileid};
-    my $ma = HTTP::MobileAttribute->new($req->headers);
+    die "missing password in config.global.mobileid" unless config->{global}->{mobileid};
+    my $ma = mobile_attribute;
     if ($ma->can('user_id') && (my $user_id = $ma->user_id)) {
-        if ($user_id eq $conf->{global}->{mobileid}) {
-            if ($ma->isa_cidr($req->address)) {
+        if ($user_id eq config->{global}->{mobileid}) {
+            if ($ma->isa_cidr(req->address)) {
                 session->set('authorized', 1);
                 return redirect('/');
             } else {
@@ -49,7 +43,6 @@ sub post_dispatch_login_mobileid {
 }
 
 sub post_dispatch_logout {
-    my ($class, $req, $args) = @_;
     session->expire();
 
     return redirect('/account/login');

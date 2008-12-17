@@ -9,7 +9,7 @@ sub dispatch_deliver {
     my $path = $args->{filename};
     die "invalid path: $path" unless $path =~ m{^[a-z0-9-]+\.(?:css|js)$};
 
-    my $file = file(context->config->{global}->{assets_dir}, 'static', $path);
+    my $file = file(config->{global}->{assets_dir}, 'static', $path);
 
     HTTP::Engine::Response->new(
         status       => 200,

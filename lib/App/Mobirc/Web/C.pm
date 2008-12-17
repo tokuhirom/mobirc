@@ -15,12 +15,13 @@ sub import {
     warnings->import;
 
     no strict 'refs';
-    for my $meth (qw/context server render_irc_message render_td redirect session req param mobile_attribute/) {
+    for my $meth (qw/context server render_irc_message render_td redirect session req param mobile_attribute config/) {
         *{"$pkg\::$meth"} = *{"$class\::$meth"};
     }
 }
 
 sub context  () { App::Mobirc->context } ## no critic
+sub config   () { context->config } ## no critic
 sub server   () { context->server } ## no critic.
 sub web_context () { App::Mobirc::Web::Handler->web_context } ## no critic
 sub session  () { web_context->session } ## no critic

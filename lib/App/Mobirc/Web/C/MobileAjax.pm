@@ -9,7 +9,6 @@ sub dispatch_index {
 }
 
 sub dispatch_channel {
-    my ($class, $req) = @_;
     my $channel_name = param('channel') or die 'missing channel name';
     my $channel = server->get_channel($channel_name);
 
@@ -37,7 +36,6 @@ sub dispatch_channel {
 }
 
 sub post_dispatch_channel {
-    my ( $class, $req, $args) = @_;
     my $channel = param('channel');
     my $message = param('msg');
 

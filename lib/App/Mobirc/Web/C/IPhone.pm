@@ -5,15 +5,10 @@ use Encode;
 use JSON qw/encode_json/;
 
 sub dispatch_base {
-    my ($class, $req) = @_;
-
-    render_td(
-        'IPhone', 'base'
-    );
+    render_td( 'IPhone', 'base' );
 }
 
 sub dispatch_channel {
-    my ($class, $req,) = @_;
     my $channel_name = param('channel');
 
     my $channel = server->get_channel($channel_name);
@@ -45,7 +40,6 @@ sub dispatch_channel {
 }
 
 sub post_dispatch_channel {
-    my ( $class, $req, ) = @_;
     my $channel = param('channel');
     my $message = param('msg');
 
@@ -59,14 +53,10 @@ sub post_dispatch_channel {
 }
 
 sub dispatch_menu {
-    my ($class, $req ) = @_;
-
     render_td( 'IPhone', 'menu' );
 }
 
 sub dispatch_keyword {
-    my ($class, $req ) = @_;
-
     my $res = render_td('IPhone', 'keyword');
     server->keyword_channel->clear_unread();
     return $res;

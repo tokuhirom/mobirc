@@ -1,7 +1,6 @@
 package App::Mobirc::Web::C::Mobile;
 use App::Mobirc::Web::C;
 use App::Mobirc::Util;
-use URI::Escape qw(uri_escape_utf8);
 use Encode;
 use MIME::Base64::URLSafe qw(urlsafe_b64decode);
 
@@ -19,7 +18,7 @@ sub dispatch_recent {
         push @target_channels, $channel;
         $log_counter += $channel->recent_log_count;
 
-        if ($log_counter >= App::Mobirc->context->{config}->{httpd}->{recent_log_per_page}) {
+        if ($log_counter >= config->{httpd}->{recent_log_per_page}) {
             $has_next_page = 1;
             last;
         }
@@ -41,8 +40,6 @@ sub dispatch_recent {
 }
 
 sub dispatch_clear_all_unread {
-    my ($class, $req) = @_;
-
     for my $channel (server->channels) {
         $channel->clear_unread;
     }
@@ -52,14 +49,10 @@ sub dispatch_clear_all_unread {
 
 # topic on every channel
 sub dispatch_topics {
-    my ($class, $req) = @_;
-
     render_td('Mobile', 'topics');
 }
 
 sub dispatch_keyword {
-    my ($class, $req, ) = @_;
-
     my $channel = server->keyword_channel;
 
     my $res = render_td(
@@ -83,12 +76,10 @@ sub decode_urlsafe_encoded {
 }
 
 sub dispatch_channel {
-    my ($class, $req, $args, ) = @_;
-
     my $channel_name = decode_urlsafe_encoded('channel');
     DEBUG "show channel page: $channel_name";
 
-    my $channel = context->get_channel($channel_name);
+    my $channel = server->get_channel($channel_name);
 
     my $res = render_td(
         'Mobile', 'channel' => {
@@ -103,8 +94,6 @@ sub dispatch_channel {
 }
 
 sub post_dispatch_channel {
-    my ( $class, $req, $args) = @_;
-
     my $channel_name = decode_urlsafe_encoded('channel');
     my $message = param('msg');
 
@@ -113,7 +102,7 @@ sub post_dispatch_channel {
     my $channel = server->get_channel($channel_name);
     $channel->post_command($message);
 
-    redirect($req->uri->path . "?channel=" . $channel->name_urlsafe_encoded);
+    redirect(req->uri->path . "?channel=" . $channel->name_urlsafe_encoded);
 }
 
 1;
