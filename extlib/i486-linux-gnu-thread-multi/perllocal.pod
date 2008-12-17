@@ -1,10 +1,10 @@
-=head2 Wed Dec 17 19:08:28 2008: C<Module> L<String::CamelCase|String::CamelCase>
+=head2 Thu Dec 18 00:54:27 2008: C<Module> L<String::IRC|String::IRC>
 
 =over 4
 
 =item *
 
-C<installed into: /tmp/nwXU9lepTt/outputdir/lib/perl5>
+C<installed into: /tmp/Pakp7aYeul/outputdir/lib/perl5>
 
 =item *
 
@@ -12,7 +12,7 @@ C<LINKTYPE: dynamic>
 
 =item *
 
-C<VERSION: 0.01>
+C<VERSION: 0.04>
 
 =item *
 
