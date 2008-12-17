@@ -40,6 +40,7 @@ requires 'UNIVERSAL::require'    => '0.11';
 requires 'URI'                   => '1.36';
 requires 'URI::Find'             => '0.16';
 requires 'YAML'                  => '0.66';
+requires 'String::IRC'           => '0.01';
 
 features(
     'DoCoMo CSS support' => [
