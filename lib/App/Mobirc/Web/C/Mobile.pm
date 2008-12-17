@@ -6,29 +6,16 @@ use Encode;
 use MIME::Base64::URLSafe qw(urlsafe_b64decode);
 
 sub dispatch_index {
-    my ($class, $req) = @_;
-
-    return render_td(
-        'Mobile', 'top' => {
-            exists_recent_entries => scalar( grep { $_->unread_lines } server->channels ),
-            keyword_recent_num => server->keyword_channel->unread_lines(),
-            channels           => scalar( server->channels_sorted ),
-        }
-    );
+    render_td( 'Mobile', 'top' );
 }
 
 # recent messages on every channel
 sub dispatch_recent {
-    my ($class, $req) = @_;
-
     my @target_channels;
     my $log_counter   = 0;
     my $has_next_page = 0;
-    my @unread_channels =
-      grep { $_->unread_lines }
-      context->channels;
 
-    for my $channel (@unread_channels) {
+    for my $channel (server->unread_channels) {
         push @target_channels, $channel;
         $log_counter += $channel->recent_log_count;
 
@@ -53,8 +40,6 @@ sub dispatch_recent {
     return $res;
 }
 
-    # SHOULD USE http://example.com/ INSTEAD OF http://example.com:portnumber/
-    # because au phone returns '400 Bad Request' when redrirect to http://example.com:portnumber/
 sub dispatch_clear_all_unread {
     my ($class, $req) = @_;
 
@@ -69,11 +54,7 @@ sub dispatch_clear_all_unread {
 sub dispatch_topics {
     my ($class, $req) = @_;
 
-    render_td(
-        'Mobile', 'topics' => {
-            channels     => scalar( server->channels ),
-        }
-    );
+    render_td('Mobile', 'topics');
 }
 
 sub dispatch_keyword {

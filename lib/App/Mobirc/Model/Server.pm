@@ -72,5 +72,19 @@ sub channels_sorted {
     wantarray ? @$channels : $channels;
 }
 
+sub has_unread_message {
+    my $self = shift;
+    for my $channel ($self->channels) {
+        return 1 if $channel->unread_lines;
+    }
+    return 0;
+}
+
+sub unread_channels {
+    my $self = shift;
+    my @channels = grep { $_->unread_lines } $self->channels;
+    wantarray ? @channels : \@channels;
+}
+
 __PACKAGE__->meta->make_immutable;
 1;

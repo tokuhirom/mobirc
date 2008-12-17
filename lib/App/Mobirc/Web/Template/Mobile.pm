@@ -6,14 +6,9 @@ use App::Mobirc::Pictogram qw/pictogram/;
 
 sub topics {
     my $class = shift;
-    my %args = validate(
-        @_ => {
-            channels     => 1,
-        }
-    );
-    mt_cached_with_wrap(<<'...', $args{channels});
-? my $channels = shift;
-? for my $channel (@{$channels}) {
+
+    mt_cached_with_wrap(<<'...');
+? for my $channel (server->channels) {
     <div class="OneTopic">
         <a href="/mobile/channel?channel=<?= $channel->name_urlsafe_encoded ?>"><?= $channel->name ?></a><br />
         <span><?= $channel->topic ?></span><br />
@@ -30,37 +25,29 @@ sub keyword {
         }
     );
 
-    mt_cached_with_wrap(<<'...', $args{rows}, _go_to_top());
-? my ($rows, $footer) = @_;
+    mt_cached_with_wrap(<<'...', $args{rows});
+? my $rows = shift;
 <div class="ttlLv1">keyword</div>
 ? for my $row (@$rows) {
     <?= encoded_string App::Mobirc::Web::Template::Parts->keyword_line( $row ) ?>
 ? }
 
-<?= $footer ?>
+<?= include('Mobile', '_go_to_top') ?>
 ...
 }
 
 sub top {
-    my $self = shift;
-    my %args = validate(
-        @_ => {
-            exists_recent_entries => 1,
-            keyword_recent_num    => 1,
-            channels              => 1,
-        }
-    );
+    my $class = shift;
 
-    mt_cached_with_wrap(<<'...', $args{exists_recent_entries}, $args{keyword_recent_num}, $args{channels});
-? my ($exists_recent_entries, $keyword_recent_num, $channels) = @_
-
+    mt_cached_with_wrap(<<'...');
+? my $keyword_recent_num = server->keyword_channel->unread_lines();
 ? if ($keyword_recent_num) {
     <div class="keyword_recent_notice">
         <a href="/mobile/keyword?recent_mode=on">Keyword(<?= $keyword_recent_num ?>)</a>
     </div>
 ? }
 
-? for my $channel (@$channels) {
+? for my $channel (server->channels_sorted) {
     <?= pictogram('(^-^)') ?>
     <a href="/mobile/channel?channel=<?= $channel->name_urlsafe_encoded ?>"><?= $channel->name ?></a>
     <? if ($channel->unread_lines) { ?>
@@ -74,7 +61,7 @@ sub top {
 <hr />
 
 <?= pictogram('0') ?><a href="/mobile/#top" accesskey="0">refresh list</a><br />
-? if ($exists_recent_entries) {
+? if (server->has_unread_message) {
     <span>*</span><a href="/mobile/recent" accesskey="*">recent</a><br />
 ? }
 <? # TODO: use pictogram for '#' & '*' ?>
@@ -97,8 +84,8 @@ sub recent {
         }
     );
 
-    mt_cached_with_wrap(<<'...', $args{channels}, $args{has_next_page}, _go_to_top());
-? my ($channels, $has_next_page, $go_to_top) = @_;
+    mt_cached_with_wrap(<<'...', $args{channels}, $args{has_next_page});
+? my ($channels, $has_next_page,) = @_;
 ? for my $channel (@$channels) {
     <div class="ChannelHeader">
         <a class="ChannelName"><?= $channel->name ?></a>
@@ -117,13 +104,13 @@ sub recent {
 
 <hr />
 
-<?= $go_to_top ?>
+<?= include('Mobile', '_go_to_top') ?>
 ...
 }
 
 sub _go_to_top {
     my $pict = pictogram('8');
-    encoded_string qq{
+    qq{
         <div class="GoToTop">
             $pict <a accesskey="8" href="/mobile/">ch list</a>
         </div>
@@ -143,8 +130,8 @@ sub channel {
     my $channel = $args{channel};
 
     # TODO: we need include() syntax in T::MT
-    mt_cached_with_wrap(<<'...', $args{channel}, $args{message}, $args{channel_page_option}, $args{recent_mode}, _go_to_top());
-? my ($channel, $message, $channel_page_option, $recent_mode, $go_to_top) = @_
+    mt_cached_with_wrap(<<'...', $args{channel}, $args{message}, $args{channel_page_option}, $args{recent_mode});
+? my ($channel, $message, $channel_page_option, $recent_mode) = @_
     <form action='/mobile/channel?channel=<?= $channel->name_urlsafe_encoded?>' method='post'>
         <input <? if ($message) { ?>value="<?= $message ?><? } ?>
                type="text" name="msg" size="10" />
@@ -176,7 +163,7 @@ sub channel {
 
 <hr />
 
-<?= $go_to_top ?>
+<?= include('Mobile', '_go_to_top') ?>
 ...
 }
 

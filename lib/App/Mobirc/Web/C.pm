@@ -58,6 +58,8 @@ sub _content_type {
     }
 }
 
+# SHOULD USE http://example.com/ INSTEAD OF http://example.com:portnumber/
+# because au phone returns '400 Bad Request' when redrirect to http://example.com:portnumber/
 sub redirect {
     my $path = shift;
     HTTP::Engine::Response->new(
