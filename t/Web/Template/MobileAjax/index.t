@@ -1,13 +1,8 @@
 use t::Utils;
-use warnings;
-use t::Utils;
 use App::Mobirc::Web::View;
 use App::Mobirc::Model::Server;
-use HTTP::MobileAgent;
 
 use Test::More tests => 3;
-
-my $server = App::Mobirc::Model::Server->new;
 
 my $content;
 test_he_filter {

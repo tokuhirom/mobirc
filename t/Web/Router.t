@@ -1,3 +1,4 @@
+use t::Utils;
 use Test::Base;
 use App::Mobirc::Web::Router;
 use HTTP::Request;

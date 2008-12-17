@@ -1,5 +1,4 @@
 use t::Utils;
-use warnings;
 use lib 'extlib';
 use App::Mobirc::Web::View;
 use Test::More tests => 1;
@@ -7,7 +6,6 @@ use HTTP::MobileAgent;
 use Text::Diff;
 use App::Mobirc;
 use App::Mobirc::Util;
-
 
 my $channel = server->get_channel(U '#tester');
 $channel->topic('hoge');

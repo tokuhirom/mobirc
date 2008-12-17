@@ -6,22 +6,7 @@ plan tests => 1*blocks;
 
 local $ENV{TZ} = 'Asia/Tokyo';
 
-my $c = App::Mobirc->new(
-    config => {
-        httpd => { lines => 40 },
-        global => { keywords => [qw/foo/], stopwords => [qw/foo31/] },
-        plugin => [
-            {
-                module => 'Component::IRCClient',
-                config => {
-                    nick   => 'foo',
-                    port   => 3333,
-                    server => '127.0.0.1',
-                },
-            },
-        ]
-    }
-);
+my $c = global_context();
 
 filters {
     input => [qw/yaml message render strip/],

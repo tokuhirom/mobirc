@@ -1,17 +1,8 @@
 use t::Utils;
-use warnings;
 use Test::Base;
 use App::Mobirc;
-use t::Utils;
 
-
-my $global_context = App::Mobirc->new(
-    config => {
-        httpd  => { lines => 40 },
-        global => { keywords => [qw/foo/] }
-    }
-);
-$global_context->load_plugin( 'StickyTime' );
+global_context->load_plugin( 'StickyTime' );
 
 plan tests => 1*blocks;
 
@@ -29,7 +20,7 @@ sub sticky {
     my $html = shift;
     test_he_filter {
         my $req = shift;
-        ($req, $html) = $global_context->run_hook_filter('html_filter', $req, $html);
+        ($req, $html) = global_context->run_hook_filter('html_filter', $req, $html);
     };
     return $html;
 }
