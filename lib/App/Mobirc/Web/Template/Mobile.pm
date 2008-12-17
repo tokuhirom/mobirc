@@ -123,15 +123,14 @@ sub channel {
         @_ => {
             channel             => 1,
             channel_page_option => 1,
-            recent_mode         => 1,
-            message             => 1,
         }
     );
-    my $channel = $args{channel};
 
     # TODO: we need include() syntax in T::MT
-    mt_cached_with_wrap(<<'...', $args{channel}, $args{message}, $args{channel_page_option}, $args{recent_mode});
-? my ($channel, $message, $channel_page_option, $recent_mode) = @_
+    mt_cached_with_wrap(<<'...', $args{channel}, $args{channel_page_option});
+? my ($channel, $channel_page_option) = @_
+
+? my $message     = param('msg') || '';
     <form action='/mobile/channel?channel=<?= $channel->name_urlsafe_encoded?>' method='post'>
         <input <? if ($message) { ?>value="<?= $message ?><? } ?>
                type="text" name="msg" size="10" />
@@ -143,6 +142,7 @@ sub channel {
 ? }
     <br />
 
+? my $recent_mode = param('recent_mode');
 ? if ($channel) {
 ?    if (@{$channel->message_log}) {
 ?       my $meth = $recent_mode ? 'recent_log' : 'message_log';

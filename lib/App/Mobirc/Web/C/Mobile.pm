@@ -93,8 +93,6 @@ sub dispatch_channel {
     my $res = render_td(
         'Mobile', 'channel' => {
             channel             => $channel,
-            recent_mode         => param('recent_mode') || undef,
-            message             => param('msg') || '',
             channel_page_option => context->run_hook('channel_page_option', $channel) || [],
         }
     );
