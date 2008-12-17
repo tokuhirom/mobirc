@@ -4,7 +4,9 @@ use App::Mobirc::Web::Template;
 sub index {
     my $class = shift;
 
-    mt_cached_with_wrap(<<'...');
+    mt_cached(<<'...');
+? require_wrap()
+
 <h1>mobirc</h1>
 <div class="TopMenu">
     <ul>

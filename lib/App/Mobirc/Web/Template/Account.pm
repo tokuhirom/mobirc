@@ -2,7 +2,9 @@ package App::Mobirc::Web::Template::Account;
 use App::Mobirc::Web::Template;
 
 sub login {
-    mt_cached_with_wrap(<<'...');
+    mt_cached(<<'...');
+? require_wrap()
+
 <? for my $key (qw/password cidr mobileid/) {       ?>
 <?    if (param("invalid_${key}")) { ?>
         <div style='color: red'>invalid <?= $key ?></div>

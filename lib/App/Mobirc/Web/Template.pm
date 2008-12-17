@@ -4,6 +4,8 @@ use warnings;
 use App::Mobirc;
 use Text::MicroTemplate qw/build_mt/;
 
+our $REQUIRE_WRAP;
+
 sub import {
     my $class = shift;
     my $pkg = caller(0);
@@ -12,7 +14,7 @@ sub import {
 
     {
         no strict 'refs';
-        for my $meth (qw/mt_cached mt_cached_with_wrap/) {
+        for my $meth (qw/mt_cached mt_cached/) {
             *{"${pkg}::${meth}"} = *{"${class}::${meth}"};
         }
     }
@@ -23,8 +25,14 @@ sub import {
     sub _mt_cached {
         my $caller = shift;
         my $tmpl = shift;
+        local $REQUIRE_WRAP;
         $cache->{$caller} ||= build_mt(template => $tmpl, package_name => "App::Mobirc::Web::Template::Run");
-        $cache->{$caller}->( @_ )->as_string;
+        my $res = $cache->{$caller}->( @_ )->as_string;
+        if ($REQUIRE_WRAP) {
+            return App::Mobirc::Web::View->show('Wrapper', 'wrapper', $res);
+        } else {
+            return $res;
+        }
     }
 }
 
@@ -32,13 +40,6 @@ sub mt_cached {
     my ($pkg, $fn, $line) = caller(0);
     my $caller = join ', ', $pkg, $fn, $line;
     _mt_cached($caller, @_);
-}
-
-sub mt_cached_with_wrap {
-    my ($pkg, $fn, $line) = caller(0);
-    my $caller = join ', ', $pkg, $fn, $line;
-    my $body = _mt_cached($caller, @_);
-    return App::Mobirc::Web::Template::Wrapper->wrapper( $body );
 }
 
 {
@@ -75,6 +76,7 @@ sub mt_cached_with_wrap {
     }
     sub mobile_attribute () { web_context()->mobile_attribute() }
     sub is_iphone { (mobile_attribute()->user_agent =~ /(?:iPod|iPhone)/) ? 1 : 0 }
+    sub require_wrap { $App::Mobirc::Template::REQUIRE_WRAP++ };
 }
 
 1;

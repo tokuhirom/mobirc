@@ -7,7 +7,9 @@ use App::Mobirc::Pictogram qw/pictogram/;
 sub topics {
     my $class = shift;
 
-    mt_cached_with_wrap(<<'...');
+    mt_cached(<<'...');
+? require_wrap()
+
 ? for my $channel (server->channels) {
     <div class="OneTopic">
         <a href="/mobile/channel?channel=<?= $channel->name_urlsafe_encoded ?>"><?= $channel->name ?></a><br />
@@ -27,7 +29,9 @@ sub keyword {
         }
     );
 
-    mt_cached_with_wrap(<<'...', $args{rows});
+    mt_cached(<<'...', $args{rows});
+? require_wrap()
+
 ? my $rows = shift;
 <div class="ttlLv1">keyword</div>
 ? for my $row (@$rows) {
@@ -41,7 +45,9 @@ sub keyword {
 sub top {
     my $class = shift;
 
-    mt_cached_with_wrap(<<'...');
+    mt_cached(<<'...');
+? require_wrap()
+
 ? my $keyword_recent_num = server->keyword_channel->unread_lines();
 ? if ($keyword_recent_num) {
     <div class="keyword_recent_notice">
@@ -86,7 +92,9 @@ sub recent {
         }
     );
 
-    mt_cached_with_wrap(<<'...', $args{channels}, $args{has_next_page});
+    mt_cached(<<'...', $args{channels}, $args{has_next_page});
+? require_wrap()
+
 ? my ($channels, $has_next_page,) = @_;
 ? for my $channel (@$channels) {
     <div class="ChannelHeader">
@@ -130,7 +138,9 @@ sub channel {
     );
 
     # TODO: we need include() syntax in T::MT
-    mt_cached_with_wrap(<<'...', $args{channel}, $args{channel_page_option});
+    mt_cached(<<'...', $args{channel}, $args{channel_page_option});
+? require_wrap()
+
 ? my ($channel, $channel_page_option) = @_
 
 ? my $message     = param('msg') || '';
@@ -153,7 +163,7 @@ sub channel {
             <?= render_irc_message($message) ?>
             <br />
 ?       }
-?       unless ($recent_mode) {
+?       if ($recent_mode) {
             <hr />
             <?= pictogram('5') ?><a href="/mobile/channel?channel=<?= $channel->name_urlsafe_encoded ?>" accesskey="5">more</a>
 ?       }
