@@ -1,19 +1,13 @@
 package App::Mobirc::Web::View;
 use strict;
 use warnings;
-use Template::Declare;
-use Module::Find;
-my @templates = useall 'App::Mobirc::Web::Template';
-Template::Declare->init(roots => [@templates]);
+use UNIVERSAL::require;
 
 sub show {
-    my $class = shift;
-    if ($_[0] =~ /^[A-Z]/) {
-        my ($pkg, $sub) = (shift, shift);
-        "App::Mobirc::Web::Template::${pkg}"->$sub( @_ );
-    } else {
-        Template::Declare->show(@_);
-    }
+    my ($class, $pkg, $sub, @args) = @_;
+    my $klass = "App::Mobirc::Web::Template::${pkg}";
+    $klass->require or die $@;
+    $klass->$sub( @args );
 }
 
 1;
