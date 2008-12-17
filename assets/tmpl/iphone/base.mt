@@ -1,10 +1,4 @@
-package App::Mobirc::Web::Template::IPhone;
-use App::Mobirc::Web::Template;
-use App::Mobirc;
-
-sub base {
-    mt_cached(<<'...');
-<?= xml_header() ?>
+?= xml_header()
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta http-equiv="Content-Type"  content="text/html; charset=UTF-8" />
@@ -39,57 +33,3 @@ sub base {
         </script>
     </body>
 </html>
-...
-}
-
-sub menu {
-    my $class = shift;
-
-    mt_cached(<<'...');
-<div>
-<?= include('IPhone', '_keyword_channel') ?>
-<?= include('IPhone', '_channel_list') ?>
-</div>
-...
-}
-
-sub _keyword_channel {
-    my ($class, $keyword_recent_num) = @_;
-
-    mt_cached(<<'...', $keyword_recent_num);
-? my $num = server->keyword_channel->unread_lines;
-? if ($num) {
-    <div class="keyword_recent_notice">
-        <a href="#">Keyword(<?= $num ?>)</a>
-    </div>
-? }
-...
-}
-
-sub _channel_list {
-    my ($class, $server) = @_;
-
-    mt_cached(<<'...', $server);
-? for my $channel (server->channels) {
-? my $class = $channel->unread_lines ? 'unread channel' : 'channel';
-    <div class="<?= $class ?>">
-        <a href="#"><?= $channel->name ?></a>
-    </div>
-? }
-...
-}
-
-sub keyword {
-    my $self = shift;
-
-    mt_cached(<<'...');
-<div>
-? for my $row (server->keyword_channel->message_log) {
-    <?= include('Parts', 'keyword_line', $row) ?>
-? }
-</div>
-...
-}
-
-1;
-
