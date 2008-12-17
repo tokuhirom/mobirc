@@ -21,18 +21,18 @@ sub import {
 
 {
     my $cache;
-    sub mt_cached {
-        my ($pkg, $fn, $line) = caller(0);
-        my $caller = join ', ', $pkg, $fn, $line;
-        _mt_cached($caller, @_);
-    }
-
     sub _mt_cached {
         my $caller = shift;
         my $tmpl = shift;
         $cache->{$caller} ||= build_mt(template => $tmpl, package_name => "App::Mobirc::Web::Template::Run");
         $cache->{$caller}->( @_ )->as_string;
     }
+}
+
+sub mt_cached {
+    my ($pkg, $fn, $line) = caller(0);
+    my $caller = join ', ', $pkg, $fn, $line;
+    _mt_cached($caller, @_);
 }
 
 sub mt_cached_with_wrap {
