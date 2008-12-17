@@ -7,6 +7,9 @@ use App::Mobirc::Pictogram ();
 use Path::Class;
 use Devel::Caller::Perl () ;
 
+our $_MT;
+our $_MT_T;
+
 *encoded_string = *Text::MicroTemplate::encoded_string;
 sub pictogram { encoded_string(App::Mobirc::Pictogram::pictogram(@_)) }
 sub global_context  () { App::Mobirc->context   } ## no critic
@@ -38,12 +41,15 @@ sub load_assets {
 sub mobile_attribute () { web_context()->mobile_attribute() }
 sub is_iphone { (mobile_attribute()->user_agent =~ /(?:iPod|iPhone)/) ? 1 : 0 }
 sub wrap (&) {
-    my $code = shift;
-    my $_MT = '';
-    my $_MT_T = '';
-    my @args = Devel::Caller::Perl::called_args(0);
-    $code->(@args);
-    global_context->mt->render_file('parts/wrapper.mt', $_MT);
+    my $code  = shift;
+    my $inner = do {
+        local $_MT   = '';
+        local $_MT_T = '';
+        my @args = Devel::Caller::Perl::called_args(0);
+        $code->(@args);
+        $_MT;
+    };
+    $_MT .= global_context->mt->render_file( 'parts/wrapper.mt', encoded_string($inner) )->as_string;
 }
 
 1;

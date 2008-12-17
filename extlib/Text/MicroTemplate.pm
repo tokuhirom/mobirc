@@ -137,7 +137,7 @@ sub _build {
     
     # Wrap
     $lines[0] ||= '';
-    $lines[0]   = q/sub { my $_MT = ''; my $_MT_T = '';/ . $lines[0];
+    $lines[0]   = q/sub { local $_MT = ''; local $_MT_T = '';/ . $lines[0];
     $lines[-1] .= q/return $_MT; }/;
 
     $self->{code} = join "\n", @lines;
@@ -361,6 +361,8 @@ sub build {
     }->();
     my $expr = << "...";
 package $_mt->{package_name};
+our \$_MT;
+our \$_MT_T;
 sub {
     local \$SIG{__WARN__} = sub { print STDERR \$_mt->_error(shift, 4, \$_from) };
     Text::MicroTemplate::encoded_string((

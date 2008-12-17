@@ -100,23 +100,12 @@ sub test_view {
     my ($path, @args) = @_;
     my $res;
     test_he_filter {
-        my $mt = global_context->mt;
-
-        local $App::Mobirc::Template::REQUIRE_WRAP;
-        $res = $mt->render_file(
+        $res = global_context->mt->render_file(
             $path,
             @args,
-        );
-        if ($App::Mobirc::Template::REQUIRE_WRAP) {
-            $res = $mt->render_file(
-                File::Spec->catfile('parts/wrapper.mt'),
-                $res,
-            );
-        } else {
-            $res;
-        }
+        )->as_string;
     };
-    $res->as_string;
+    $res;
 }
 
 create_global_context();
