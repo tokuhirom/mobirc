@@ -1,120 +1,95 @@
 package App::Mobirc::Web::Template::IPhone;
-use strict;
-use warnings;
-use base qw(Template::Declare);
-use Template::Declare::Tags;
-use Params::Validate ':all';
-use HTML::Entities qw/encode_entities/;
+use App::Mobirc::Web::Template;
 use App::Mobirc;
 
-template 'iphone/base' => sub {
+sub base {
+    mt_cached(<<'...');
+<?= xml_header() ?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type"  content="text/html; charset=UTF-8" />
+        <meta http-equiv="Cache-Control" content="max-age=0" />
+        <meta http-equiv="content-script-type" content="text/javascript" />
+        <meta name="robots" content="noindex,nofollow" />
+        <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+        <link rel="stylesheet" href="/static/mobirc.css" type="text/css" />
+        <link rel="stylesheet" href="/static/iphone.css" type="text/css" />
+        <title>mobirc</title>
+        <script src="/static/jquery.js" type="text/javascript"></script>
+        <script src="/static/iphone.js" type="text/javascript"></script>
+    </head>
+    <body>
+        <div id="body">
+            <div id="main">
+                <div id="menu"></div>
+                <form onsubmit="return false">
+                    <textarea id="msg" name="msg" onfocus="clearInterval(load_menu_timer);clearInterval(load_url_timer);" onblur="lmt();lut();"></textarea>
+                    <input type="button" value="send" onclick="send_message()" />
+                </form>
+                <div id="contents"></div>
+            </div>
+            <div id="footer">
+                <div><span>mobirc - </span><span class="version"><?= $App::Mobirc::VERSION ?></span></div>
+            </div>
+        </div>
+
+        <?# TODO: move this part to Plugin::DocRoot ?>
+        <script type="text/javascript">
+            docroot='<?= docroot() ?>';
+        </script>
+    </body>
+</html>
+...
+}
+
+sub menu {
+    my $class = shift;
+
+    mt_cached(<<'...');
+<div>
+<?= include('IPhone', '_keyword_channel') ?>
+<?= include('IPhone', '_channel_list') ?>
+</div>
+...
+}
+
+sub _keyword_channel {
+    my ($class, $keyword_recent_num) = @_;
+
+    mt_cached(<<'...', $keyword_recent_num);
+? my $num = server->keyword_channel->unread_lines;
+? if ($num) {
+    <div class="keyword_recent_notice">
+        <a href="#">Keyword(<?= $num ?>)</a>
+    </div>
+? }
+...
+}
+
+sub _channel_list {
+    my ($class, $server) = @_;
+
+    mt_cached(<<'...', $server);
+? for my $channel (server->channels) {
+? my $class = $channel->unread_lines ? 'unread channel' : 'channel';
+    <div class="<?= $class ?>">
+        <a href="#"><?= $channel->name ?></a>
+    </div>
+? }
+...
+}
+
+sub keyword {
     my $self = shift;
-    my %args = validate(
-        @_ => {
-            user_agent => 1,
-            docroot    => 1,
-        },
-    );
 
-    xml_decl { 'xml', version => '1.0', encoding => 'UTF-8' };
-    outs_raw qq{<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">};
-    html {
-        attr { lang => 'ja', 'xml:lang' => 'ja', xmlns => "http://www.w3.org/1999/xhtml" }
-        head {
-            meta { attr { 'http-equiv' => 'Content-Type', 'content' => "text/html; charset=UTF-8" } };
-            meta { attr { 'http-equiv' => 'Cache-Control', 'content' => "max-age=0" } };
-            meta { attr { name => 'robots', 'content' => 'noindex, nofollow' } };
-            link { attr { rel => 'stylesheet', href => '/static/mobirc.css', type=> "text/css"} };
-            link { attr { rel => 'stylesheet', href => '/static/iphone.css', type=> "text/css"} };
-            script { src is "/static/jquery.js" };
-            script { src is "/static/iphone.js" };
-            if ($args{user_agent} =~ /(?:iPod|iPhone)/) {
-#                meta { attr { name => 'viewport', content => 'width=device-width' } }
-                meta { attr { name => 'viewport', content => 'initial-scale=1.0, maximum-scale=1.0, user-scalable=no' } }
-            }
-            title { 'mobirc' }
-        }
-        body {
-            div {
-                id is 'body';
-                div {
-                    id is 'main';
-                    div { id is 'menu' }
-                    form {
-                        onsubmit is 'return false';
-                        textarea { attr { id => 'msg', name => 'msg', onfocus => "clearInterval(load_menu_timer);clearInterval(load_url_timer);", onblur => "lmt();lut();" } };
-                        input { attr { type => 'button', value => 'send', onclick => "send_message();" } };
-                    }
-                    div { id is 'contents' }
-                }
-                div {
-                    id is 'footer';
-                    div { span { 'mobirc -'} span { class is 'version'; $App::Mobirc::VERSION } };
-                }
-            };
-
-            # TODO: move this part to Plugin::DocRoot
-            script { lang is 'javascript';
-                outs_raw qq{docroot = '$args{docroot}';};
-            };
-        }
-    }
-};
-
-template 'iphone/menu' => sub {
-    my $self = shift;
-    my %args = validate(
-        @_ => {
-            server             => { isa => 'App::Mobirc::Model::Server' },
-            keyword_recent_num => SCALAR,
-        },
-    );
-
-    div {
-        show '../keyword_channel', $args{keyword_recent_num};
-        show '../channel_list', $args{server};
-    };
-};
-
-private template 'keyword_channel' => sub {
-    my ($self, $keyword_recent_num) = validate_pos(@_, OBJECT, SCALAR);
-
-    if ($keyword_recent_num > 0) {
-        div { attr { class => 'keyword_recent_notice' }
-            a { attr { href => '#' }
-                "Keyword($keyword_recent_num)"
-            }
-        };
-    }
-};
-
-private template 'channel_list' => sub {
-    my ($self, $server) = validate_pos(@_, OBJECT, { 'isa' => 'App::Mobirc::Model::Server' });
-
-    for my $channel ( $server->channels ) {
-        my $class = $channel->unread_lines ? 'unread channel' : 'channel';
-        div { attr { class => $class }
-            a { attr { 'href' => '#' }
-                $channel->name
-            }
-        }
-    }
-};
-
-template 'iphone/keyword' => sub {
-    my $self = shift;
-    my %args = validate(
-        @_ => {
-            logs     => 1,
-        },
-    );
-
-    div {
-        for my $row ( @{ $args{logs} } ) {
-            outs_raw(App::Mobirc::Web::Template::Parts->keyword_line($row));
-        }
-    }
-};
+    mt_cached(<<'...');
+<div>
+? for my $row (server->keyword_channel->message_log) {
+    <?= include('Parts', 'keyword_line', $row) ?>
+? }
+</div>
+...
+}
 
 1;
 

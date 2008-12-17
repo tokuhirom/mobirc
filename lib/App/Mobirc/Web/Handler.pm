@@ -15,6 +15,12 @@ use App::Mobirc::Web::Context;
 useall 'App::Mobirc::Web::C';
 
 my $session_store = HTTP::Session::Store::OnMemory->new(data => {});
+if ($ENV{MOBIRC_DEBUG}) {
+    require HTTP::Session::Store::DBM;
+    $session_store = HTTP::Session::Store::DBM->new(
+        file => '/tmp/hoge.dbm'
+    );
+}
 
 sub global_context () { App::Mobirc->context } ## no critic
 
