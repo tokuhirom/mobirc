@@ -60,6 +60,7 @@ sub strip_nl {
         $code->(@args);
         $_MT;
     };
+    $inner =~ s/^\s+//smg;
     $inner =~ s/[\r\n]//g;
     $_MT .= $inner;
 }
