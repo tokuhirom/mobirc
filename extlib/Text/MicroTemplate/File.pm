@@ -139,6 +139,10 @@ Returns a subref that renders given template file.
 
 Renders the template file with given arguments.
 
+=head2 wrapper_file($file, @args)->(sub { template lines })
+
+Wraps given template with wrapper file.  Internally the processed template is passed as $_[0] to the wrapper template.
+
 =head1 SEE ALSO
 
 L<Text::MicroTemplate>
