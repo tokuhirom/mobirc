@@ -18,7 +18,7 @@ sub dispatch_recent {
         push @target_channels, $channel;
         $log_counter += $channel->recent_log_count;
 
-        if ($log_counter >= config->{httpd}->{recent_log_per_page}) {
+        if ($log_counter >= config->{global}->{recent_log_per_page}) {
             $has_next_page = 1;
             last;
         }

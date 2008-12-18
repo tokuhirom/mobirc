@@ -55,8 +55,3 @@ plugin:
     config:
       port: 5678
 
-
-httpd:
-  lines: 40
-  # root: /
-

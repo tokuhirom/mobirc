@@ -31,7 +31,7 @@ sub include {
 sub server          () { global_context->server } ## no critic.
 sub config          () { global_context->config } ## no critic.
 sub docroot {
-    (config->{httpd}->{root} || '/')
+    (config->{global}->{root} || '/')
 }
 sub load_assets {
     my @path = @_;

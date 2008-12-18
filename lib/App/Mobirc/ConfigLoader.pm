@@ -27,16 +27,6 @@ my $schema = {
                 },
             ],
         },
-        httpd => {
-            name     => 'httpd',
-            type     => 'map',
-            required => 1,
-            mapping  => {
-                lines               => { type => 'int', },
-                recent_log_per_page => { type => 'int', },
-                root                => { type => 'str', },
-            },
-        },
         global => {
             name    => 'global',
             type    => 'map',
@@ -61,6 +51,9 @@ my $schema = {
                         }
                     ],
                 },
+                recent_log_per_page => { type => 'int', },
+                log_max             => { type => 'int', },
+                root                => { type => 'str', },
             }
         },
     },
@@ -90,8 +83,6 @@ sub load {
     }
 
     # set default vars.
-    $config->{httpd}->{lines}          ||= 20;
-    $config->{httpd}->{root}           ||= decode( 'utf8', '/' );
     $config->{global}->{assets_dir}    ||= File::Spec->catfile( $FindBin::Bin, 'assets' );
 
     return $config;

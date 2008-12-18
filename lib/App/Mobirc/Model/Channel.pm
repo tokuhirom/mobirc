@@ -58,7 +58,7 @@ sub add_message {
 sub _add_to_log {
     my ($self, $key, $row) = @_;
 
-    my $log_max = global_context->config->{httpd}->{lines} || 20;
+    my $log_max = global_context->config->{global}->{log_max} || 20;
 
     push @{$self->{$key}}, $row;
     if ( @{$self->{$key}} > $log_max ) {
