@@ -51,6 +51,8 @@ hook run_component => sub {
 
     # default plugins
     $global_context->load_plugin('StickyTime');
+
+    print "running your httpd at http://localhost:@{[ $self->port ]}/\n";
 };
 
 no Mouse;
