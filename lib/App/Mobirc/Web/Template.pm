@@ -7,11 +7,20 @@ use App::Mobirc::Pictogram ();
 use Path::Class;
 use URI::Escape qw/uri_escape/;
 
+sub global_context ()   { App::Mobirc->context }
+sub web_context ()      { App::Mobirc::Web::Handler->web_context }
+sub server ()           { global_context->server }
+sub config ()           { global_context->config }
+sub req ()              { web_context->req }
+sub param               { decode_utf8( req->param( $_[0] ) ) }
+sub mobile_attribute () { web_context()->mobile_attribute() }
+
+sub is_iphone {
+    ( mobile_attribute()->user_agent =~ /(?:iPod|iPhone)/ ) ? 1 : 0;
+}
+
 *encoded_string = *Text::MicroTemplate::encoded_string;
 sub pictogram { encoded_string(App::Mobirc::Pictogram::pictogram(@_)) }
-sub global_context  () { App::Mobirc->context   } ## no critic
-sub web_context () { App::Mobirc::Web::Handler->web_context } ## no critic
-sub param { decode_utf8(web_context()->req->param($_[0])) }
 sub xml_header {
     encoded_string( join "\n",
         q{<?xml version="1.0" encoding="UTF-8" ?>},
@@ -25,8 +34,6 @@ sub include {
         @args,
     );
 }
-sub server          () { global_context->server } ## no critic.
-sub config          () { global_context->config } ## no critic.
 sub docroot {
     (config->{global}->{root} || '/')
 }
@@ -34,8 +41,6 @@ sub load_assets {
     my @path = @_;
     join '', file(config->{global}->{assets_dir}, @path)->slurp
 }
-sub mobile_attribute () { web_context()->mobile_attribute() }
-sub is_iphone { (mobile_attribute()->user_agent =~ /(?:iPod|iPhone)/) ? 1 : 0 }
 sub wrap (&) {
     my $code  = shift;
     global_context->mt->wrapper_file('parts/wrapper.mt')->($code);
