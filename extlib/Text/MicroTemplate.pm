@@ -137,7 +137,7 @@ sub _build {
     
     # Wrap
     $lines[0] ||= '';
-    $lines[0]   = q/sub { local $_MT = ''; local $_MT_T = '';/ . $lines[0];
+    $lines[0]   = q/sub { my $_MT = ''; local $/ . $self->{package_name} . q/::_MTREF = \$_MT; my $_MT_T = '';/ . $lines[0];
     $lines[-1] .= q/return $_MT; }/;
 
     $self->{code} = join "\n", @lines;
@@ -333,6 +333,8 @@ sub encoded_string {
 
 sub escape_html {
     my $str = shift;
+    return ''
+        unless defined $str;
     return $str->as_string
         if ref $str eq 'Text::MicroTemplate::EncodedString';
     $str =~ s/&/&amp;/g;
@@ -361,8 +363,6 @@ sub build {
     }->();
     my $expr = << "...";
 package $_mt->{package_name};
-our \$_MT;
-our \$_MT_T;
 sub {
     local \$SIG{__WARN__} = sub { print STDERR \$_mt->_error(shift, 4, \$_from) };
     Text::MicroTemplate::encoded_string((

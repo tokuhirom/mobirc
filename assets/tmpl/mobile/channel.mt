@@ -1,6 +1,6 @@
-? wrap {
-
 ? my ($channel, $channel_page_option) = @_
+
+? wrap {
 
 ? my $message     = param('msg') || '';
     <form action='/mobile/channel?channel=<?= $channel->name_urlsafe_encoded?>' method='post'>

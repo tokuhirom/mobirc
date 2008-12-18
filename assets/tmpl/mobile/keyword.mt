@@ -1,6 +1,7 @@
+? my $rows = shift;
+
 ? wrap {
 
-? my $rows = shift;
 <div class="ttlLv1">keyword</div>
 ? for my $row (@$rows) {
 ?=     include('parts/keyword_line', $row)

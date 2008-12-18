@@ -41,28 +41,21 @@ sub mobile_attribute () { web_context()->mobile_attribute() }
 sub is_iphone { (mobile_attribute()->user_agent =~ /(?:iPod|iPhone)/) ? 1 : 0 }
 sub wrap (&) {
     my $code  = shift;
-    my $inner = do {
-        local $_MT   = '';
-        local $_MT_T = '';
-        my @args = Devel::Caller::Perl::called_args(0);
-        $code->(@args);
-        $_MT;
-    };
-    $_MT .= global_context->mt->render_file( 'parts/wrapper.mt', encoded_string($inner) )->as_string;
+    global_context->mt->wrapper_file('parts/wrapper.mt')->($code);
 }
 
-sub strip_nl {
+sub strip_nl (&) {
     my $code  = shift;
-    my $inner = do {
-        local $_MT   = '';
-        local $_MT_T = '';
-        my @args = Devel::Caller::Perl::called_args(0);
-        $code->(@args);
-        $_MT;
+    my $mtref = do {
+        no strict 'refs';
+        ${__PACKAGE__ . '::_MTREF'};
     };
-    $inner =~ s/^\s+//smg;
-    $inner =~ s/[\r\n]//g;
-    $_MT .= $inner;
+    my $before = $$mtref;
+    $$mtref = '';
+    $code->();
+    $$mtref =~ s/^\s+//smg;
+    $$mtref =~ s/[\r\n]//g;
+    $$mtref = $before . $$mtref;
 }
 
 1;

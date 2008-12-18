@@ -1,6 +1,7 @@
+? my ($channels, $has_next_page,) = @_;
+
 ? wrap {
 
-? my ($channels, $has_next_page,) = @_;
 ? for my $channel (@$channels) {
     <div class="ChannelHeader">
         <a class="ChannelName"><?= $channel->name ?></a>
