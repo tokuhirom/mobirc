@@ -57,10 +57,6 @@ features(
         recommends('Glib', '0.4'),
         recommends('POE::Loop::Glib', '0.0034'),
     ],
-    'Daemonize' => [
-        -default => 0,
-        recommends('Proc::Daemon'          => '0.03'),
-    ]
 );
 
 tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t';

@@ -1,12 +1,8 @@
 use t::Utils;
 use Test::More;
 use App::Mobirc::Util;
-eval "use Proc::Daemon; use File::Temp;";
-if ($@) {
-    plan skip_all => "Proc::Daemon, File::Temp is not installed.";
-} else {
-    plan tests => 1;
-}
+use File::Temp;
+plan tests => 1;
 
 my $tmpfh = File::Temp->new(UNLINK => 0);
 my $pid = fork();

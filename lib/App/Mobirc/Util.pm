@@ -35,8 +35,19 @@ sub normalize_channel_name {
 sub daemonize {
     my $pid_fname = shift;
 
-    require Proc::Daemon;
-    Proc::Daemon::Init();
+    if (my $pid = fork) {
+        exit 0; 
+    } elsif (defined $pid) {
+        close(STDIN);
+        close(STDOUT);
+        close(STDERR);
+
+        open(STDIN,  "+>/dev/null"); ## no critic.
+        open(STDOUT, "+>&STDIN");    ## no critic.
+        open(STDERR, "+>&STDIN");    ## no critic.
+    } else {
+        die "fork failed: $@";
+    }
 
     if ( defined $pid_fname ) {
         open my $pid, '>', $pid_fname or die "cannot open pid file: $pid_fname";
