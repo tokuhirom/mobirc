@@ -346,6 +346,10 @@ mobirc.pl - irssi plugin for Mobirc
     
        /mobirc start
 
+=head1 KNOWN BUGS
+
+irssi dumps core at exit irssi. anyone can fix this?
+
 =head1 AUTHOR
 
 Daisuke Murase <typester@cpan.org>
