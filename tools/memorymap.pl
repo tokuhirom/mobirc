@@ -41,7 +41,6 @@ unshift @mods, qw/
     HTTP::Engine
 /;
 unshift @mods, 'File::ShareDir';
-unshift @mods, 'XML::LibXML';
 unshift @mods, 'Carp';
 unshift @mods, 'Encode::MIME::Name';
 unshift @mods, qw/HTTP::Request HTTP::Date POE URI/;

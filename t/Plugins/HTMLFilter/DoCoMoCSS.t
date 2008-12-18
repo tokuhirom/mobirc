@@ -1,6 +1,5 @@
 use t::Utils;
 use Test::More;
-plan skip_all => 'this test requires XML::LibXML' unless eval 'use XML::LibXML;1;';
 plan tests => 1;
 use App::Mobirc;
 require App::Mobirc::Plugin::HTMLFilter::DoCoMoCSS;
@@ -19,8 +18,7 @@ test_he_filter {
 };
 
 my $expected = <<'...';
-<?xml version="1.0"?>
-<a href="/" class="time" style="color:#004080;">foo</a>
+<html><head></head><body><a class="time" href="/" style="color:#004080;">foo</a></body></html>
 ...
 
 is $got, $expected;
