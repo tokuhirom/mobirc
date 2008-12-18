@@ -2,3 +2,4 @@ config.yaml
 META.yml
 Makefile
 foo.txt
+core
