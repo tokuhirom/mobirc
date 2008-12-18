@@ -16,6 +16,7 @@ my %optional_args = (
     'version'          => '--perl_only',
     'List::MoreUtils'  => '-pm',
     'Params::Validate' => '--pm',
+    'Params::Util'     => '-pm',
     'DateTime'         => '--pm',
 );
 my %skip_packages = map { $_ => 1 } (
