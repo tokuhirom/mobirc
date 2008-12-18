@@ -7,9 +7,6 @@ use App::Mobirc::Pictogram ();
 use Path::Class;
 use URI::Escape qw/uri_escape/;
 
-our $_MT;
-our $_MT_T;
-
 *encoded_string = *Text::MicroTemplate::encoded_string;
 sub pictogram { encoded_string(App::Mobirc::Pictogram::pictogram(@_)) }
 sub global_context  () { App::Mobirc->context   } ## no critic
