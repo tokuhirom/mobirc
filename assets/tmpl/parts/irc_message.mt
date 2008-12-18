@@ -6,5 +6,7 @@
     <span class="minute"><?= sprintf "%02d", $message->minute ?></span>
 </span>
 
-<span class="<?= $message->who_class ?>">(<?= $message->who ?>)</span>
+? if ($message->who) {
+    <span class="<?= $message->who_class ?>">(<?= $message->who ?>)</span>
+? }
 <span class="<?= $message->class ?>"><?= encoded_string($message->html_body) ?></span>
