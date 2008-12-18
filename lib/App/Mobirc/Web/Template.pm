@@ -46,16 +46,10 @@ sub wrap (&) {
 
 sub strip_nl (&) {
     my $code  = shift;
-    my $mtref = do {
-        no strict 'refs';
-        ${__PACKAGE__ . '::_MTREF'};
-    };
-    my $before = $$mtref;
-    $$mtref = '';
-    $code->();
-    $$mtref =~ s/^\s+//smg;
-    $$mtref =~ s/[\r\n]//g;
-    $$mtref = $before . $$mtref;
+    global_context->mt->filter(sub {
+        s/^\s+//smg;
+        s/[\r\n]//g;
+    })->($code);
 }
 
 1;

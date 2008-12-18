@@ -386,6 +386,32 @@ sub render_mt {
     $builder->(@_);
 }
 
+# ? $_mt->filter(sub { s/\s+//smg; s/[\r\n]//g; })->(sub { ... ? });
+sub filter {
+    my ($self, $callback) = @_;
+    my $mtref = do {
+        no strict 'refs';
+        ${"$self->{package_name}::_MTREF"};
+    };
+    my $before = $$mtref;
+    $$mtref = '';
+    return sub {
+        my $inner_func = shift;
+        $inner_func->(@_);
+
+        ## sub { s/foo/bar/g } is a valid filter
+        ## sub { DateTime::Format::Foo->parse_string(shift) } is valid too
+        local $_ = $$mtref;
+        my $retval = $callback->($$mtref);
+        no warnings 'uninitialized';
+        if (($retval =~ /^\d+$/ and $_ ne $$mtref) or (defined $retval and !$retval)) {
+            $$mtref = $before . $_;
+        } else {
+            $$mtref = $before . $retval;
+        }
+    }
+}
+
 package Text::MicroTemplate::EncodedString;
 
 use strict;
