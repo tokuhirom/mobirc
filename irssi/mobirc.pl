@@ -332,7 +332,7 @@ mobirc.pl - irssi plugin for Mobirc
     
     2. run irssi with Mobirc
     
-       PERL5LIB=/path/to/mobirc/lib irssi
+       PERL5LIB=/path/to/mobirc/lib:/path/to/mobirc/extlib/ irssi
     
     3. start script in irssi
     
