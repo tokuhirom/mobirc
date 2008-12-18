@@ -5,7 +5,7 @@ use warnings;
 use Encode qw/encode_utf8 decode_utf8/;
 use App::Mobirc::Pictogram ();
 use Path::Class;
-use Devel::Caller::Perl () ;
+use URI::Escape qw/uri_escape/;
 
 our $_MT;
 our $_MT_T;
