@@ -7,7 +7,7 @@
         <a href="/mobile/channel?channel=<?= $channel->name_urlsafe_encoded ?>">more...</a>
     </div>
 ?    for my $message (@{$channel->recent_log}) {
-        <?= render_irc_message($message) ?>
+        <?= include('parts/irc_message', $message) ?>
         <br />
 ?    }
     <hr />

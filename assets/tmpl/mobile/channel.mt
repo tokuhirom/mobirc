@@ -19,7 +19,7 @@
 ?    if (@{$channel->message_log}) {
 ?       my $meth = $recent_mode ? 'recent_log' : 'message_log';
 ?       for my $message (reverse $channel->$meth) {
-            <?= render_irc_message($message) ?>
+            <?= include('parts/irc_message', $message) ?>
             <br />
 ?       }
 ?       if ($recent_mode) {
