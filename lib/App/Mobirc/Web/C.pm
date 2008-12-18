@@ -6,6 +6,7 @@ use App::Mobirc::Web::View;
 use App::Mobirc::Web::Template;
 use Encode;
 use Carp ();
+use App::Mobirc::Web::Base;
 
 sub import {
     my $class = __PACKAGE__;
@@ -18,19 +19,13 @@ sub import {
     for my $meth (qw/context server render_irc_message render_td redirect session req param mobile_attribute config/) {
         *{"$pkg\::$meth"} = *{"$class\::$meth"};
     }
+    App::Mobirc::Web::Base->export_to_level(1);
 }
 
-sub context  () { App::Mobirc->context } ## no critic
-sub config   () { context->config } ## no critic
-sub server   () { context->server } ## no critic.
-sub web_context () { App::Mobirc::Web::Handler->web_context } ## no critic
-sub session  () { web_context->session } ## no critic
-sub req      () { web_context->req } ## no critic
-sub param    ($) { decode_utf8(req->param($_[0])) } ## no critic
-sub mobile_attribute () { web_context->mobile_attribute() } ## no critic
+*context = *global_context;
 sub render_irc_message {
     my $message = shift;
-    App::Mobirc->context->mt->render_file(
+    global_context->mt->render_file(
         "parts/irc_message.mt",
         $message
     )->as_string;
@@ -42,7 +37,7 @@ sub render_td {
 
     my $html = sub {
         my $out = App::Mobirc::Web::View->show(@args);
-        ($req, $out) = context->run_hook_filter('html_filter', $req, $out);
+        ($req, $out) = global_context->run_hook_filter('html_filter', $req, $out);
         $out = encode_utf8($out);
     }->();
 

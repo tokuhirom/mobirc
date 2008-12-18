@@ -6,18 +6,7 @@ use Encode qw/encode_utf8 decode_utf8/;
 use App::Mobirc::Pictogram ();
 use Path::Class;
 use URI::Escape qw/uri_escape/;
-
-sub global_context ()   { App::Mobirc->context }
-sub web_context ()      { App::Mobirc::Web::Handler->web_context }
-sub server ()           { global_context->server }
-sub config ()           { global_context->config }
-sub req ()              { web_context->req }
-sub param               { decode_utf8( req->param( $_[0] ) ) }
-sub mobile_attribute () { web_context()->mobile_attribute() }
-
-sub is_iphone {
-    ( mobile_attribute()->user_agent =~ /(?:iPod|iPhone)/ ) ? 1 : 0;
-}
+use App::Mobirc::Web::Base;
 
 *encoded_string = *Text::MicroTemplate::encoded_string;
 sub pictogram { encoded_string(App::Mobirc::Pictogram::pictogram(@_)) }
