@@ -25,16 +25,7 @@ my $got = test_view('ajax/channel.mt', $channel);
 my $expected = do {
     local $_ = <<'...';
 <div>
-
-<span class="time">
-    <span class="hour">23</span>
-    <span class="colon">:</span>
-    <span class="minute">47</span>
-</span>
-
-<span class="nick_normal">(dankogai)</span>
-<span class="public">kogaidan</span>
-
+        <span class="time"><span class="hour">23</span><span class="colon">:</span><span class="minute">47</span></span><span class="nick_normal">(dankogai)</span><span class="public">kogaidan</span>
         <br />
 </div>
 ...
