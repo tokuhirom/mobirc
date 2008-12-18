@@ -41,16 +41,9 @@ requires 'URI'                   => '1.36';
 requires 'URI::Find'             => '0.16';
 requires 'YAML'                  => '0.66';
 requires 'String::IRC'           => '0.01';
+requires 'CSS::Tiny'             => '1.15';
 
 features(
-    'DoCoMo CSS support' => [
-        -default => 1,
-        recommends('CSS::Tiny' => '1.15'),
-    ],
-    'DocRoot' => [
-        -default => 0,
-        recommends('XML::LibXML', '1.68'),
-    ],
     'Irssi' => [
         -default => 0,
         recommends('POE::Session::Irssi', '0.4'),

@@ -2,10 +2,10 @@ package App::Mobirc::Plugin::DocRoot;
 use strict;
 use App::Mobirc::Plugin;
 use App::Mobirc::Util;
-use XML::LibXML;
 use Encode;
 use Params::Validate ':all';
 use App::Mobirc::Validator;
+use HTML::TreeBuilder::XPath;
 
 has root => (
     is       => 'ro',
@@ -49,36 +49,33 @@ hook html_filter => sub {
     my $root = $self->root;
     $root =~ s!/$!!;
 
-    my $doc = eval { XML::LibXML->new->parse_html_string($content) };
-    if ($@) {
-        warn "$content, orz.\n $@";
-        return ($req, $content);
-    }
-    for my $elem ($doc->findnodes('//a')) {
-        if (my $href = $elem->getAttribute('href')) {
+    my $tree = HTML::TreeBuilder::XPath->new;
+    $tree->parse_content($content);
+    for my $elem ($tree->findnodes('//a')) {
+        if (my $href = $elem->attr('href')) {
             if ($href =~ m{^/}) {
-                $elem->setAttribute(href => $root . $href);
+                $elem->attr(href => $root . $href);
             }
         }
     }
-    for my $elem ($doc->findnodes('//form')) {
-        if (my $uri = $elem->getAttribute('action')) {
+    for my $elem ($tree->findnodes('//form')) {
+        if (my $uri = $elem->attr('action')) {
             if ($uri =~ m{^/}) {
-                $elem->setAttribute(action => $root . $uri);
+                $elem->attr(action => $root . $uri);
             }
         }
     }
-    for my $elem ($doc->findnodes('//link')) {
-        $elem->setAttribute(href => $root . $elem->getAttribute('href'));
+    for my $elem ($tree->findnodes('//link')) {
+        $elem->attr(href => $root . $elem->attr('href'));
     }
-    for my $elem ($doc->findnodes('//script')) {
-        if ($elem->hasAttribute('src')) {
-            $elem->setAttribute(src => $root . $elem->getAttribute('src'));
+    for my $elem ($tree->findnodes('//script')) {
+        if ($elem->attr('src')) {
+            $elem->attr(src => $root . $elem->attr('src'));
         }
     }
 
-    my $html = $doc->toStringHTML;
-    $html =~ s{<!DOCTYPE[^>]*>\s*}{};
+    my $html = $tree->as_HTML(q[<>&"'{}], '    ');
+    $tree = $tree->delete;
 
     return ($req, decode_utf8($html));
 };
