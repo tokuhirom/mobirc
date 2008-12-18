@@ -28,7 +28,6 @@ sub include {
         @args,
     );
 }
-sub render_irc_message { include('parts/irc_message', shift) }
 sub server          () { global_context->server } ## no critic.
 sub config          () { global_context->config } ## no critic.
 sub docroot {
@@ -50,6 +49,19 @@ sub wrap (&) {
         $_MT;
     };
     $_MT .= global_context->mt->render_file( 'parts/wrapper.mt', encoded_string($inner) )->as_string;
+}
+
+sub strip_nl {
+    my $code  = shift;
+    my $inner = do {
+        local $_MT   = '';
+        local $_MT_T = '';
+        my @args = Devel::Caller::Perl::called_args(0);
+        $code->(@args);
+        $_MT;
+    };
+    $inner =~ s/[\r\n]//g;
+    $_MT .= $inner;
 }
 
 1;
