@@ -2,6 +2,7 @@ package App::Mobirc::Web::Base;
 use strict;
 use warnings;
 use base qw/Exporter/;
+use Encode qw/decode_utf8/;
 
 our @EXPORT = qw/global_context config server web_context session req mobile_attribute param is_iphone/;
 
