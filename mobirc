@@ -17,13 +17,13 @@ use App::Mobirc::Util;
 $SIG{INT} = sub { die "SIGINT!\n" };
 
 my $daemonize_fg = false;
-my $conffname = catfile($FindBin::Bin, 'config.yaml');
+my $conffname = catfile($FindBin::Bin, 'config.ini');
 my $version = false;
 GetOptions(
     'daemonize' => \$daemonize_fg,
     'config=s'  => \$conffname,
     'version'   => \$version,
-) or die "Usage: $0 -c config.yaml";
+) or die "Usage: $0 -c config.ini";
 Getopt::Long::Configure("bundling"); # allows -c -v
 
 if ($version) {

@@ -50,9 +50,21 @@ hook run_component => sub {
     )->run;
 
     # default plugins
-    $global_context->load_plugin('StickyTime');
-    $global_context->load_plugin('HTMLFilter::DoCoMoCSS');
-    $global_context->load_plugin('MessageBodyFilter::IRCColor');
+    for my $module (qw/StickyTime HTMLFilter::DoCoMoCSS MessageBodyFilter::IRCColor MessageBodyFilter::Clickable/) {
+        my $config = sub {
+            for my $p (@{ $global_context->config->{plugin} }) {
+                if ($p->{module} eq $module) {
+                    return $p->{config};
+                }
+            }
+            return {};
+        }->();
+
+        $global_context->load_plugin({
+            module => $module,
+            config => $config,
+        });
+    }
 
     print "running your httpd at http://localhost:@{[ $self->port ]}/\n";
 };

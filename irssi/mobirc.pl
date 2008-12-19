@@ -15,7 +15,7 @@ use Encode;
 use App::Mobirc;
 use App::Mobirc::Util;
 use Module::Reload;
-use YAML::Syck;
+use Config::Tiny;
 
 our %IRSSI = ( name => 'mobirc' );
 
@@ -250,7 +250,7 @@ sub poe_initialize_mobirc {
 
     my $conffname = Irssi::settings_get_str('mobirc_config_path');
     unless ($conffname) {
-        Irssi::print('mobirc_config_path is not defined, please do "/set mobirc_config_path your_yaml_path" first');
+        Irssi::print('mobirc_config_path is not defined, please do "/set mobirc_config_path your_ini_path" first');
         return;
     }
     unless (-f $conffname && -r _) {
@@ -338,9 +338,9 @@ mobirc.pl - irssi plugin for Mobirc
     
        /run mobirc
     
-    4. set config.yaml path
+    4. set config.ini path
     
-       /set mobirc_config_path /path/to/your/config.yaml
+       /set mobirc_config_path /path/to/your/config.ini
     
     5. start mobirc
     

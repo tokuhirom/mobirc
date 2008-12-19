@@ -1,63 +1,10 @@
 package App::Mobirc::ConfigLoader;
 use strict;
 use warnings;
-use YAML ();
+use Config::Tiny;
 use Storable;
 use App::Mobirc::Util;
 use Encode;
-
-our $HasKwalify;
-eval {
-    require Kwalify;
-    $HasKwalify++;
-};
-
-my $schema = {
-    type    => 'map',
-    mapping => {
-        plugin => {
-            type     => 'seq',
-            sequence => [
-                {
-                    type    => 'map',
-                    mapping => {
-                        module => { type => 'str', required => 1, },
-                        config => { type => 'any', },
-                    },
-                },
-            ],
-        },
-        global => {
-            name    => 'global',
-            type    => 'map',
-            mapping => {
-                password   => { type => 'str', },
-                mobileid   => { type => 'str', },
-                pid_fname  => { type => 'str', },
-                assets_dir => { type => 'str', },
-                keywords   => {
-                    type => 'seq',
-                    sequence => [
-                        {
-                            type => 'str'
-                        }
-                    ],
-                },
-                stopwords   => {
-                    type => 'seq',
-                    sequence => [
-                        {
-                            type => 'str'
-                        }
-                    ],
-                },
-                recent_log_per_page => { type => 'int', },
-                log_max             => { type => 'int', },
-                root                => { type => 'str', },
-            }
-        },
-    },
-};
 
 sub load {
     my ( $class, $stuff ) = @_;
@@ -68,18 +15,20 @@ sub load {
         $config = Storable::dclone($stuff);
     }
     else {
-        open my $fh, '<:utf8', $stuff or die $!;
-        $config = YAML::LoadFile($fh);
+        open my $fh, '<:utf8', $stuff or die "cannot open file: $!";
+        my $ini = Config::Tiny->read_string(do { local $/; <$fh> });
         close $fh;
-    }
 
-    if ($HasKwalify) {
-        my $res = Kwalify::validate( $schema, $config );
-        unless ( $res == 1 ) {
-            die "config.yaml validation error : $res";
+        my $global = delete $ini->{_};
+        for my $key (qw/keywords stopwords/) {
+            if ($global->{$key}) {
+                $global->{$key} = [split /\s*,\s*/, $global->{$key}];
+            }
         }
-    } else {
-        warn "Kwalify is not installed. Skipping the config validation." if $^W;
+        $config = +{
+            global => $global,
+            plugin => [ map { +{ module => $_, config => $ini->{$_} } } keys %$ini],
+        };
     }
 
     # set default vars.

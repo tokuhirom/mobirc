@@ -1,0 +1,20 @@
+# パスワード
+password=kogaidan
+# あなたのケータイの端末ID
+mobileid=5u9032kjsajlas_tw.ezweb.ne.jp
+# 反応キーワード
+# keywords=tokuhirom,mogera
+# stopwords=tokuhirom31
+
+[Component::IRCClient]
+server=127.0.0.1
+port=252322
+nick=netwatcher
+desc=Net Watcher
+username=netwatcher
+password=netwatch
+incode=utf-8
+
+[Component::HTTPD]
+port=5678
+

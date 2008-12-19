@@ -1,0 +1,6 @@
+password=kogaidan
+mobileid=5u9032kjsajlas_tw.ezweb.ne.jp
+
+[Component::HTTPD]
+port=5679
+

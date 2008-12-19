@@ -3,7 +3,7 @@ use Test::More tests => 2;
 use App::Mobirc::ConfigLoader;
 use FindBin;
 use File::Spec;
-use YAML;
+use Config::Tiny;
 
 main();
 
@@ -28,13 +28,13 @@ sub slurp {
 }
 
 sub main {
-    my $config_fname = File::Spec->catfile($FindBin::Bin, '..', 'config.yaml.sample');
+    my $config_fname = File::Spec->catfile($FindBin::Bin, '..', 'config.ini.sample');
 
     check($config_fname);
 
     # also tests comment.
     my $src = slurp($config_fname);
-    $src =~ s/# //g;
-    check(YAML::Load($src));
+    my $conf = Config::Tiny->read_string($src) or die $!;
+    check({%{$conf}});
 }
 

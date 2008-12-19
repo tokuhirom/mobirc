@@ -1,4 +1,5 @@
 config.yaml
+config.ini
 META.yml
 Makefile
 foo.txt
