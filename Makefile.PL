@@ -8,25 +8,26 @@ license  'gpl';
 requires 'Mouse' => 0.13;
 
 # http-engine
-requires 'HTTP::Engine'         => '0.0.19'; # bundled.
+requires 'HTTP::Engine' => '0.0.19';
 
 # session
-requires 'HTTP::Session'        => '0.26';
+requires 'HTTP::Session' => '0.26';
 
 # poe
-requires 'POE'                         => '1.003';
-requires 'POE::Sugar::Args'            => '1.3';
-requires 'POE::Component::IRC'         => '5.88';
+requires 'POE'                 => '1.003';
+requires 'POE::Sugar::Args'    => '1.3';
+requires 'POE::Component::IRC' => '5.88';
 
 # mobile stuff
-requires 'HTTP::MobileAttribute'                    => '0.07';
+requires 'HTTP::MobileAttribute' => '0.07';
 
 # template engine
-requires 'Text::MicroTemplate'  => '0.05';
+requires 'Text::MicroTemplate' => '0.05';
 
 # utilities
-requires 'String::CamelCase'     => '0.01';
-requires 'Exporter'              => '5.62'; # recent version supports "use Exporter 'import'" style
+requires 'String::CamelCase' => '0.01';
+requires 'Exporter' =>
+  '5.62';    # recent version supports "use Exporter 'import'" style
 requires 'HTML::Entities'        => '1.35';
 requires 'HTML::StickyQuery'     => '0.12';
 requires 'HTTPx::Dispatcher'     => '0.04';
