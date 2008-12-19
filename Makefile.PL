@@ -30,6 +30,7 @@ requires 'Exporter' =>
   '5.62';    # recent version supports "use Exporter 'import'" style
 requires 'HTML::Entities'        => '1.35';
 requires 'HTML::StickyQuery'     => '0.12';
+requires 'HTML::StickyQuery::DoCoMoGUID'    => '0.01';
 requires 'HTTPx::Dispatcher'     => '0.04';
 requires 'JSON'                  => '2.09';
 requires 'List::MoreUtils'       => '0.22';
