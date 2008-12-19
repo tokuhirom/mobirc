@@ -24,19 +24,22 @@ __END__
 === basic
 --- input
 text: http://d.hatena.ne.jp/
-conf: ~
+conf:
+  pocket_hatena: 0
 --- expected: <a href="http://d.hatena.ne.jp/" rel="nofollow" class="url" target="_blank">http://d.hatena.ne.jp/</a>
 
 === basic with amp
 --- input
 text: http://www.google.co.jp/search?hl=ja&q=foo
-conf: ~
+conf:
+  pocket_hatena: 0
 --- expected: <a href="http://www.google.co.jp/search?hl=ja&amp;q=foo" rel="nofollow" class="url" target="_blank">http://www.google.co.jp/search?hl=ja&amp;q=foo</a>
 
 === basic scheme restrict
 --- input
 text: http://d.hatena.ne.jp/
 conf:
+  pocket_hatena: 0
   accept_schemes: [mailto]
 --- expected: http://d.hatena.ne.jp/
 
@@ -44,37 +47,43 @@ conf:
 --- input
 text: http://d.hatena.ne.jp/hatenachan/
 conf:
+  pocket_hatena: 0
   http_link_string: $host$path
 --- expected: <a href="http://d.hatena.ne.jp/hatenachan/" rel="nofollow" class="url" target="_blank">d.hatena.ne.jp/hatenachan/</a>
 
 === tel
 --- input
 text: 000-0000-0000
-conf: ~
+conf:
+  pocket_hatena: 0
 --- expected: <a href="tel:00000000000" rel="nofollow" class="url" target="_blank">000-0000-0000</a>
 
 === tel with scheme
 --- input
 text: tel:000-0000-0000
-conf: ~
+conf:
+  pocket_hatena: 0
 --- expected: <a href="tel:00000000000" rel="nofollow" class="url" target="_blank">tel:000-0000-0000</a>
 
 === mailto
 --- input
 text: aaa@example.com
-conf: ~
+conf:
+  pocket_hatena: 0
 --- expected: <a href="mailto:aaa@example.com" rel="nofollow" class="url" target="_blank">aaa@example.com</a>
 
 === mailto with scheme
 --- input
 text: mailto:aaa@example.com
-conf: ~
+conf:
+  pocket_hatena: 0
 --- expected: <a href="mailto:aaa@example.com" rel="nofollow" class="url" target="_blank">mailto:aaa@example.com</a>
 
 === mailto
 --- input
 text: <aaa@example.com>
-conf: ~
+conf:
+  pocket_hatena: 0
 --- expected: <a href="mailto:aaa@example.com" rel="nofollow" class="url" target="_blank">&lt;mailto:aaa@example.com&gt;</a>
 
 === pocket hatena
@@ -88,6 +97,7 @@ conf:
 --- input
 text: http://d.hatena.ne.jp/
 conf:
+  pocket_hatena: 0
   au_pcsv: 1
 --- expected: <a href="http://d.hatena.ne.jp/" rel="nofollow" class="url" target="_blank">http://d.hatena.ne.jp/</a><a href="device:pcsiteviewer?url=http://d.hatena.ne.jp/" rel="nofollow" class="au_pcsv" target="_blank">[PCSV]</a>
 
@@ -95,6 +105,7 @@ conf:
 --- input
 text: http://www.google.co.jp/search?hl=ja&q=foo
 conf:
+  pocket_hatena: 0
   au_pcsv: 1
 --- expected: <a href="http://www.google.co.jp/search?hl=ja&amp;q=foo" rel="nofollow" class="url" target="_blank">http://www.google.co.jp/search?hl=ja&amp;q=foo</a><a href="device:pcsiteviewer?url=http://www.google.co.jp/search?hl=ja&amp;q=foo" rel="nofollow" class="au_pcsv" target="_blank">[PCSV]</a>
 
@@ -102,6 +113,7 @@ conf:
 --- input
 text: http://d.hatena.ne.jp/
 conf:
+  pocket_hatena: 0
   google_gwt: 1
 --- expected: <a href="http://d.hatena.ne.jp/" rel="nofollow" class="url" target="_blank">http://d.hatena.ne.jp/</a><a href="http://www.google.co.jp/gwt/n?u=http%3A%2F%2Fd.hatena.ne.jp%2F;_gwt_noimg=0" rel="nofollow" class="google_gwt" target="_blank">[gwt]</a>
 
@@ -109,5 +121,6 @@ conf:
 --- input
 text: http://d.hatena.ne.jp/hatenachan/
 conf:
+  pocket_hatena: 0
   http_link_target: _top
 --- expected: <a href="http://d.hatena.ne.jp/hatenachan/" rel="nofollow" class="url" target="_top">http://d.hatena.ne.jp/hatenachan/</a>

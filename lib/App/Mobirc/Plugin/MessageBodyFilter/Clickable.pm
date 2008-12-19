@@ -38,6 +38,7 @@ has au_pcsv => (
 has pocket_hatena => (
     is  => 'ro',
     isa => 'Bool',
+    default => 1,
 );
 
 has google_gwt => (
