@@ -3,3 +3,5 @@ META.yml
 Makefile
 foo.txt
 core
+MANIFEST
+*.swp
