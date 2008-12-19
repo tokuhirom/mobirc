@@ -5,7 +5,7 @@ all_from 'lib/App/Mobirc.pm';
 license  'gpl';
 
 # Mouse.
-requires 'Mouse';
+requires 'Mouse' => 0.13;
 
 # http-engine
 requires 'HTTP::Engine'         => '0.0.19'; # bundled.
@@ -22,7 +22,7 @@ requires 'POE::Component::IRC'         => '5.88';
 requires 'HTTP::MobileAttribute'                    => '0.07';
 
 # template engine
-requires 'Text::MicroTemplate'  => '0.04';
+requires 'Text::MicroTemplate'  => '0.05';
 
 # utilities
 requires 'String::CamelCase'     => '0.01';
