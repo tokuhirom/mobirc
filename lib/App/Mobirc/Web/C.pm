@@ -8,6 +8,9 @@ use Encode;
 use Carp ();
 use App::Mobirc::Web::Base;
 
+# CGI.pm compatibility for HTML::AutoForm
+*HTTP::Engine::Request::request_method = *HTTP::Engine::Request::method;
+
 sub import {
     my $class = __PACKAGE__;
     my $pkg = caller(0);

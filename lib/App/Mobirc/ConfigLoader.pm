@@ -31,9 +31,6 @@ sub load {
         };
     }
 
-    # set default vars.
-    $config->{global}->{assets_dir}    ||= File::Spec->catfile( $FindBin::Bin, 'assets' );
-
     return $config;
 }
 

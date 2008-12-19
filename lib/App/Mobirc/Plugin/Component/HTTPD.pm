@@ -19,7 +19,7 @@ has address => (
 has port => (
     is      => 'ro',
     isa     => 'Int',
-    default => 80,
+    default => 5678,
 );
 
 has middlewares => (
@@ -48,23 +48,6 @@ hook run_component => sub {
             request_handler => $request_handler,
         }
     )->run;
-
-    # default plugins
-    for my $module (qw/StickyTime HTMLFilter::DoCoMoCSS MessageBodyFilter::IRCColor MessageBodyFilter::Clickable/) {
-        my $config = sub {
-            for my $p (@{ $global_context->config->{plugin} }) {
-                if ($p->{module} eq $module) {
-                    return $p->{config};
-                }
-            }
-            return {};
-        }->();
-
-        $global_context->load_plugin({
-            module => $module,
-            config => $config,
-        });
-    }
 
     print "running your httpd at http://localhost:@{[ $self->port ]}/\n";
 };

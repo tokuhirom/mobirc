@@ -5,6 +5,9 @@ use HTTPx::Dispatcher;
 
 connect ''                         => { controller => 'Root', action => 'index' };
 connect 'ajax/'                    => { controller => 'Ajax',   action => 'base' };
+connect 'config/:action'           => { controller => 'Config' };
+connect 'config/'                  => { controller => 'Config', action => 'index' };
+connect 'initialize/:action'       => { controller => 'Initialize' };
 connect 'account/:action',         => { controller => 'Account' };
 connect 'mobile/'                  => { controller => 'Mobile',   action => 'index' };
 connect 'mobile-ajax/'             => { controller => 'MobileAjax',   action => 'index' };

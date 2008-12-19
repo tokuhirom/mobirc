@@ -4,7 +4,11 @@ use App::Mobirc::Util;
 use Encode;
 
 sub dispatch_login {
-    render_td();
+    if (config->{global}->{password} || config->{global}->{mobileid}) {
+        render_td();
+    } else {
+        redirect('/setup/menu');
+    }
 }
 
 sub post_dispatch_login_password {

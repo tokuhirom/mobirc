@@ -15,6 +15,15 @@ use App::Mobirc::Web::Template;
 
 our $VERSION = '1.08_01';
 
+my @DEFAULT_PLUGINS = qw(
+    Component::HTTPD
+    StickyTime
+    HTMLFilter::DoCoMoCSS
+    MessageBodyFilter::IRCColor
+    MessageBodyFilter::Clickable
+);
+my %DEFAULT_PLUGINS = map { $_ => 1 } @DEFAULT_PLUGINS;
+
 has server => (
     is      => 'ro',
     isa     => 'App::Mobirc::Model::Server',
@@ -51,6 +60,11 @@ has mt => (
 
 sub BUILD {
     my ($self, ) = @_;
+
+    # set default vars.
+    $self->config->{global}->{assets_dir}    ||= File::Spec->catfile( $FindBin::Bin, 'assets' );
+
+    $self->_load_default_plugins();
     $self->_load_plugins();
     $self->_set_context($self);
 }
@@ -59,7 +73,29 @@ sub _load_plugins {
     my $self = shift;
     for my $plugin (@{ $self->config->{plugin} }) {
         $plugin->{module} =~ s/^App::Mobirc::Plugin:://;
+
+        next if $DEFAULT_PLUGINS{$plugin->{module}};
         $self->load_plugin( $plugin );
+    }
+}
+
+sub _load_default_plugins {
+    my $self = shift;
+
+    for my $module (@DEFAULT_PLUGINS) {
+        my $config = sub {
+            for my $p (@{ $self->config->{plugin} }) {
+                if ($p->{module} eq $module) {
+                    return $p->{config};
+                }
+            }
+            return {};
+        }->();
+
+        $self->load_plugin({
+            module => $module,
+            config => $config,
+        });
     }
 }
 
