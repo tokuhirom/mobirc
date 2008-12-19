@@ -2,8 +2,6 @@
 global:
   password: kogaidan
   mobileid: 5u9032kjsajlas_tw.ezweb.ne.jp
-#   assets_dir: /usr/local/share/mobirc/assets
-#   pid_fname: /var/run/mobirc-sample.pid
 #   keywords:
 #     - tokuhirom
 #     - mogera
@@ -11,19 +9,6 @@ global:
 #     - tokuhirom31
 
 plugin:
-  - module: HTMLFilter::DoCoMoCSS
-  - module: IRCCommand::TiarraLog
-  - module: MessageBodyFilter::Clickable
-    config:
-      au_pcsv: 0
-      pocket_hatena: 1
-      # http_link_string: $host$path
-      # accept_schemes: [mailto, tel]
-      # redirector: http://www.google.com/url?sa=D&q=
-  - module: MessageBodyFilter::IRCColor
-    config:
-      # no_decorate: 0
-
   - module: Component::IRCClient
     config:
       server: 127.0.0.1
@@ -34,24 +19,12 @@ plugin:
       # password: netwatch
       incode: utf-8
 
-  - module: HTMLFilter::NickGroup
-    config:
-      map:
-        subtech:
-          - tokuhir
-          - miyagawa
-          - takesako
-          - yappo
-        initialJ:
-          - jknaoya
-          - jkondo
-          - jagayama
-
-  # - module: DocRoot
-  #   config:
-  #     root: /foo/
-
   - module: Component::HTTPD
     config:
       port: 5678
+
+  - module: IRCCommand::TiarraLog
+  - module: MessageBodyFilter::Clickable
+    config:
+      pocket_hatena: 1
 
