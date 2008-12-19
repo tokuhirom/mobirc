@@ -8,7 +8,7 @@ license  'gpl';
 requires 'Mouse' => 0.13;
 
 # http-engine
-requires 'HTTP::Engine' => '0.0.19';
+requires 'HTTP::Engine' => '0.0.21';
 
 # session
 requires 'HTTP::Session' => '0.26';

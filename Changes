@@ -1,3 +1,30 @@
+1.08_01
+
+    - use Mouse instead of Moose
+    - less deps
+        - don't depend to Data::Visitor::Encode
+        - don't depend to XML::LibXML
+        - don't depend to HTTP::MobilAgent
+        - don't depend to String::TT
+        - don't depend to HTML::Entities::ConvertPictograms
+    - purge cp932 support
+    - less memory
+    - load two plugins automatically
+        HTMLFilter::DoCoMoCSS
+        MessageBodyFilter::IRCColor
+    - show http server's banner at startup
+    - use HTML::TreeBuilder::XPath instead of XML::LibXML
+      (for less deps for XS)
+    - use T::MicroTemplate, instead of Template::Declare
+      (designer friendly, less memory, fast)
+    - don't depend to Proc::Daemon
+    - config.httpd.* was moved to config.global.*
+    - move repo to github
+    - use HTTP::MobileAttribute instead of HTTP::MobileAgent
+    - purge HTMLFilter/ConvertPictograms plugin.
+    - use MD5 instead of SHA1 for generate session key
+    - purge Plugin::GPS
+
 1.07
 
     - change authentication flow
