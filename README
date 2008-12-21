@@ -20,8 +20,16 @@ based on
     - perl
     - POE
 
+Requirements
+------------------------------------------------------
+
+    perl 5.8.0 or later(5.8.8 or later is recommended)
+    LWP
+
 How to install?
 ------------------------------------------------------
+
+Install LWP(libwww-perl) first.
 
     git clone git://github.com/tokuhirom/mobirc.git
 
