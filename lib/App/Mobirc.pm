@@ -13,7 +13,7 @@ use App::Mobirc::Types 'Config';
 use Text::MicroTemplate::File;
 use App::Mobirc::Web::Template;
 
-our $VERSION = '1.08_02';
+our $VERSION = '1.99_01';
 
 has server => (
     is      => 'ro',

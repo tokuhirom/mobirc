@@ -1,3 +1,11 @@
+1.99_01
+
+    ready to 2.00
+
+    - configuration file is moved to ini from YAML
+    - import H::SQ::DoCoMoGUID for docomo phones
+    - load HTMLFilter::DoCoMoCSS and MessageBodyFilter::IRCColor automatically
+
 1.08_02
 
     - oops. miss..
