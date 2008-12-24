@@ -41,7 +41,7 @@ or
 
 and, run following command.
 
-    cp config.yaml.sample config.yaml
-    vi config.yaml # edit configuration file for your environemnt
+    cp config.ini.sample config.ini
+    vi config.ini # edit configuration file for your environemnt
     ./mobirc
 
