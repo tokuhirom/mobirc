@@ -16,7 +16,7 @@ sub import {
     warnings->import;
 
     no strict 'refs';
-    for my $meth (qw/context server render_irc_message render_td redirect session req param mobile_attribute config/) {
+    for my $meth (qw/context server render_irc_message render redirect session req param mobile_attribute config/) {
         *{"$pkg\::$meth"} = *{"$class\::$meth"};
     }
     App::Mobirc::Web::Base->export_to_level(1);
@@ -31,7 +31,7 @@ sub render_irc_message {
     )->as_string;
 }
 
-sub render_td {
+sub render {
     my @args = @_;
     my $req = req();
 
