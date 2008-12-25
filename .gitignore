@@ -8,3 +8,4 @@ MANIFEST
 *.swp
 config.ini
 *.swo
+inc/
