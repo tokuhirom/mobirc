@@ -5,7 +5,7 @@ use Encode;
 use JSON qw/encode_json/;
 
 sub dispatch_base {
-    render_td();
+    render();
 }
 
 sub dispatch_channel {
@@ -53,11 +53,11 @@ sub post_dispatch_channel {
 }
 
 sub dispatch_menu {
-    render_td();
+    render();
 }
 
 sub dispatch_keyword {
-    my $res = render_td();
+    my $res = render();
     server->keyword_channel->clear_unread();
     return $res;
 }

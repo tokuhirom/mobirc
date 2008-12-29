@@ -21,3 +21,5 @@
 ^t/Plugins/GPS/
 .git
 extlib/
+^[^/]+\.ini$
+MANIFEST

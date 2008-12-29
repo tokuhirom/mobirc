@@ -5,10 +5,20 @@ use List::Util qw/first/;
 use Encode;
 use App::Mobirc::Validator;
 use HTML::TreeBuilder::XPath;
+use Mouse::TypeRegistry;
+use JSON ();
+
+subtype 'HashRefEntry',
+    as 'HashRef';
+
+coerce 'HashRefEntry',
+    from 'Str',
+    via { JSON::from_json($_) };
 
 has 'map' => (
     is       => 'ro',
-    isa      => 'HashRef',
+    isa      => 'HashRefEntry',
+    coerce => 1,
     required => 1,
 );
 
@@ -64,6 +74,12 @@ sub _class {
 }
 
 1;
+__END__
+
+=head1 SYNOPSIS
+
+    [HTMLFilter::NickGroup]
+    map={"subtech":['miyagawa','typester']}
 
 =head1 AUTHOR
 

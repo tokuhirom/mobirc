@@ -1,39 +1,30 @@
 package App::Mobirc::Plugin;
 use Mouse;
+use base qw/Exporter/;
 use Scalar::Util qw/blessed/;
-use Sub::Exporter;
 use Carp;
 
+our @EXPORT = qw/register hook/;
+
 {
-    my $HOOK_STORE = {};
+    {
+        my $HOOK_STORE = {};
 
-    my %exports = (
-        register => sub {
-            sub {
-                my ( $self, $c ) = @_;
-                my $proto = blessed $self or confess "this is instance method: $self";
+        sub register {
+            my ( $self, $c ) = @_;
+            my $proto = blessed $self or confess "this is instance method: $self";
 
-                for my $row ( @{ $HOOK_STORE->{$proto} || [] } ) {
-                    my ( $hook, $code ) = @$row;
-                    $c->register_hook( $hook, $self, $code );
-                }
+            for my $row ( @{ $HOOK_STORE->{$proto} || [] } ) {
+                my ( $hook, $code ) = @$row;
+                $c->register_hook( $hook, $self, $code );
             }
-        },
-        hook => sub {
-            sub {
-                my ( $hook, $code ) = @_;
-                my $caller = caller(0);
-                push @{ $HOOK_STORE->{$caller} }, [ $hook, $code ];
-            }
-        },
-    );
-
-    my $exporter = Sub::Exporter::build_exporter(
-        {
-            exports => \%exports,
-            groups  => { default => [':all'] }
         }
-    );
+        sub hook {
+            my ( $hook, $code ) = @_;
+            my $caller = caller(0);
+            push @{ $HOOK_STORE->{$caller} }, [ $hook, $code ];
+        }
+    }
 
     sub import {
         my $caller = caller();
@@ -55,7 +46,7 @@ use Carp;
             *{ $caller . '::' . $keyword } = *{'Mouse::' . $keyword};
         }
 
-        goto $exporter;
+        __PACKAGE__->export_to_level(1);
     }
 }
 
