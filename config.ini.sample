@@ -5,6 +5,8 @@ mobileid=5u9032kjsajlas_tw.ezweb.ne.jp
 # 反応キーワード
 # keywords=tokuhirom,mogera
 # stopwords=tokuhirom31
+# ログ行数
+# log_max=40
 
 [Component::IRCClient]
 server=127.0.0.1
