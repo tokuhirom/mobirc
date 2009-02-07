@@ -8,10 +8,10 @@ license  'gpl';
 requires 'Mouse' => 0.13;
 
 # http-engine
-requires 'HTTP::Engine' => '0.0.21';
+requires 'HTTP::Engine' => '0.1.1';
 
 # session
-requires 'HTTP::Session' => '0.26';
+requires 'HTTP::Session' => '0.29';
 
 # poe
 requires 'POE'                 => '1.003';
