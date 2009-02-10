@@ -1,10 +1,10 @@
-=head2 Tue Feb 10 20:14:08 2009: C<Module> L<HTTP::Engine|HTTP::Engine>
+=head2 Tue Feb 10 20:16:26 2009: C<Module> L<YAML|YAML>
 
 =over 4
 
 =item *
 
-C<installed into: /tmp/aPwE1sHBWU/outputdir/lib/perl5>
+C<installed into: /tmp/CWMqaIhhOD/outputdir/lib/perl5>
 
 =item *
 
@@ -12,7 +12,7 @@ C<LINKTYPE: dynamic>
 
 =item *
 
-C<VERSION: 0.1.1>
+C<VERSION: 0.68>
 
 =item *
 
