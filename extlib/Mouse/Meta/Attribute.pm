@@ -7,17 +7,16 @@ use Carp 'confess';
 use Scalar::Util ();
 
 sub new {
-    my $class = shift;
-    my %args  = @_;
+    my ($class, $name, %options) = @_;
 
-    my $name = $args{name};
+    $options{name} = $name;
 
-    $args{init_arg} = $name
-        unless exists $args{init_arg};
+    $options{init_arg} = $name
+        unless exists $options{init_arg};
 
-    $args{is} ||= '';
+    $options{is} ||= '';
 
-    bless \%args, $class;
+    bless \%options, $class;
 }
 
 sub name                 { $_[0]->{name}                   }
@@ -76,14 +75,14 @@ sub generate_accessor {
 
     my $accessor = "sub {\n";
     if ($attribute->_is_metadata eq 'rw') {
-        $accessor .= 'if (scalar(@_) >= 2) {' . "\n";
+        $accessor .= 'if (@_ >= 2) {' . "\n";
 
         my $value = '$_[1]';
 
         if ($constraint) {
             $accessor .= 'my $val = ';
             if ($should_coerce) {
-                $accessor  .= 'Mouse::TypeRegistry->typecast_constraints("'.$attribute->associated_class->name.'", $attribute->{find_type_constraint}, $attribute->{type_constraint}, '.$value.');';
+                $accessor  .= 'Mouse::Util::TypeConstraints->typecast_constraints("'.$attribute->associated_class->name.'", $attribute->{find_type_constraint}, $attribute->{type_constraint}, '.$value.');';
             } else {
                 $accessor .= $value.';';
             }
@@ -210,7 +209,7 @@ sub create {
         my @type_constraints = split /\|/, $type_constraint;
 
         my $code;
-        my $optimized_constraints = Mouse::TypeRegistry->optimized_constraints;
+        my $optimized_constraints = Mouse::Util::TypeConstraints->optimized_constraints;
         if (@type_constraints == 1) {
             $code = $optimized_constraints->{$type_constraints[0]} ||
                 sub { Scalar::Util::blessed($_) && $_->isa($type_constraints[0]) };
@@ -232,7 +231,7 @@ sub create {
         $args{find_type_constraint} = $code;
     }
 
-    my $attribute = $self->new(%args);
+    my $attribute = $self->new($name, %args);
 
     $attribute->_create_args(\%args);
 
@@ -323,7 +322,7 @@ sub validate_args {
     return 1;
 }
 
-sub verify_type_constraint {
+sub verify_against_type_constraint {
     return 1 unless $_[0]->{type_constraint};
 
     local $_ = $_[1];
@@ -343,7 +342,7 @@ sub verify_type_constraint_error {
 sub coerce_constraint { ## my($self, $value) = @_;
     my $type = $_[0]->{type_constraint}
         or return $_[1];
-    return Mouse::TypeRegistry->typecast_constraints($_[0]->associated_class->name, $_[0]->find_type_constraint, $type, $_[1]);
+    return Mouse::Util::TypeConstraints->typecast_constraints($_[0]->associated_class->name, $_[0]->find_type_constraint, $type, $_[1]);
 }
 
 sub _canonicalize_handles {
@@ -470,7 +469,7 @@ Creates a new code reference for each of the attribute's handles methods.
 Returns a code reference which can be used to check that a given value passes
 this attribute's type constraint;
 
-=head2 verify_type_constraint Item -> 1 | ERROR
+=head2 verify_against_type_constraint Item -> 1 | ERROR
 
 Checks that the given value passes this attribute's type constraint. Returns 1
 on success, otherwise C<confess>es.

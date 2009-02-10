@@ -4,8 +4,7 @@ use warnings;
 use 5.006;
 use base 'Exporter';
 
-our $VERSION = '0.13';
-use 5.006;
+our $VERSION = '0.16';
 
 BEGIN {
     if ($ENV{MOUSE_DEBUG}) {
@@ -22,9 +21,9 @@ use Mouse::Util;
 use Mouse::Meta::Attribute;
 use Mouse::Meta::Class;
 use Mouse::Object;
-use Mouse::TypeRegistry;
+use Mouse::Util::TypeConstraints;
 
-our @EXPORT = qw(extends has before after around blessed confess with);
+our @EXPORT = qw(extends has before after around override super blessed confess with);
 
 sub extends { Mouse::Meta::Class->initialize(caller)->superclasses(@_) }
 
@@ -78,6 +77,36 @@ sub with {
     Mouse::Util::apply_all_roles((caller)[0], @_);
 }
 
+our $SUPER_PACKAGE;
+our $SUPER_BODY;
+our @SUPER_ARGS;
+
+sub super {
+    # This check avoids a recursion loop - see
+    # t/100_bugs/020_super_recursion.t
+    return if defined $SUPER_PACKAGE && $SUPER_PACKAGE ne caller();
+    return unless $SUPER_BODY; $SUPER_BODY->(@SUPER_ARGS);
+}
+
+sub override {
+    my $meta = Mouse::Meta::Class->initialize(caller);
+    my $pkg = $meta->name;
+
+    my $name = shift;
+    my $code = shift;
+
+    my $body = $pkg->can($name)
+        or confess "You cannot override '$name' because it has no super method";
+
+    $meta->add_method($name => sub {
+        local $SUPER_PACKAGE = $pkg;
+        local @SUPER_ARGS = @_;
+        local $SUPER_BODY = $body;
+
+        $code->(@_);
+    });
+}
+
 sub import {
     my $class = shift;
 
@@ -85,6 +114,12 @@ sub import {
     warnings->import;
 
     my $caller = caller;
+
+    # we should never export to main
+    if ($caller eq 'main') {
+        warn qq{$class does not export its sugar to the 'main' package.\n};
+        return;
+    }
 
     my $meta = Mouse::Meta::Class->initialize($caller);
     $meta->superclasses('Mouse::Object')
@@ -209,11 +244,9 @@ Mouse aims to alleviate this by providing a subset of Moose's
 functionality, faster. In particular, L<Moose/has> is missing only a few
 expert-level features.
 
-We're also going as light on dependencies as possible. Most functions we use
-from L<Scalar::Util> are copied into this dist. L<Scalar::Util> is required if
-you'd like weak references; there's simply no way to do it from pure Perl.
-L<Class::Method::Modifiers> is required if you want support for L</before>,
-L</after>, and L</around>.
+We're also going as light on dependencies as possible.
+L<Class::Method::Modifiers> or L<Data::Util> is required if you want support
+for L</before>, L</after>, and L</around>.
 
 =head2 MOOSE COMPAT
 
@@ -226,35 +259,15 @@ The idea is that, if you need the extra power, you should be able to run
 C<s/Mouse/Moose/g> on your codebase and have nothing break. To that end,
 nothingmuch has written L<Squirrel> (part of this distribution) which will act
 as Mouse unless Moose is loaded, in which case it will act as Moose.
+L<Any::Moose> is a more high-tech L<Squirrel>.
 
-Mouse also has the blessings of Moose's author, stevan.
+=head2 MouseX
 
-=head2 MISSING FEATURES
+Please don't copy MooseX code to MouseX. If you need extensions, you really
+should upgrade to Moose. We don't need two parallel sets of extensions!
 
-=head3 Roles
-
-We're working on fixing this one! stevan has suggested an implementation
-strategy. Mouse currently ignores methods, so that needs to be fixed next.
-Roles that consist entirely of attributes may be usable in this very version.
-
-=head3 Complex types
-
-User-defined type constraints and parameterized types may be implemented. Type
-coercions probably not (patches welcome).
-
-=head3 Bootstrapped meta world
-
-Very handy for extensions to the MOP. Not pressing, but would be nice to have.
-
-=head3 Modification of attribute metaclass
-
-When you declare an attribute with L</has>, you get the inlined accessors
-installed immediately. Modifying the attribute metaclass, even if possible,
-does nothing.
-
-=head3 Lots more..
-
-MouseX?
+If you really must write a Mouse extension, please contact the Moose mailing
+list or #moose on IRC beforehand.
 
 =head1 KEYWORDS
 

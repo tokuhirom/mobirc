@@ -1,10 +1,10 @@
-=head2 Thu Dec 18 17:03:26 2008: C<Module> L<XML::XPathEngine|XML::XPathEngine>
+=head2 Tue Feb 10 20:09:28 2009: C<Module> L<Mouse|Mouse>
 
 =over 4
 
 =item *
 
-C<installed into: /tmp/wR_W9k4lIA/outputdir/lib/perl5>
+C<installed into: /tmp/amNpo4qOoI/outputdir/lib/perl5>
 
 =item *
 
@@ -12,51 +12,7 @@ C<LINKTYPE: dynamic>
 
 =item *
 
-C<VERSION: 0.11>
-
-=item *
-
-C<EXE_FILES: >
-
-=back
-
-=head2 Thu Dec 18 17:03:31 2008: C<Module> L<HTML-Tree|HTML-Tree>
-
-=over 4
-
-=item *
-
-C<installed into: /tmp/wR_W9k4lIA/outputdir/lib/perl5>
-
-=item *
-
-C<LINKTYPE: dynamic>
-
-=item *
-
-C<VERSION: 3.23>
-
-=item *
-
-C<EXE_FILES: >
-
-=back
-
-=head2 Thu Dec 18 17:03:33 2008: C<Module> L<HTML::TreeBuilder::XPath|HTML::TreeBuilder::XPath>
-
-=over 4
-
-=item *
-
-C<installed into: /tmp/wR_W9k4lIA/outputdir/lib/perl5>
-
-=item *
-
-C<LINKTYPE: dynamic>
-
-=item *
-
-C<VERSION: 0.09>
+C<VERSION: 0.16>
 
 =item *
 
