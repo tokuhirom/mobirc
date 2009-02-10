@@ -7,6 +7,10 @@ use App::Mobirc::Util;
 use App::Mobirc::Web::Handler;
 
 use HTTP::Engine;
+use HTTP::Engine::Middleware;
+
+use Mouse::Util::TypeConstraints;
+use JSON ();
 
 use UNIVERSAL::require;
 
@@ -22,20 +26,28 @@ has port => (
     default => 80,
 );
 
+subtype 'Middlewares',
+    as 'ArrayRef';
+
+coerce 'Middlewares',
+    from 'Str',
+    via { JSON::from_json($_) };
+
 has middlewares => (
     is      => 'ro',
-    isa     => 'ArrayRef',
-    default => sub { [] },
+    isa     => 'Middlewares',
+    coerce  => 1,
+    default => sub { +[] },
 );
 
 hook run_component => sub {
     my ( $self, $global_context ) = @_;
 
     my $request_handler = \&App::Mobirc::Web::Handler::handler;
-    for my $mw ( @{ $self->middlewares } ) {
-      $mw->require or die $@;
-      $request_handler = $mw->wrap($request_handler);
-    }
+
+    my $mw = HTTP::Engine::Middleware->new();
+    $mw->install(@{ $self->middlewares });
+    $request_handler = $mw->handler( $request_handler );
 
     HTTP::Engine->new(
         interface => {

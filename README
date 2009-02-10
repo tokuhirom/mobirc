@@ -45,3 +45,11 @@ and, run following command.
     vi config.ini # edit configuration file for your environemnt
     ./mobirc
 
+How to support HTTP::Engine's middleware?
+------------------------------------------------------
+
+    [Component::HTTPD]
+    middlewares=["HTTP::Engine::Middleware::ModuleReload"]
+
+please write the middleware name & configuration by the JSON form.
+
