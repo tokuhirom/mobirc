@@ -5,10 +5,10 @@ all_from 'lib/App/Mobirc.pm';
 license  'gpl';
 
 # Mouse.
-requires 'Mouse' => 0.13;
+requires 'Mouse' => 0.16;
 
 # http-engine
-requires 'HTTP::Engine' => '0.1.1';
+requires 'HTTP::Engine' => '0.1.2';
 
 # session
 requires 'HTTP::Session' => '0.29';
@@ -19,7 +19,7 @@ requires 'POE::Sugar::Args'    => '1.3';
 requires 'POE::Component::IRC' => '5.88';
 
 # mobile stuff
-requires 'HTTP::MobileAttribute' => '0.07';
+requires 'HTTP::MobileAttribute' => '0.13';
 
 # template engine
 requires 'Text::MicroTemplate' => '0.05';
@@ -41,7 +41,7 @@ requires 'Path::Class'           => '0.16';
 requires 'UNIVERSAL::require'    => '0.11';
 requires 'URI'                   => '1.36';
 requires 'URI::Find'             => '0.16';
-requires 'YAML'                  => '0.66';
+requires 'YAML'                  => '0.68';
 requires 'String::IRC'           => '0.01';
 requires 'CSS::Tiny'             => '1.15';
 
