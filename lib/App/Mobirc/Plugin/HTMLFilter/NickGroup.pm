@@ -5,7 +5,7 @@ use List::Util qw/first/;
 use Encode;
 use App::Mobirc::Validator;
 use HTML::TreeBuilder::XPath;
-use Mouse::TypeRegistry;
+use Mouse::Util::TypeConstraints;
 use JSON ();
 
 subtype 'HashRefEntry',
