@@ -16,7 +16,9 @@ our $AirHRE = '^Mozilla\/3\.0\((?:WILLCOM|DDIPOCKET)\;';
 sub detect {
     my $user_agent = shift;
 
-    if ( $user_agent =~ /$DoCoMoRE/ ) {
+    if (not defined $user_agent) {
+        return 'NonMobile';
+    } elsif ( $user_agent =~ /$DoCoMoRE/ ) {
         return 'DoCoMo';
     } elsif ( $user_agent =~ /$JPhoneRE|$VodafoneRE|$VodafoneMotRE|$SoftBankRE|$SoftBankCrawlerRE/) {
         return 'ThirdForce';
@@ -24,8 +26,9 @@ sub detect {
         return 'EZweb';
     } elsif ( $user_agent =~ /$AirHRE/ ) {
         return 'AirHPhone';
+    } else {
+        return 'NonMobile';
     }
-    return 'NonMobile';
 }
 
         

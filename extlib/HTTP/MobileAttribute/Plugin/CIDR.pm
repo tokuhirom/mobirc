@@ -57,7 +57,7 @@ HTTP::MobileAttribute::Plugin::CIDR - キャリヤのCIDRの含まれるIPアド
 
 'isa_cidr'メソッドに調べたいIPアドレスを引数として呼ぶと、L<Net::CIDR::MobileJP>を使って、キャリヤの CIDR に含まれるIPアドレスかが分かります。
 
-各キャリヤの CIDR 情報はマシンリーダブルな形式では提供されていないのでL<Net::CIDR::MobileJP>に付属するnet-cidr-mobilejp-scraper.plを用いて各キャリアの CIDR 情報をまとめたYAMLファイルを作る必要があります。
+各キャリヤの CIDR 情報はマシンリーダブルな形式では提供されていないのでL<Net::CIDR::MobileJP>に付属するnet-cidr-mobilejp-scraper.plを用いて各キャリアの CIDR 情報をまとめた YAML ファイルを作る必要があります。
 
 =head1 TODO
 

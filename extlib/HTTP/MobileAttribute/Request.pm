@@ -5,7 +5,8 @@ use Carp;
 use Class::Inspector;
 use Scalar::Util qw/blessed/;
 use HTTP::MobileAttribute::Request::Env;
-use HTTP::MobileAttribute::Request::Apache;
+use HTTP::MobileAttribute::Request::Apache; # for apache1
+use HTTP::MobileAttribute::Request::APRTable; # for apache2
 use HTTP::MobileAttribute::Request::HTTPHeaders;
 
 sub new {
@@ -18,11 +19,12 @@ sub new {
         $impl_class = join("::", __PACKAGE__, "Env");
     } elsif (blessed($stuff)) {
         # or, if it's blessed, check if they are of appropriate types
-        foreach my $pkg qw(Apache HTTP::Headers) {
+        foreach my $pkg qw(Apache HTTP::Headers HTTP::Headers::Fast APR::Table) {
             if ($stuff->isa($pkg)) {
                 $impl_class = join("::", __PACKAGE__, $pkg);
-                 # XXX Hack. Will only work for HTTPHeaders
-                $impl_class =~ s/HTTP::Headers$/HTTPHeaders/;
+                 # XXX Hack. Will only work for HTTPHeaders & APRTable
+                $impl_class =~ s/HTTP::Headers(?:::Fast)?$/HTTPHeaders/;
+                $impl_class =~ s/APR::Table$/APRTable/;
                 last;
             }
         }

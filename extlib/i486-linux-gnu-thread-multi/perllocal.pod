@@ -1,10 +1,10 @@
-=head2 Tue Feb 10 20:16:26 2009: C<Module> L<YAML|YAML>
+=head2 Tue Feb 10 20:17:30 2009: C<Module> L<YAML|YAML>
 
 =over 4
 
 =item *
 
-C<installed into: /tmp/CWMqaIhhOD/outputdir/lib/perl5>
+C<installed into: /tmp/RR9supEmoQ/outputdir/lib/perl5>
 
 =item *
 
@@ -13,6 +13,160 @@ C<LINKTYPE: dynamic>
 =item *
 
 C<VERSION: 0.68>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Tue Feb 10 20:17:32 2009: C<Module> L<Carp::Clan|Carp::Clan>
+
+=over 4
+
+=item *
+
+C<installed into: /tmp/RR9supEmoQ/outputdir/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 6.00>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Tue Feb 10 20:17:33 2009: C<Module> L<Class::Data::Inheritable|Class::Data::Inheritable>
+
+=over 4
+
+=item *
+
+C<installed into: /tmp/RR9supEmoQ/outputdir/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.08>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Tue Feb 10 20:17:35 2009: C<Module> L<Class::Inspector|Class::Inspector>
+
+=over 4
+
+=item *
+
+C<installed into: /tmp/RR9supEmoQ/outputdir/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.23>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Tue Feb 10 20:17:36 2009: C<Module> L<Class::Accessor|Class::Accessor>
+
+=over 4
+
+=item *
+
+C<installed into: /tmp/RR9supEmoQ/outputdir/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.31>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Tue Feb 10 20:17:37 2009: C<Module> L<UNIVERSAL::require|UNIVERSAL::require>
+
+=over 4
+
+=item *
+
+C<installed into: /tmp/RR9supEmoQ/outputdir/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.11>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Tue Feb 10 20:17:39 2009: C<Module> L<Class::Component|Class::Component>
+
+=over 4
+
+=item *
+
+C<installed into: /tmp/RR9supEmoQ/outputdir/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.17>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Tue Feb 10 20:17:44 2009: C<Module> L<HTTP::MobileAttribute|HTTP::MobileAttribute>
+
+=over 4
+
+=item *
+
+C<installed into: /tmp/RR9supEmoQ/outputdir/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.13>
 
 =item *
 
