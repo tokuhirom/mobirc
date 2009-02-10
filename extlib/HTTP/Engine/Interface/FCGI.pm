@@ -101,7 +101,7 @@ sub run {
         $self->daemon_fork() if $self->detach;
 
         if ( $self->manager ) {
-            Class::MOP::load_class($self->manager);
+            Mouse::load_class($self->manager);
             $proc_manager = $self->manager->new(
                 {
                     n_processes => $self->nproc,

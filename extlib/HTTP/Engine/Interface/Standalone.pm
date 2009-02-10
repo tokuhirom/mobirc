@@ -26,7 +26,7 @@ use IO::Select       ();
 
 BEGIN {
     if ( $ENV{SMART_COMMENTS} ) {
-        Class::MOP::load_class('Smart::Comments');
+        Mouse::load_class('Smart::Comments');
         Smart::Comments->import;
     }
 }

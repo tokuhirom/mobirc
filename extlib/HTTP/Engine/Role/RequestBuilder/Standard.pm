@@ -21,4 +21,17 @@ sub _build_hostname {
     gethostbyaddr( inet_aton( $req->address ), AF_INET );
 }
 
+# for win32 hacks
+BEGIN {
+    if ($^O eq 'MSWin32') {
+        no warnings 'redefine';
+        *_build_hostname = sub {
+            my ( $self, $req ) = @_;
+            my $address = $req->address;
+            return 'localhost' if $address eq '127.0.0.1';
+            return gethostbyaddr( inet_aton( $address ), AF_INET );
+        };
+    }
+}
+
 1;

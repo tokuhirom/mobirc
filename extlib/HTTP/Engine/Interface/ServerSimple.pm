@@ -44,7 +44,7 @@ sub run {
                 },
                 headers => sub {
                     my ( $self, $args ) = @_;
-                    $headers->header(@$args);
+                    $headers->header(@$args) if @$args;
                 },
                 handler    => sub {
                     my($host, $port) = $headers->header('Host') ?

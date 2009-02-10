@@ -1,5 +1,5 @@
 package HTTP::Engine::Interface::POE;
-our $CLIENT;
+our $CLIENT; ## no critic
 
 use HTTP::Engine::Interface
     builder => 'NoEnv',

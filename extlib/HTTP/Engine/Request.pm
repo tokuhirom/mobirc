@@ -324,7 +324,7 @@ sub uri_with {
 
 sub as_http_request {
     my $self = shift;
-    require 'HTTP/Request.pm';
+    require 'HTTP/Request.pm'; ## no critic
     HTTP::Request->new( $self->method, $self->uri, $self->headers, $self->raw_body );
 }
 

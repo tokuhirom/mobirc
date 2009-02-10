@@ -1,7 +1,7 @@
 package HTTP::Engine;
 use 5.00800;
 use Mouse;
-our $VERSION = '0.0.99_01';
+our $VERSION = '0.1.1';
 use HTTP::Engine::Request;
 use HTTP::Engine::Request::Upload;
 use HTTP::Engine::Response;
@@ -60,17 +60,16 @@ HTTP::Engine - Web Server Gateway Interface and HTTP Server Engine Drivers (Yet 
 
 A substantial document. (A tutorial, the Cookbook and hacking HowTo)
 
-=head2 0.1.x
+=head2 0.1.x (Now here)
 
 Improvement in performance and resource efficiency.
 Most specifications are frozen.
-The specification is changed by the situation. 
+The specification is changed by the situation.
 
 I want to perform Async support. (AnyEvent? Danga::Socket? IO::Async?)
 
 =head2 0.0.99_x
 
-It is now here.
 It is an adjustment stage to the following version.
 
 =head2 0.0.x
@@ -238,6 +237,8 @@ kawa0117
 mattn
 
 otsune
+
+gugod
 
 =head1 SEE ALSO
 

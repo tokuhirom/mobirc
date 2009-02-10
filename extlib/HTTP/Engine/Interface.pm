@@ -1,6 +1,5 @@
 package HTTP::Engine::Interface;
 use Mouse;
-use UNIVERSAL::require;
 
 my $ARGS;
 
@@ -60,7 +59,8 @@ sub _setup_builder {
     my ($caller, $builder ) = @_;
     $builder = ($builder =~ s/^\+(.+)$//) ? $1 : "HTTP::Engine::RequestBuilder::$builder";
     unless ($builder->can('meta')) {
-        $builder->require or die $@;
+        Mouse::load_class($builder);
+        $@ and die $@;
     }
     my $instance = $builder->new;
 

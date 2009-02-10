@@ -8,6 +8,42 @@ HTTP::Engine::Cookbook - How to cook a HTTP::Engine
 
 =head1 DESCRIPTION
 
-TBA
+=head2 Deployments
+
+The biggest advantage of using C<HTTP::Engine> is to have one single
+request handler routine for your application:
+
+    package MyApp;
+    use HTTP::Engine::Response;
+
+    sub handle_request {
+        my ($request) = @_;
+        # ...
+        HTTP::Engine::Response->new( body => "Hello World" );
+    }
+
+When it comes to deployment, you'll need to write additional handlers
+or modules based on different server environments.
+
+=head3 Deploy your application as a CGI script.
+
+The very basic and simple approach is to deploy your application as a
+CGI script. To do this, you need to write a CGI program like this:
+
+    ## myapp.cgi
+    #!/usr/bin/perl
+
+    use MyApp;
+    use HTTP::Engine;
+    my $engine = HTTP::Engine->new(
+        interface => {
+            module => 'CGI',
+            request_handler => \&MyApp::handle_request
+        }
+    );
+    $engine->run;
+
+This CGI program can then be placed under the conventional cgi-bin/
+directory as those defined in your server configuration.
 
 =cut
