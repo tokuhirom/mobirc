@@ -1,8 +1,9 @@
 package MouseX::Types;
 use strict;
 use warnings;
+our $VERSION = '0.01';
 
-require Mouse::TypeRegistry;
+require Mouse::Util::TypeConstraints;
 use MouseX::Types::TypeDecorator;
 
 sub import {
@@ -22,7 +23,7 @@ sub import {
         }
     }
 
-    return Mouse::TypeRegistry->import( callee => $caller );
+    return Mouse::Util::TypeConstraints->export_to_level(1, $class);
 }
 
 sub _import {
@@ -48,7 +49,7 @@ sub _import {
 
 =head1 NAME
 
-Mouse - Organise your Mouse types in libraries
+MouseX::Types - Organize your Mouse types in libraries
 
 =head1 SYNOPSIS
 
@@ -110,5 +111,24 @@ Mouse - Organise your Mouse types in libraries
   }
 
   1;
+
+=head1 AUTHOR
+
+Kazuhiro Osawa E<lt>yappo <at> shibuya <döt> plE<gt>
+
+Shawn M Moore
+
+tokuhirom
+
+with plenty of code borrowed from L<MooseX::Types>
+
+=head1 REPOSITORY
+
+  svn co http://code2.0beta.co.uk/moose/svn/MouseX-Types/trunk MouseX-Types
+
+=head1 LICENSE
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
 
 =cut

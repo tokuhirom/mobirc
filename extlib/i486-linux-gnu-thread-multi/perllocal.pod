@@ -1,10 +1,10 @@
-=head2 Tue Feb 10 20:09:28 2009: C<Module> L<Mouse|Mouse>
+=head2 Tue Feb 10 20:11:25 2009: C<Module> L<Mouse|Mouse>
 
 =over 4
 
 =item *
 
-C<installed into: /tmp/amNpo4qOoI/outputdir/lib/perl5>
+C<installed into: /tmp/cIfE8NDQ90/outputdir/lib/perl5>
 
 =item *
 
@@ -13,6 +13,28 @@ C<LINKTYPE: dynamic>
 =item *
 
 C<VERSION: 0.16>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Tue Feb 10 20:11:25 2009: C<Module> L<MouseX::Types|MouseX::Types>
+
+=over 4
+
+=item *
+
+C<installed into: /tmp/cIfE8NDQ90/outputdir/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.01>
 
 =item *
 
