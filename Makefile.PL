@@ -6,6 +6,7 @@ license  'gpl';
 
 # Mouse.
 requires 'Mouse' => 0.16;
+requires 'MouseX::Types' => 0.01;
 
 # http-engine
 requires 'HTTP::Engine' => '0.1.2';
