@@ -2,3 +2,10 @@
 - better configuration
     15:13 (otsune) mobircのリクエストといったら
     15:14 (otsune) 「Kwalify嫁，.sample嫁」以外のconfig.yamlの書き方解説じゃないのか
+- use PoCo::IRC::Common
+    POE::Component::IRC::Common, which provides
+    many helper functions, now has functions for
+    identifying and stripping color/formatting from
+    IRC messages. It also defines IRC color constants
+    for use in messages.
+
