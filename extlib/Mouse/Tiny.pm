@@ -27,6 +27,7 @@ use Carp;
 
 our @EXPORT_OK = qw(
     get_linear_isa
+    apply_all_roles
 );
 our %EXPORT_TAGS = (
     all  => \@EXPORT_OK,
@@ -35,6 +36,7 @@ our %EXPORT_TAGS = (
 BEGIN {
     my $impl;
     if ($] >= 5.009_005) {
+        require mro;
         $impl = \&mro::get_linear_isa;
     } else {
         my $loaded = do {
@@ -1574,6 +1576,13 @@ sub DEMOLISHALL {
             or next;
         $code->($self, @_);
     }
+}
+
+sub dump { 
+    my $self = shift;
+    require Data::Dumper;
+    local $Data::Dumper::Maxdepth = shift if @_;
+    Data::Dumper::Dumper $self;
 }
 
 package Mouse::Role;

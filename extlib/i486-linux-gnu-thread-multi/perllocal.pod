@@ -1,10 +1,10 @@
-=head2 Sat Mar  7 13:05:02 2009: C<Module> L<POE|POE>
+=head2 Sat Mar  7 13:12:37 2009: C<Module> L<Mouse|Mouse>
 
 =over 4
 
 =item *
 
-C<installed into: /tmp/jMiHNMqaEr/outputdir/lib/perl5>
+C<installed into: /tmp/oypVwtWgn1/outputdir/lib/perl5>
 
 =item *
 
@@ -12,73 +12,7 @@ C<LINKTYPE: dynamic>
 
 =item *
 
-C<VERSION: 1.003>
-
-=item *
-
-C<EXE_FILES: >
-
-=back
-
-=head2 Sat Mar  7 13:05:04 2009: C<Module> L<POE::Component::Pluggable|POE::Component::Pluggable>
-
-=over 4
-
-=item *
-
-C<installed into: /tmp/jMiHNMqaEr/outputdir/lib/perl5>
-
-=item *
-
-C<LINKTYPE: dynamic>
-
-=item *
-
-C<VERSION: 1.16>
-
-=item *
-
-C<EXE_FILES: >
-
-=back
-
-=head2 Sat Mar  7 13:05:06 2009: C<Module> L<POE::Filter::IRCD|POE::Filter::IRCD>
-
-=over 4
-
-=item *
-
-C<installed into: /tmp/jMiHNMqaEr/outputdir/lib/perl5>
-
-=item *
-
-C<LINKTYPE: dynamic>
-
-=item *
-
-C<VERSION: 2.38>
-
-=item *
-
-C<EXE_FILES: >
-
-=back
-
-=head2 Sat Mar  7 13:06:22 2009: C<Module> L<POE::Component::IRC|POE::Component::IRC>
-
-=over 4
-
-=item *
-
-C<installed into: /tmp/jMiHNMqaEr/outputdir/lib/perl5>
-
-=item *
-
-C<LINKTYPE: dynamic>
-
-=item *
-
-C<VERSION: 6.02>
+C<VERSION: 0.17>
 
 =item *
 

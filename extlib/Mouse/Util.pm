@@ -6,6 +6,7 @@ use Carp;
 
 our @EXPORT_OK = qw(
     get_linear_isa
+    apply_all_roles
 );
 our %EXPORT_TAGS = (
     all  => \@EXPORT_OK,
@@ -14,6 +15,7 @@ our %EXPORT_TAGS = (
 BEGIN {
     my $impl;
     if ($] >= 5.009_005) {
+        require mro;
         $impl = \&mro::get_linear_isa;
     } else {
         my $loaded = do {
