@@ -9,8 +9,8 @@ requires 'Mouse' => 0.17;
 requires 'MouseX::Types' => 0.01;
 
 # http-engine
-requires 'HTTP::Engine' => '0.1.2';
-requires 'HTTP::Engine::Middleware' => '0.01';
+requires 'HTTP::Engine' => '0.1.4';
+requires 'HTTP::Engine::Middleware' => '0.10';
 
 # session
 requires 'HTTP::Session' => '0.29';
