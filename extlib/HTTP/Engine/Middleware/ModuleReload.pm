@@ -14,7 +14,7 @@ __END__
 
 =head1 NAME
 
-HTTP::Engine::MiddleWare::ModuleReload - module reloader for HTTP::Engine
+HTTP::Engine::Middleware::ModuleReload - module reloader for HTTP::Engine
 
 =head1 SYNOPSIS
 
@@ -26,6 +26,10 @@ HTTP::Engine::MiddleWare::ModuleReload - module reloader for HTTP::Engine
             request_handler => $mw->handler( \&handler ),
         }
     )->run();
+
+=head1 DESCRIPTION
+
+This module reloads modules at each request.
 
 =head1 AUTHOR
 

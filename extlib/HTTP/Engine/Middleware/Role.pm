@@ -1,5 +1,5 @@
 package HTTP::Engine::Middleware::Role;
-use Mouse::Role;
+use Any::Moose '::Role';
 
 has 'before_handles' => (
     is      => 'ro',

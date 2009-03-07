@@ -74,7 +74,7 @@ __END__
 
 =head1 NAME
 
-HTTP::Engine::Middleware::ReverseProxy - documentation is TODO
+HTTP::Engine::Middleware::ReverseProxy - reverse-proxy support
 
 =head1 SYNOPSIS
 
@@ -86,5 +86,13 @@ HTTP::Engine::Middleware::ReverseProxy - documentation is TODO
             request_handler => $mw->handler( \&handler ),
         }
     )->run();
+
+=head1 DESCRIPTION
+
+This module resets some HTTP headers, which changed by reverse-proxy.
+
+=head1 AUTHORS
+
+yappo
 
 =cut

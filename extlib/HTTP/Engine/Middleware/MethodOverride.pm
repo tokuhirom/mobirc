@@ -23,11 +23,11 @@ has 'HTTP_METHOD_OVERRIDE_HEADER' => (
 
 before_handle {
     my ( $c, $self, $req ) = @_;
-    $self->overload_request_method($req);
+    $self->override_request_method($req);
     $req;
 };
 
-sub overload_request_method {
+sub override_request_method {
     my ( $self, $req ) = @_;
 
     my $method = $req->method;
@@ -50,7 +50,7 @@ __END__
 
 =head1 NAME
 
-HTTP::Engine::Middleware::MethodOverride - documentation is TODO
+HTTP::Engine::Middleware::MethodOverride - simulate HTTP methods by query parameter
 
 =head1 SYNOPSIS
 
@@ -62,5 +62,13 @@ HTTP::Engine::Middleware::MethodOverride - documentation is TODO
             request_handler => $mw->handler( \&handler ),
         }
     )->run();
+
+=head1 DESCRIPTION
+
+This module simulates the some minor HTTP methods by the query parameter(ex. DELETE, PUT).
+
+=head1 AUTHORS
+
+dann
 
 =cut

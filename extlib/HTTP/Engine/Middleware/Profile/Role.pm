@@ -1,5 +1,5 @@
 package HTTP::Engine::Middleware::Profile::Role;
-use Mouse::Role;
+use Any::Moose '::Role';
 
 requires 'start';
 requires 'end';

@@ -1,6 +1,8 @@
 package HTTP::Engine::Middleware::Profile;
 use HTTP::Engine::Middleware;
 
+with 'HTTP::Engine::Middleware::Role::Logger';
+
 use Carp ();
 
 has profiler_class => (
@@ -25,7 +27,7 @@ sub _build_profiler {
     my $class = $self->profiler_class;
     $class = "HTTP::Engine::Middleware::Profile::$class"
         unless $class =~ s/^\+//;
-    Mouse::load_class($class);
+    Any::Moose::load_class($class);
     $@ and Carp::croak($@);
     $class->new($self->config);
 }
@@ -50,15 +52,14 @@ __END__
 
 =head1 NAME
 
-HTTP::Engine::Middleware::Profile - documentation is TODO
+HTTP::Engine::Middleware::Profile - stopwatch for request processing time
 
 =head1 SYNOPSIS
 
     my $mw = HTTP::Engine::Middleware->new;
     $mw->install( 'HTTP::Engine::Middleware::Profile' => {
         logger => sub {
-            my($level, $msg) = @_;
-            warn $mgs;
+            warn @_;
         },
     });
     HTTP::Engine->new(
@@ -67,5 +68,13 @@ HTTP::Engine::Middleware::Profile - documentation is TODO
             request_handler => $mw->handler( \&handler ),
         }
     )->run();
+
+=head1 DESCRIPTION
+
+This module profile request processing time.
+
+=head1 AUTHORS
+
+dann
 
 =cut

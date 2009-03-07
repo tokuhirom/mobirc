@@ -81,7 +81,7 @@ __END__
 
 =head1 NAME
 
-HTTP::Engine::Middleware::DebugScreen - documentation is TODO
+HTTP::Engine::Middleware::DebugScreen - dump stack-trace when die
 
 =head1 SYNOPSIS
 
@@ -93,6 +93,14 @@ HTTP::Engine::Middleware::DebugScreen - documentation is TODO
             request_handler => $mw->handler( \&handler ),
         }
     )->run();
+
+=head1 AUTHORS
+
+yappo
+
+kan
+
+and more?
 
 =head1 SEE ALSO
 

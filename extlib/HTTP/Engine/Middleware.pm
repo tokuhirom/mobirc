@@ -1,6 +1,10 @@
 package HTTP::Engine::Middleware;
-use Mouse;
-our $VERSION = '0.01';
+use 5.00800;
+use Any::Moose;
+use Any::Moose (
+    '::Util' => [qw/apply_all_roles/],
+);
+our $VERSION = '0.10';
 
 use Carp ();
 
@@ -28,8 +32,8 @@ has 'diecatch' => (
 
 sub init_class {
     my $klass = shift;
-    my $meta  = Mouse::Meta::Class->initialize($klass);
-    $meta->superclasses('Mouse::Object')
+    my $meta  = any_moose('::Meta::Class')->initialize($klass);
+    $meta->superclasses(any_moose('::Object'))
         unless $meta->superclasses;
 
     no strict 'refs';
@@ -48,7 +52,11 @@ sub import {
 
     init_class($caller);
 
-    Mouse->export_to_level(1);    
+    if (Any::Moose::is_moose_loaded()) {
+        Moose->import({ into_level => 1 });
+    } else {
+        Mouse->export_to_level( 1 );
+    }
 
     no strict 'refs';
     *{"$caller\::__MIDDLEWARE__"} = sub {
@@ -67,8 +75,9 @@ sub import {
 sub __MIDDLEWARE__ {
     my ( $caller, ) = @_;
 
-    Mouse::unimport;
-    Mouse::Util::apply_all_roles( $caller, 'HTTP::Engine::Middleware::Role' );
+    Any::Moose::unimport;
+    apply_all_roles( $caller, 'HTTP::Engine::Middleware::Role' );
+
     $caller->meta->make_immutable( inline_destructor => 1 );
     "MIDDLEWARE";
 }
@@ -97,14 +106,15 @@ sub install {
     my($self, @middlewares) = @_;
 
     my %config;
-    for my $middleware (@middlewares) {
-        if (ref($middleware) eq 'HASH') {
-            $config{$self->middlewares->[-1]} = $middleware;
-            next;
+    for my $stuff (@middlewares) {
+        if (ref($stuff) eq 'HASH') {
+            my $mw_name = $self->middlewares->[-1]; # configuration for last one item
+            $config{$mw_name} = $stuff;
+        } else {
+            my $mw_name = $stuff;
+            push @{ $self->middlewares }, $mw_name;
+            $config{$mw_name} = +{ };
         }
-
-        $config{$middleware} = {};
-        push @{ $self->middlewares }, $middleware;
     }
 
     # load and create instance
@@ -122,21 +132,22 @@ sub install {
 
             local *before_handle = sub { push @before_handles, @_ };
             local *after_handle  = sub { push @after_handles, @_ };
-            local *middleware_method = $self->method_class ? sub {
+            local *middleware_method = sub {
                 my($method, $code) = @_;
                 my $method_class = $self->method_class;
                 if ($method =~ /^(.+)\:\:([^\:]+)$/) {
                     ($method_class, $method) = ($1, $2);
                 }
+                return unless $method_class;
+
                 no strict 'refs';
                 *{"$name\::$method"}         = $code;
                 *{"$method_class\::$method"} = $code;
-            } : sub {};
+            };
             local *outer_middleware = sub { push @{ $dependend{$name}->{outer} }, $_[0] };
             local *inner_middleware = sub { push @{ $dependend{$name}->{inner} }, $_[0] };
-            local $@;
-            Mouse::load_class($name);
-            $@ and Carp::croak $@;
+
+            Any::Moose::load_class($name);
 
             *{"$name\::_before_handles"}    = sub () { @before_handles };
             *{"$name\::_after_handles"}     = sub () { @after_handles };
@@ -158,15 +169,24 @@ sub install {
     my %sort = map { $_ => $i++ } @{ $self->middlewares };
     while (my($from, $conf) = each %dependend) {
         for my $to (@{ $conf->{outer} }) {
-            Carp::croak "'$from' need to '$to'" unless Mouse::is_class_loaded($to);
+            Carp::croak "'$from' need to '$to'" unless is_class_loaded($to);
             $sort{$to} = $sort{$from} - 1;
         }
         for my $to (@{ $conf->{inner} }) {
-            Carp::croak "'$from' need to '$to'" unless Mouse::is_class_loaded($to);
+            Carp::croak "'$from' need to '$to'" unless is_class_loaded($to);
             $sort{$to} = $sort{$from} + 1;
         }
     }
     @{ $self->middlewares } = sort { $sort{$a} <=> $sort{$b} } keys %sort;
+}
+
+sub is_class_loaded {
+    my $class = shift;
+    if (Any::Moose::is_moose_loaded()) {
+        return Class::MOP::is_class_loaded( $class );
+    } else {
+        return Mouse::is_class_loaded( $class );
+    }
 }
 
 sub instance_of {
@@ -197,8 +217,8 @@ sub handler {
         }
         my $msg;
         unless ($res) {
-            local $@;
             $self->diecatch(0);
+            local $@;
             eval { $res = $handle->($req) };
             $msg = $@ if !$self->diecatch && $@;
         }
@@ -261,14 +281,11 @@ HTTP::Engine::Middleware is official middlewares distribution of HTTP::Engine.
 
 =head1 WISHLIST
 
-Session
-
 Authentication
 
 OpenID
 
-Static
-
+mod_rewrite ( someone write :p )
 
 and more ideas
 
@@ -279,8 +296,6 @@ Kazuhiro Osawa E<lt>ko@yappo.ne.jpE<gt>
 Daisuke Maki
 
 Tokuhiro Matsuno E<lt>tokuhirom@gmail.comE<gt>
-
-dann
 
 nyarla
 
