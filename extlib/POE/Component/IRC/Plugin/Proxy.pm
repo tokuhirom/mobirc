@@ -2,16 +2,19 @@ package POE::Component::IRC::Plugin::Proxy;
 
 use strict;
 use warnings;
+use Carp;
 use Socket;
 use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::IRCD 
            Filter::Line Filter::Stackable);
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Component::IRC::Common qw( :ALL );
 
-our $VERSION = '5.86';
+our $VERSION = '6.02';
 
 sub new {
-    my ($package, %args) = @_;
+    my ($package) = shift;
+    croak "$package requires an even number of arguments" if @_ & 1;
+    my %args = @_;
     $args{ lc $_ } = delete $args{ $_ } for keys %args;
     return bless \%args, $package;
 }
@@ -120,7 +123,7 @@ sub S_raw {
     my $line = ${ $_[0] };
 
     return PCI_EAT_NONE if !defined $line;
-    return PCI_EAT_ALL if $line =~ /^PING\s*/;
+    return PCI_EAT_ALL if $line =~ /^PING/;
     
     for my $wheel_id ( keys %{ $self->{wheels} } ) {
         $self->_send_to_client( $wheel_id, $line );
@@ -251,13 +254,13 @@ sub _listener_failed {
 sub _client_flush {
     my ($kernel, $self, $wheel_id) = @_[KERNEL, OBJECT, ARG0];
 
-    return if !defined ( $self->{wheels}->{ $wheel_id } ) or !$self->{wheels}->{ $wheel_id }->{quiting};
+    return if !defined $self->{wheels}->{ $wheel_id } || !$self->{wheels}->{ $wheel_id }->{quiting};
     $self->_close_wheel( $wheel_id );
     return;
 }
 
 # this code needs refactoring
-## no critic
+## no critic (Subroutines::ProhibitExcessComplexity)
 sub _client_input {
     my ($kernel, $self, $input, $wheel_id) = @_[KERNEL, OBJECT, ARG0, ARG1];
 
@@ -380,7 +383,7 @@ __END__
 =head1 NAME
 
 POE::Component::IRC::Plugin::Proxy - A PoCo-IRC plugin that provides a
-lightweight IRC proxy/bouncer for L<POE::Component::IRC|POE::Component::IRC>.
+lightweight IRC proxy/bouncer
 
 =head1 SYNOPSIS
 
@@ -430,14 +433,14 @@ Neat, huh? >;o)
 
 Takes a number of arguments:
 
-'password', the password to require from connecting clients;
+B<'password'>, the password to require from connecting clients;
 
-'bindaddr', a local address to bind the listener to, default is 'localhost';
+B<'bindaddr'>, a local address to bind the listener to, default is 'localhost';
 
-'bindport', what port to bind to, default is 0, ie. randomly allocated by OS;
+B<'bindport'>, what port to bind to, default is 0, ie. randomly allocated by OS;
 
 Returns an object suitable for passing to
-L<POE::Component::IRC|POE::Component::IRC>'s plugin_add() method.
+L<POE::Component::IRC|POE::Component::IRC>'s C<plugin_add> method.
 
 =head2 C<current_channels>
 
@@ -446,7 +449,7 @@ currently a member of.
 
 =head2 C<getsockname>
 
-Takes no arguments.  Accesses the listeners getsockname() method. See
+Takes no arguments. Accesses the listeners C<getsockname> method. See
 L<POE::Wheel::SocketFactory|POE::Wheel::SocketFactory> for details of the
 return value;
 
@@ -468,32 +471,33 @@ events:
 
 =head2 C<irc_proxy_up>
 
-Emitted when the listener is successfully started. ARG0 is the result of the
-listener getsockname().
+Emitted when the listener is successfully started. C<ARG0> is the result of the
+listener C<getsockname>.
 
 =head2 C<irc_proxy_connect>
 
-Emitted when a client connects to the listener. ARG0 is the wheel ID of the
+Emitted when a client connects to the listener. C<ARG0> is the wheel ID of the
 client.
 
 =head2 C<irc_proxy_rw_fail>
 
-Emitted when the Wheel::ReadWrite fails on a connection. ARG0 is the wheel ID
-of the client.
+Emitted when the L<POE::Wheel::ReadWrite|POE::Wheel::ReadWrite> fails on a
+connection. C<ARG0> is the wheel ID of the client.
 
 =head2 C<irc_proxy_authed>
 
 Emitted when a connecting client successfully negotiates an IRC session with
-the plugin. ARG0 is the wheel ID of the client.
+the plugin. C<ARG0> is the wheel ID of the client.
 
 =head2 C<irc_proxy_close>
 
-Emitted when a connected client disconnects. ARG0 is the wheel ID of the client.
+Emitted when a connected client disconnects. C<ARG0> is the wheel ID of the
+client.
 
 =head2 C<irc_proxy_down>
 
-Emitted when the listener is successfully shutdown. ARG0 is the result of the
-listener getsockname().
+Emitted when the listener is successfully shutdown. C<ARG0> is the result of the
+listener C<getsockname>.
 
 =head1 QUIRKS
 

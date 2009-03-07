@@ -2,13 +2,17 @@ package POE::Component::IRC::Plugin::Console;
 
 use strict;
 use warnings;
+use Carp;
 use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::IRCD Filter::Line Filter::Stackable);
 use POE::Component::IRC::Plugin qw( :ALL );
 
+our $VERSION = '6.02';
+
 sub new {
     my $package = shift;
-    my $self = bless { @_ }, $package;
-    return $self;
+    croak "$package requires an even number of arguments" if @_ & 1;
+    my %self = @_;
+    return bless \%self, $package;
 }
 
 sub PCI_register {
@@ -48,7 +52,7 @@ sub _default {
 
     for my $arg ( @args ) {
         if ( ref($arg) eq 'ARRAY' ) {
-            push( @output, '[' . join(' ,', @$arg ) . ']' );
+            push( @output, '[' . join(', ', @$arg ) . ']' );
         }
         else {
             push ( @output, "'$arg'" );
@@ -187,8 +191,7 @@ __END__
 =head1 NAME
 
 POE::Component::IRC::Plugin::Console - A PoCo-IRC plugin that provides a
-lightweight debugging and control console for
-L<POE::Component::IRC|POE::Component::IRC> bots.
+lightweight debugging and control console for your bot
 
 =head1 SYNOPSIS
 
@@ -263,7 +266,7 @@ L<POE::Component::IRC|POE::Component::IRC> bots.
 POE::Component::IRC::Plugin::Console is a L<POE::Component::IRC|POE::Component::IRC>
 plugin that provides an interactive console running over the loopback network.
 One connects to the listening socket using a telnet client (or equivalent),
-authenticateusing the applicable password. Once authed one will receive all
+authenticate using the applicable password. Once authed one will receive all
 events that are processed through the component. One may also issue all the
 documented component commands.
 
@@ -273,14 +276,17 @@ documented component commands.
 
 Takes two arguments:
 
-'password', the password to set for *all* console connections;
+B<'password'>, the password to set for *all* console connections;
 
-'bindport', specify a particular port to bind to, defaults to 0, ie. randomly
+B<'bindport'>, specify a particular port to bind to, defaults to 0, ie. randomly
 allocated;
+
+Returns a plugin object suitable for feeding to
+L<POE::Component::IRC|POE::Component::IRC>'s C<plugin_add> method.
 
 =head2 C<getsockname>
 
-Gives access to the underlying listener's getsockname() method. See
+Gives access to the underlying listener's C<getsockname> method. See
 L<POE::Wheel::SocketFactory|POE::Wheel::SocketFactory> for details.
 
 =head1 OUTPUT
@@ -290,28 +296,28 @@ L<POE::Component::IRC|POE::Component::IRC> events:
 
 =head2 C<irc_console_service>
 
-Emitted when a listener is successfully spawned. ARG0 is the result of
-getsockname(), see above for details.
+Emitted when a listener is successfully spawned. C<ARG0> is the result of
+C<getsockname>, see above for details.
 
 =head2 C<irc_console_connect>
 
-Emitted when a client connects to the console. ARG0 is the peeradr, ARG1 is
-the peer port and ARG2 is the wheel id of the connection.
+Emitted when a client connects to the console. C<ARG0> is the peeradr, C<ARG1>
+is the peer port and C<ARG2> is the wheel id of the connection.
 
 =head2 C<irc_console_authed>
 
-Emitted when a client has successfully provided a valid password. ARG0 is the
-wheel id of the connection.
+Emitted when a client has successfully provided a valid password. C<ARG0> is
+the wheel id of the connection.
 
 =head2 C<irc_console_close>
 
-Emitted when a client terminates a connection. ARG0 is the wheel id of the
+Emitted when a client terminates a connection. C<ARG0> is the wheel id of the
 connection.
 
 =head2 C<irc_console_rw_fail>
 
-Emitted when a wheel::rw could not be created on a socket. ARG0 is the peeradr,
-ARG1 is the peer port.
+Emitted when a L<POE::Wheel::ReadWrite|POE::Wheel::ReadWrite> could not be
+created on a socket. C<ARG0> is the peer's address, C<ARG1> is the peer's port.
 
 =head1 AUTHOR
 

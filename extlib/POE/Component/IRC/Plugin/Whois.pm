@@ -1,4 +1,3 @@
-# Declare our package
 package POE::Component::IRC::Plugin::Whois;
 
 use strict;
@@ -7,7 +6,7 @@ use POE;
 use POE::Component::IRC::Plugin qw( PCI_EAT_NONE );
 use POE::Component::IRC::Common qw(:ALL);
 
-our $VERSION = '0.04';
+our $VERSION = '6.02';
 
 sub new {
     return bless { }, shift;
@@ -179,13 +178,13 @@ __END__
 
 =head1 NAME
 
-POE::Component::IRC::Plugin::Whois - A PoCo-IRC plugin that implements
-'irc_whois' and 'irc_whowas' events.
+POE::Component::IRC::Plugin::Whois - A PoCo-IRC plugin that generates events
+for WHOIS and WHOWAS replies
 
 =head1 DESCRIPTION
 
-POE::Component::IRC::Plugin::Whois is the reimplementation of the 'irc_whois'
-and 'irc_whowas' code from L<POE::Component::IRC|POE::Component::IRC> as a
+POE::Component::IRC::Plugin::Whois is the reimplementation of the C<irc_whois>
+and C<irc_whowas> code from L<POE::Component::IRC|POE::Component::IRC> as a
 plugin. It is used internally by L<POE::Component::IRC|POE::Component::IRC>
 so there is no need to use this plugin yourself.
 
@@ -193,7 +192,9 @@ so there is no need to use this plugin yourself.
 
 =head2 C<new>
 
-No arguments required. Returns an POE::Component::IRC::Plugin::Whois object.
+No arguments required. Returns a plugin object suitable for feeding to
+L<POE::Component::IRC|POE::Component::IRC>'s C<plugin_add> method.
+
 
 =head1 AUTHOR
 

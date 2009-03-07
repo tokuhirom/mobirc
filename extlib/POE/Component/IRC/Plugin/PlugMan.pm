@@ -2,10 +2,11 @@ package POE::Component::IRC::Plugin::PlugMan;
 
 use strict;
 use warnings;
+use Carp;
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Component::IRC::Common qw( :ALL );
 
-our $VERSION = '5.76';
+our $VERSION = '6.02';
 
 BEGIN { 
     # Turn on the debugger's symbol source tracing
@@ -18,7 +19,9 @@ BEGIN {
 }
 
 sub new {
-    my ($package, %args) = @_;
+    my ($package) = shift;
+    croak "$package requires an even number of arguments" if @_ & 1;
+    my %args = @_;
     $args{ lc $_ } = delete $args{ $_ } for keys %args;
     return bless \%args, $package;
 }
@@ -30,7 +33,7 @@ sub new {
 sub PCI_register {
     my ($self, $irc) = @_;
 
-    if ( !$irc->isa('POE::Component::IRC::State') ) {
+    if (defined $self->{botowner} && !$irc->isa('POE::Component::IRC::State') ) {
         die __PACKAGE__ . ' requires PoCo::IRC::State or a subclass thereof';
     }
 
@@ -87,14 +90,14 @@ sub S_public {
     my $what = ${ $_[2] };
     my $me = $irc->nick_name();
 
-    my ($command) = $what =~ m/^\s*\Q$me\E[\:\,\;\.]?\s*(.*)$/i;
+    my ($command) = $what =~ m/^\s*\Q$me\E[:,;.!?~]?\s*(.*)$/i;
     return PCI_EAT_NONE if !$command || !$self->_bot_owner($nick);
 
     my (@cmd) = split(/ +/, $command);
     my $cmd = uc (shift @cmd);
     
     if (defined $self->{commands}->{$cmd}) {
-        $self->{command}->{$cmd}->($self, 'privmsg', $channel, @cmd);
+        $self->{commands}->{$cmd}->($self, 'privmsg', $channel, @cmd);
     }
     
     return PCI_EAT_NONE;
@@ -111,7 +114,7 @@ sub S_msg {
     return PCI_EAT_NONE if !$self->_bot_owner($nick);
     
     if (defined $self->{commands}->{$cmd}) {
-        $self->{command}->{$cmd}->($self, 'notice', $nick, @cmd);
+        $self->{commands}->{$cmd}->($self, 'notice', $nick, @cmd);
     }
 
     return PCI_EAT_NONE;
@@ -225,7 +228,7 @@ __END__
 =head1 NAME
 
 POE::Component::IRC::Plugin::PlugMan - A PoCo-IRC plugin that provides plugin
-management services. 
+management services.
 
 =head1 SYNOPSIS
 
@@ -271,18 +274,19 @@ code and a handy IRC interface.
 
 Takes two optional arguments:
 
-'botowner', an IRC mask to match against for people issuing commands via the
+B<'botowner'>, an IRC mask to match against for people issuing commands via the
 IRC interface;
  
-'debug', set to a true value to see when stuff goes wrong;
+B<'debug'>, set to a true value to see when stuff goes wrong;
 
-Not setting a 'botowner' effectively disables the IRC interface. 
+Not setting a B<'botowner'> effectively disables the IRC interface. 
 
-If 'botowner' is specified the plugin checks that it is being loaded into a
-L<POE::Component::IRC::State> or sub-class and will fail to load otherwise.
+If B<'botowner'> is specified the plugin checks that it is being loaded into a
+L<POE::Component::IRC::State|POE::Component::IRC::State> or sub-class and will
+fail to load otherwise.
 
 Returns a plugin object suitable for feeding to
-L<POE::Component::IRC|POE::Component::IRC>'s plugin_add() method.
+L<POE::Component::IRC|POE::Component::IRC>'s C<plugin_add> method.
 
 =head2 C<load>
 
@@ -323,22 +327,23 @@ Returns a list of descriptors of managed plugins.
 
 =head1 INPUT
 
-An IRC interface is enabled by specifying a "botowner" mask to new(). Commands
-may be either invoked via a PRIVMSG directly to your bot or in a channel by
-prefixing the command with the nickname of your bot. One caveat, the parsing
-of the irc command is very rudimentary ( it merely splits the line on \s+ ). 
+An IRC interface is enabled by specifying a "botowner" mask to
+L<C<new>|/"new">. Commands may be either invoked via a PRIVMSG directly to
+your bot or in a channel by prefixing the command with the nickname of your
+bot. One caveat, the parsing of the irc command is very rudimentary (it
+merely splits the line on spaces).
 
 =head2 C<plugin_add>
 
-Takes the same arguments as load().
+Takes the same arguments as L<C<load>|/"load">.
 
 =head2 C<plugin_del>
 
-Takes the same arguments as unload().
+Takes the same arguments as L<C<unload>|/"unload">.
 
 =head2 C<plugin_reload>
 
-Takes the same arguments as reload().
+Takes the same arguments as L<C<reload>|/"reload">.
 
 =head2 C<plugin_loaded>
 

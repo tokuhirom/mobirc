@@ -17,7 +17,7 @@ use POE::Component::IRC::Common qw(:ALL);
 use POE::Component::IRC::Plugin qw(:ALL);
 use base qw(POE::Component::IRC::State POE::Component::IRC::Qnet);
 
-our $VERSION = '1.9';
+our $VERSION = '6.02';
 
 sub _create {
     my $self = shift;
@@ -64,34 +64,11 @@ sub _create {
         voice
         );
 
-  my @lbot_commands = qw(
-        whoami
-        whois
-        chanlev
-        adduser
-        removeuser
-        showcommands
-        op
-        voice
-        invite
-        setinvite
-        clearinvite
-        recover
-        deopall
-        unbanall
-        clearchan
-        version
-        welcome
-        requestowner
-        );
-
     $self->{OBJECT_STATES_HASHREF}->{'qbot_' . $_} = '_qnet_bot_commands' for @qbot_commands;
-    $self->{OBJECT_STATES_HASHREF}->{'lbot_' . $_} = '_qnet_bot_commands' for @lbot_commands;
     $self->{OBJECT_STATES_HASHREF}->{'resync_chan'} = '_resync_chan';
     $self->{OBJECT_STATES_HASHREF}->{'resync_nick'} = '_resync_nick';
     $self->{server} = 'irc.quakenet.org';
     $self->{QBOT} = 'Q@Cserve.quakenet.org';
-    $self->{LBOT} = 'L@lightweight.quakenet.org';
 
     return 1;
 }
@@ -266,7 +243,7 @@ sub S_chan_mode {
     my $arg = ${ $_[3] };
     my $uarg = u_irc $arg, $mapping;
     
-    return PCI_EAT_NONE if $source !~ /^[QL]$/ || $mode !~ /[ov]/;
+    return PCI_EAT_NONE if $source !~ /^[Q]$/ || $mode !~ /[ov]/;
     
     if ( !$self->is_nick_authed($arg) && !$self->{USER_AUTHED}->{ $uarg } ) {
        $self->{USER_AUTHED}->{ $uarg } = 0;
@@ -322,7 +299,7 @@ sub S_quit {
     # Check if it is a netsplit
 #    if ( $msg ) {
 #        SWITCH: {
-#            my @args = split /\s/, $msg;
+#            my @args = split /\x20/, $msg;
 #            if ( @args != 2 ) {
 #                last SWITCH;
 #            }
@@ -443,9 +420,8 @@ __END__
 
 =head1 NAME
 
-POE::Component::IRC::Qnet::State - a fully event-driven IRC client module
-for Quakenet, with nickname and channel tracking from
-L<POE::Component::IRC::State|POE::Component::IRC::State>.
+POE::Component::IRC::Qnet::State - A fully event-driven IRC client module
+for Quakenet with nickname and channel tracking
 
 =head1 SYNOPSIS
 
@@ -534,7 +510,7 @@ L<POE::Component::IRC::State|POE::Component::IRC::State>.
 
      for my $arg ( @$args ) {
          if (ref $arg eq 'ARRAY') {
-             push( @output, '[' . join(' ,', @$arg ) . ']' );
+             push( @output, '[' . join(', ', @$arg ) . ']' );
          }
          else {
              push ( @output, "'$arg'" );
@@ -582,8 +558,8 @@ given channel that have authed with the given authname.
 
 Expects a nickname. Returns a hashref containing similar information to that
 returned by WHOIS. Returns a false value if the nickname doesn't exist in the
-state. The hashref contains the following keys: 'Nick', 'User', 'Host',
-'Server', 'Auth', if authed, and, if applicable, 'IRCop'.
+state. The hashref contains the following keys: B<'Nick'>, B<'User'>,
+B<'Host'>, B<'Server'>, B<'Auth'>, if authed, and, if applicable, B<'IRCop'>.
 
 =back
 
@@ -619,12 +595,12 @@ This module returns one additional event over and above the usual events:
 Sent when the component detects that a user has authed with Q. Due to the
 mechanics of Quakenet you will usually only receive this if an unauthed user
 joins a channel, then at some later point auths with Q. The component 'detects'
-the auth by seeing if Q or L decides to +v or +o the user. Klunky? Indeed. But
+the auth by seeing if Q decides to +v or +o the user. Klunky? Indeed. But
 it is the only way to do it, unfortunately.
 
 =back
 
-The following two 'irc_*' events are the same as their
+The following two C<irc_*> events are the same as their
 L<POE::Component::IRC::State|POE::Component::IRC::State> counterparts, with
 the additional parameters:
 
@@ -632,15 +608,15 @@ the additional parameters:
 
 =item C<irc_quit>
 
-ARG3 contains the quitting clients auth name if applicable.
+C<ARG3> contains the quitting clients auth name if applicable.
 
 =item C<irc_part>
 
-ARG3 contains the parting clients auth name if applicable.
+C<ARG3> contains the parting clients auth name if applicable.
 
 =item C<irc_kick>
 
-ARG5 contains the kick victim's auth name if applicable.
+C<ARG5> contains the kick victim's auth name if applicable.
 
 =back
 
@@ -650,7 +626,7 @@ Like L<POE::Component::IRC::State|POE::Component::IRC::State> this component
 registers itself for a number of events. The main difference with
 L<POE::Component::IRC::State|POE::Component::IRC::State> is that it uses an
 extended form of 'WHO' supported by the Quakenet ircd, asuka. This WHO returns
-a different numeric reply than the original WHO, namely, 'irc_354'. Also, due
+a different numeric reply than the original WHO, namely, C<irc_354>. Also, due
 to the way Quakenet is configured all users will appear to be on the server
 '*.quakenet.org'.
 

@@ -2,10 +2,16 @@ package POE::Component::IRC::Plugin::BotAddressed;
 
 use strict;
 use warnings;
+use Carp;
 use POE::Component::IRC::Plugin qw( :ALL );
 
+our $VERSION = '6.02';
+
 sub new {
-    my ($package, %args) = @_;
+    my ($package) = shift;
+    croak "$package requires an even number of arguments" if @_ & 1;
+    my %args = @_;
+
     $args{lc $_} = delete $args{$_} for keys %args;
     return bless \%args, $package;
 }
@@ -46,7 +52,7 @@ sub S_public {
     my $channels = ${ $_[1] };
     my $what = ${ $_[2] };
     my $me = $irc->nick_name();
-    my ($cmd) = $what =~ m/^\s*\Q$me\E[:,;.!?]?\s*(.*)$/i;
+    my ($cmd) = $what =~ m/^\s*\Q$me\E[:,;.!?~]?\s*(.*)$/i;
     
     return PCI_EAT_NONE if !defined $cmd && $what !~ /$me/i;
     
@@ -68,8 +74,7 @@ __END__
 =head1 NAME
 
 POE::Component::IRC::Plugin::BotAddressed - A PoCo-IRC plugin that generates
-an 'irc_bot_addressed', 'irc_bot_mentioned' or 'irc_bot_mentioned_action' event
-if its name comes up in channel discussion.
+events when you are addressed
 
 =head1 SYNOPSIS
 
@@ -96,13 +101,11 @@ if its name comes up in channel discussion.
 
 =head1 DESCRIPTION
 
-POE::Component::IRC::Plugin::BotAddressed is a L<POE::Component::IRC|POE::Component::IRC>
-plugin. It watches for public channel traffic (i.e. 'irc_public' and
-'irc_ctcp_action') and will generate an 'irc_bot_addressed', 'irc_bot_mentioned'
-or 'irc_bot_mentioned_action' event if its name comes up in channel discussion.
-
-It uses L<POE::Component::IRC|POE::Component::IRC>'s nick_name() method to work
-out its current nickname.
+POE::Component::IRC::Plugin::BotAddressed is a
+L<POE::Component::IRC|POE::Component::IRC> plugin. It watches for public
+channel traffic (i.e. C<irc_public> and C<irc_ctcp_action>) and will generate
+an C<irc_bot_addressed>, C<irc_bot_mentioned> or C<irc_bot_mentioned_action>
+event if its name comes up in channel discussion.
 
 =head1 METHODS
 
@@ -110,18 +113,19 @@ out its current nickname.
 
 One optional argument:
 
-'eat', set to true to make the plugin eat the 'irc_public' / 'irc_ctcp_action'
+B<'eat'>, set to true to make the plugin eat the C<irc_public> / 
+C<irc_ctcp_action>
 event and only generate an appropriate event, default is false.
 
-Returns a plugin object suitable for feeding to L<POE::Component::IRC|POE::Component::IRC>'s
-plugin_add() method.
+Returns a plugin object suitable for feeding to
+L<POE::Component::IRC|POE::Component::IRC>'s C<plugin_add> method.
 
 =head1 OUTPUT
 
 =head2 C<irc_bot_addressed>
 
-Has the same parameters passed as L<C<irc_ctcp_action>|POE::Component::IRC/"irc_ctcp_action">.
-ARG2 contains the message with the addressed nickname removed, ie. Assuming
+Has the same parameters passed as L<C<irc_ctcp_public>|POE::Component::IRC/"irc_public">.
+C<ARG2> contains the message with the addressed nickname removed, ie. Assuming
 that your bot is called LameBOT, and someone says 'LameBOT: dance for me',
 you will actually get 'dance for me'.
 
@@ -131,7 +135,7 @@ Has the same parameters passed as L<C<irc_public>|POE::Component::IRC/"irc_publi
 
 =head2 C<irc_bot_mentioned_action>
 
-Has the same parameters passed as L<C<irc_ctcp_action>|POE::Component::IRC/"irc_ctcp_action">.
+Has the same parameters passed as L<C<irc_ctcp_action>|POE::Component::IRC/"irc_ctcp_*">.
 
 =head1 AUTHOR
 

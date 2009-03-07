@@ -16,8 +16,8 @@ use POE::Component::IRC::Plugin::Whois;
 use Socket;
 use base qw(POE::Component::Pluggable);
 
-our $VERSION = '5.88';
-our $REVISION = do {my@r=(q$Revision: 721 $=~/\d+/g);sprintf"%d"."%04d"x$#r,@r};
+our $VERSION = '6.02';
+our $REVISION = do {my@r=(q$Revision: 865 $=~/\d+/g);sprintf"%d"."%04d"x$#r,@r};
 our ($GOT_SSL, $GOT_CLIENT_DNS, $GOT_SOCKET6, $GOT_ZLIB);
 
 BEGIN {
@@ -103,6 +103,12 @@ sub _create {
 
     my %event_map = map {($_ => $self->{IRC_CMDS}->{$_}->[CMD_SUB])}
         keys %{ $self->{IRC_CMDS} };
+    
+    $self->{OBJECT_STATES_HASHREF} = {
+        %event_map,
+        quote => 'sl',
+        _default => '__default',
+    };
 
     $self->{OBJECT_STATES_ARRAYREF} = [qw(
         _delay
@@ -137,22 +143,12 @@ sub _create {
         userhost
     )];
 
-    $self->{OBJECT_STATES_HASHREF} = {
-        %event_map,
-        quote      => 'sl',
-        dcc        => '_dcc_dispatch',
-        dcc_accept => '_dcc_dispatch',
-        dcc_resume => '_dcc_dispatch',
-        dcc_chat   => '_dcc_dispatch',
-        dcc_close  => '_dcc_dispatch',
-    };
-
     return;
 }
 
 # BINGOS: the component can now configure itself via _configure() from
 # either spawn() or connect()
-## no critic
+## no critic (Subroutines::ProhibitExcessComplexity)
 sub _configure {
     my ($self, $args) = @_;
     my $spawned = 0;
@@ -172,7 +168,7 @@ sub _configure {
     }
     
     if ($self->{usessl} && !$GOT_SSL) {
-        warn "'usessl' opyion specified, but POE::Component::SSLify was not found\n";
+        warn "'usessl' option specified, but POE::Component::SSLify was not found\n";
     }
 
     if (!$self->{nodns} && $GOT_CLIENT_DNS && !$self->{resolver} ) {
@@ -396,8 +392,8 @@ sub _sock_up {
         );
     
         if ( !$self->{socket} ) {
-            $self->_send_event(irc_socketerr => "Couldn't create ReadWrite
-                wheel for SOCKS socket" );
+            $self->_send_event(irc_socketerr =>
+                "Couldn't create ReadWrite wheel for SOCKS socket" );
             return;
         }
     
@@ -578,7 +574,7 @@ sub _start {
     }
     else {
         $kernel->alias_set($self);
-        $self->{alias} = $self;
+        $self->{alias} = "$self";
     }
 
     $self->{ircd_filter} = POE::Filter::IRCD->new(debug => $self->{debug});
@@ -601,7 +597,7 @@ sub _start {
     $self->{SESSION_ID} = $session->ID();
 
     # Plugin 'irc_whois' and 'irc_whowas' support
-    $self->plugin_add ('Whois' . $self->{SESSION_ID},
+    $self->plugin_add('Whois' . $self->{SESSION_ID},
         POE::Component::IRC::Plugin::Whois->new()
     );
 
@@ -647,7 +643,7 @@ sub commasep {
     elsif ( $state eq 'part' and @args > 1 ) {
         my $chantypes = join('', @{ $self->isupport('CHANTYPES') }) || '#&';
         my $message;
-        if ($args[-1] =~ /\s+/ || $args[-1] !~ /^[$chantypes]/) {
+        if ($args[-1] =~ / +/ || $args[-1] !~ /^[$chantypes]/) {
             $message = pop @args;
         }
         $args = join(',', @args);
@@ -811,8 +807,10 @@ sub ctcp {
     return;
 }
 
-sub _dcc_dispatch {
-    $_[OBJECT]->_pluggable_process(USER => $_[STATE] => \(@_[ARG0..$#_]));
+# allow plugins to respond to user commands which are not defined here
+sub __default {
+    return if $_[ARG0] =~ /^_/;
+    $_[OBJECT]->_pluggable_process(USER => $_[ARG0] => \(@{ $_[ARG1] }));
     return;
 }
 
@@ -874,7 +872,9 @@ sub remove {
 
 # Set up a new IRC component. Deprecated.
 sub new {
-    my ($package, $alias, %options) = @_;
+    my ($package, $alias) = splice @_, 0, 2;
+    croak "$package options should be an even-sized list" if @_ & 1;
+    my %options = @_;
 
     if (!defined $alias) {
         croak 'Not enough arguments to POE::Component::IRC::new()';
@@ -888,7 +888,9 @@ sub new {
 
 # Set up a new IRC component. New interface.
 sub spawn {
-    my ($package, %params) = @_;
+    my ($package) = shift;
+    croak "$package requires an even number of arguments" if @_ & 1;
+    my %params = @_;
 
     $params{ lc $_ } = delete $params{$_} for keys %params;
     delete $params{options} if ref $params{options} ne 'HASH';
@@ -951,7 +953,7 @@ sub oneandtwoopt {
     $state = 'connect' if $state eq 'sconnect';
     $state = uc $state;
     if (defined $arg) {
-        $arg = ':' . $arg if $arg =~ /\s/;
+        $arg = ':' . $arg if $arg =~ /\x20/;
         $state .= " $arg";
     }
     
@@ -967,7 +969,7 @@ sub oneoptarg {
 
     if (defined $_[ARG0]) {
         my $arg = join '', @_[ARG0 .. $#_];
-        $arg = ':' . $arg if $arg =~ /\s/;
+        $arg = ':' . $arg if $arg =~ /\x20/;
         $state .= " $arg";
     }
 
@@ -1004,7 +1006,7 @@ sub onlyonearg {
     }
 
     $state = uc $state;
-    $arg = ':' . $arg if $arg =~ /\s/;
+    $arg = ':' . $arg if $arg =~ /\x20/;
     $state .= " $arg";
     $kernel->yield(sl_prioritized => $pri, $state);
     return;
@@ -1022,7 +1024,7 @@ sub onlytwoargs {
     }
 
     $state = uc $state;
-    $two = ':' . $two if $two =~ /\s/;
+    $two = ':' . $two if $two =~ /\x20/;
     $state .= " $one $two";
     $kernel->yield(sl_prioritized => $pri, $state);
     return;
@@ -1068,7 +1070,7 @@ sub _poco_irc_sig_register {
         $sender_id = $ref->ID();
     }
     else {
-        warn "Can\'t resolve $sender\n";
+        warn "Can't resolve $sender\n";
         return;
     }
   
@@ -1131,7 +1133,7 @@ sub shutdown {
     my ($kernel, $self, $sender, $session) = @_[KERNEL, OBJECT, SENDER, SESSION];
     my $args = '';
     $args = join '', @_[ARG0..$#_] if @_[ARG0..$#_];
-    $args = ":$args" if $args =~ /\s/;
+    $args = ":$args" if $args =~ /\x20/;
     my $cmd = "QUIT $args";
 
     $kernel->sig('POCOIRC_REGISTER');
@@ -1189,7 +1191,7 @@ sub sl_prioritized {
     my ($kernel, $self, $priority, $msg) = @_[KERNEL, OBJECT, ARG0, ARG1];
 
     # Get the first word for the plugin system
-    if (my ($event) = $msg =~ /^(\w+)\s*/ ) {
+    if (my ($event) = $msg =~ /^(\w+)/ ) {
         # Let the plugin system process this
         return 1 if $self->_pluggable_process(
             'USER',
@@ -1553,7 +1555,7 @@ __END__
 
 =head1 NAME
 
-POE::Component::IRC - a fully event-driven IRC client module.
+POE::Component::IRC - A fully event-driven IRC client module
 
 =head1 SYNOPSIS
 
@@ -1630,7 +1632,7 @@ POE::Component::IRC - a fully event-driven IRC client module.
 
      for my $arg (@$args) {
          if ( ref $arg eq 'ARRAY' ) {
-             push( @output, '[' . join(' ,', @$arg ) . ']' );
+             push( @output, '[' . join(', ', @$arg ) . ']' );
          }
          else {
              push ( @output, "'$arg'" );
@@ -1660,10 +1662,10 @@ The POE::Component::IRC distribution has a F<docs/> folder with a collection of
 salient documentation including the pertinent RFCs.
 
 POE::Component::IRC consists of a POE::Session that manages the IRC connection
-and dispatches 'irc_' prefixed events to interested sessions and 
+and dispatches C<irc_> prefixed events to interested sessions and 
 an object that can be used to access additional information using methods.
 
-Sessions register their interest in receiving 'irc_' events by sending
+Sessions register their interest in receiving C<irc_> events by sending
 L<C<register>|/"register"> to the component. One would usually do this in
 your C<_start> handler. Your session will continue to receive events until
 you L<C<unregister>|/"unregister">. The component will continue to stay
@@ -1785,48 +1787,48 @@ L<C<register>|/"register"> and L<C<irc_registered>|/"irc_registered">.
 
 Takes a number of arguments, all of which are optional: 
 
-'alias', a name (kernel alias) that this instance will be known by;
+B<'alias'>, a name (kernel alias) that this instance will be known by;
 
-'options', a hashref containing POE::Session options;
+B<'options'>, a hashref containing L<POE::Session|POE::Session> options;
 
-'Server', the server name;
+B<'Server'>, the server name;
 
-'Port', the remote port number;
+B<'Port'>, the remote port number;
 
-'Password', an optional password for restricted servers;
+B<'Password'>, an optional password for restricted servers;
 
-'Nick', your client's IRC nickname;
+B<'Nick'>, your client's IRC nickname;
 
-'Username', your client's username;
+B<'Username'>, your client's username;
 
-'Ircname', some cute comment or something.
+B<'Ircname'>, some cute comment or something.
 
-'UseSSL', set to some true value if you want to connect using SSL.
+B<'UseSSL'>, set to some true value if you want to connect using SSL.
 
-'Raw', set to some true value to enable the component to send
+B<'Raw'>, set to some true value to enable the component to send
 L<C<irc_raw>|/"irc_raw"> events.
 
-'LocalAddr', which local IP address on a multihomed box to connect as;
+B<'LocalAddr'>, which local IP address on a multihomed box to connect as;
 
-'LocalPort', the local TCP port to open your socket on;
+B<'LocalPort'>, the local TCP port to open your socket on;
 
-'NoDNS', set this to 1 to disable DNS lookups using PoCo-Client-DNS. (See note
+B<'NoDNS'>, set this to 1 to disable DNS lookups using PoCo-Client-DNS. (See note
 below).
 
-'Flood', set this to 1 to get quickly disconnected and klined from an ircd >;]
+B<'Flood'>, set this to 1 to get quickly disconnected and klined from an ircd >;]
 
-'Proxy', IP address or server name of a proxy server to use.
+B<'Proxy'>, IP address or server name of a proxy server to use.
 
-'ProxyPort', which tcp port on the proxy to connect to.
+B<'ProxyPort'>, which tcp port on the proxy to connect to.
 
-'NATAddr', what other clients see as your IP address.
+B<'NATAddr'>, what other clients see as your IP address.
 
-'DCCPorts', an arrayref containing tcp ports that can be used for DCC sends.
+B<'DCCPorts'>, an arrayref containing tcp ports that can be used for DCC sends.
 
-'Resolver', provide a L<POE::Component::Client::DNS|POE::Component::Client::DNS>
+B<'Resolver'>, provide a L<POE::Component::Client::DNS|POE::Component::Client::DNS>
 object for the component to use.
 
-'msg_length', the maximum length of IRC messages, in bytes. Default is 450.
+B<'msg_length'>, the maximum length of IRC messages, in bytes. Default is 450.
 The IRC component shortens all messages longer than this value minus the length
 of your current nickname. IRC only allows raw protocol lines messages that are
 512 bytes or shorter, including the trailing "\r\n". This is most relevant to
@@ -1836,18 +1838,19 @@ the 'user' part and some even replace the whole string (think FreeNode cloaks).
 If you have an unusually long user@host mask you might want to decrease this
 value if you're prone to sending long messages. Conversely, if you have an
 unusually short one, you can increase this value if you want to be able to
-send as long a message as possible. Be careful though, increase it too much and
-the IRC server might disconnect you with a "Request too long" message. 
+send as long a message as possible. Be careful though, increase it too much 
+and the IRC server might disconnect you with a "Request too long" message when
+you try to send a message that's too long.
 
-'plugin_debug', set to some true value to print plugin debug info, default 0.
+B<'plugin_debug'>, set to some true value to print plugin debug info, default 0.
 
-'socks_proxy', specify a SOCKS4/SOCKS4a proxy to use.
+B<'socks_proxy'>, specify a SOCKS4/SOCKS4a proxy to use.
 
-'socks_port', the SOCKS port to use, defaults to 1080 if not specified.
+B<'socks_port'>, the SOCKS port to use, defaults to 1080 if not specified.
 
-'socks_id', specify a SOCKS user_id. Default is none.
+B<'socks_id'>, specify a SOCKS user_id. Default is none.
 
-'useipv6', enable the use of IPv6 for connections.
+B<'useipv6'>, enable the use of IPv6 for connections.
 
 C<spawn> will supply reasonable defaults for any of these attributes which are
 missing, so don't feel obliged to write them all out.
@@ -1859,66 +1862,68 @@ If the component finds that L<POE::Component::Client::DNS|POE::Component::Client
 is installed it will use that to resolve the server name passed. Disable this
 behaviour if you like, by passing: C<< NoDNS => 1 >>.
 
-Additionally there is a "Flood" parameter. When true, it disables the
+Additionally there is a B<'Flood'> parameter. When true, it disables the
 component's flood protection algorithms, allowing it to send messages
 to an IRC server at full speed. Disconnects and k-lines are some
 common side effects of flooding IRC servers, so care should be used
 when enabling this option.
 
-Two new attributes are "Proxy" and "ProxyPort" for sending your
-IRC traffic through a proxy server. "Proxy"'s value should be the IP
-address or server name of the proxy. "ProxyPort"'s value should be the
+Two new attributes are B<'Proxy'> and B<'ProxyPort'> for sending your
+IRC traffic through a proxy server. B<'Proxy'>'s value should be the IP
+address or server name of the proxy. B<'ProxyPort'>'s value should be the
 port on the proxy to connect to. L<C<connect>|/"connect"> will default
 to using the I<actual> IRC server's port if you provide a proxy but omit
-the proxy's port. These are for HTTP Proxies. See 'socks_proxy' for SOCKS4
+the proxy's port. These are for HTTP Proxies. See B<'socks_proxy'> for SOCKS4
 and SOCKS4a support.
 
 For those people who run bots behind firewalls and/or Network Address
-Translation there are two additional attributes for DCC. "DCCPorts", is an
-arrayref of ports to use when initiating DCC connections. "NATAddr", is
+Translation there are two additional attributes for DCC. B<'DCCPorts'>, is an
+arrayref of ports to use when initiating DCC connections. B<'NATAddr'>, is
 the NAT'ed IP address that your bot is hidden behind, this is sent whenever
 you do DCC.
 
 SSL support requires L<POE::Component::SSLify|POE::Component::SSLify>, as well
 as an IRC server that supports SSL connections. If you're missing
-POE::Component::SSLify, specifing 'UseSSL' will do nothing. The default is to
+POE::Component::SSLify, specifing B<'UseSSL'> will do nothing. The default is to
 not try to use SSL.
 
-Setting 'Raw' to true, will enable the component to send
+Setting B<'Raw'> to true, will enable the component to send
 L<C<irc_raw>|/"irc_raw"> events to interested plugins and sessions.
 
-'NoDNS' has different results depending on whether it is set with
+B<'Resolver'>, requires a L<POE::Component::Client::DNS|POE::Component::Client::DNS>
+object. Useful when spawning multiple poco-irc sessions, saves the overhead of
+multiple dns sessions.
+
+B<'NoDNS'> has different results depending on whether it is set with
 L<C<spawn>|/"spawn"> or L<C<connect>|/"connect">. Setting it with
 C<spawn>, disables the creation of the POE::Component::Client::DNS
 completely. Setting it with L<C<connect>|/"connect"> on the other hand
 allows the PoCo-Client-DNS session to be spawned, but will disable
 any dns lookups using it.
 
-'Resolver', requires a L<POE::Component::Client::DNS|POE::Component::Client::DNS>
-object. Useful when spawning multiple poco-irc sessions, saves the overhead of
-multiple dns sessions.
-
-'plugin_debug', setting to true enables plugin debug info. Plugins are processed
+B<'plugin_debug'>, setting to true enables plugin debug info. Plugins are processed
 inside an eval, so debugging them can be hard. This should help with that.
 
-SOCKS4 proxy support is provided by 'socks_proxy', 'socks_port' and 'socks_id'
-parameters. If something goes wrong with the SOCKS connection you should get a
-warning on STDERR. This is fairly experimental currently.
+SOCKS4 proxy support is provided by B<'socks_proxy'>, B<'socks_port'> and
+B<'socks_id'> parameters. If something goes wrong with the SOCKS connection
+you should get a warning on STDERR. This is fairly experimental currently.
 
 IPv6 support is available for connecting to IPv6 enabled ircds (it won't work
-for DCC though). To enable it, specify 'useipv6'. L<Socket6|Socket6> is
+for DCC though). To enable it, specify B<'useipv6'>. L<Socket6|Socket6> is
 required to be installed. If you have L<Socket6|Socket6> and
 L<POE::Component::Client::DNS|POE::Component::Client::DNS> installed and
 specify a hostname that resolves to an IPv6 address then IPv6 will be used.
-If you specify an ipv6 'localaddr' then IPv6 will be used.
+If you specify an ipv6 B<'localaddr'> then IPv6 will be used.
 
 =head2 C<new>
 
 This method is deprecated. See the L<C<spawn>|/"spawn"> method instead.
-Takes one argument: a name (kernel alias) which this new connection
-will be known by. Returns a POE::Component::IRC object :)
-Use of this method will generate a warning. There are currently no plans to
-make it die() >;]
+The first argument should be a name (kernel alias) which this new connection
+will be known by. Optionally takes more arguments (see L<C<spawn>|/"spawn">
+as name/value pairs. Returns a POE::Component::IRC object. :)
+
+B<Note:> Use of this method will generate a warning. There are currently no
+plans to make it die() >;]
 
 =head1 METHODS
 
@@ -2063,7 +2068,7 @@ So the following would be functionally equivalent:
 =head3 C<register>
 
 Takes N arguments: a list of event names that your session wants to
-listen for, minus the 'irc_' prefix. So, for instance, if you just
+listen for, minus the C<irc_> prefix. So, for instance, if you just
 want a bot that keeps track of which people are on a channel, you'll
 need to listen for JOINs, PARTs, QUITs, and KICKs to people on the
 channel you're in. You'd tell POE::Component::IRC that you want those
@@ -2076,12 +2081,12 @@ or not), your session will receive events with names like
 L<C<irc_join>|/"irc_join">, L<C<irc_kick>|/"irc_kick">, etc.,
 which you can use to update a list of people on the channel.
 
-Registering for C<'all'> will cause it to send all IRC-related events to
+Registering for B<'all'> will cause it to send all IRC-related events to
 you; this is the easiest way to handle it. See the test script for an
 example.
 
 Registering will generate an L<C<irc_registered>|/"irc_registered">
-event that your session can trap. ARG0 is the components object. Useful
+event that your session can trap. C<ARG0> is the components object. Useful
 if you want to bolt PoCo-IRC's new features such as Plugins into a bot
 coded to the older deprecated API. If you are using the new API, ignore this :)
 
@@ -2090,8 +2095,8 @@ one wants to marry up sessions/objects, etc. Check the L<SIGNALS|/"SIGNALS">
 section for an alternative method of registering with multiple poco-ircs.
 
 Starting with version 4.96, if you spawn the component from inside another POE
-session, the component will automatically register that session as wanting 'all'
-irc events. That session will receive an
+session, the component will automatically register that session as wanting
+B<'all'> irc events. That session will receive an
 L<C<irc_registered>|/"irc_registered"> event indicating that the component
 is up and ready to go.
 
@@ -2136,8 +2141,8 @@ out the door. Similar to KICK but does an enforced PART instead.
 =head3 C<mode>
 
 Request a mode change on a particular channel or user. Takes at least
-one argument: the mode changes to effect, as a single string (e.g.,
-"+sm-p+o"), and any number of optional operands to the mode changes
+one argument: the mode changes to effect, as a single string (e.g. 
+"#mychan +sm-p+o"), and any number of optional operands to the mode changes
 (nicks, hostmasks, channel keys, whatever.) Or just pass them all as one
 big string and it'll still work, whatever. I regret that I haven't the
 patience now to write a detailed explanation, but serious IRC users know
@@ -2447,15 +2452,16 @@ to send.
 
 The events you will receive (or can ask to receive) from your running
 IRC component. Note that all incoming event names your session will
-receive are prefixed by 'irc_', to inhibit event namespace pollution.
+receive are prefixed by C<irc_>, to inhibit event namespace pollution.
 
 If you wish, you can ask the client to send you every event it
 generates. Simply register for the event name "all". This is a lot
 easier than writing a huge list of things you specifically want to
-listen for. FIXME: I'd really like to classify these somewhat
-("basic", "oper", "ctcp", "dcc", "raw" or some such), and I'd welcome
-suggestions for ways to make this easier on the user, if you can think
-of some.
+listen for. 
+
+FIXME: I'd really like to classify these somewhat ("basic", "oper", "ctcp",
+"dcc", "raw" or some such), and I'd welcome suggestions for ways to make
+this easier on the user, if you can think of some.
 
 In your event handlers, C<$_[SENDER]> is the particular component session that
 sent you the event. C<< $_[SENDER]->get_heap() >> will retrieve the component's 
@@ -2467,7 +2473,7 @@ object. Useful if you want on-the-fly access to the object and its methods.
 
 The IRC component will send an C<irc_connected> event as soon as it
 establishes a connection to an IRC server, before attempting to log
-in. ARG0 is the server name.
+in. C<ARG0> is the server name.
 
 B<NOTE:> When you get an C<irc_connected> event, this doesn't mean you
 can start sending commands to the server yet. Wait until you receive
@@ -2480,7 +2486,7 @@ C<irc_ctcp> events are generated upon receipt of CTCP messages, in addition to
 the C<irc_ctcp_*> events mentioned below. They are identical in every way to
 these, with one difference: instead of the * being in the method name, it
 is prepended to the argument list. For example, if someone types C</ctcp
-Flibble foo bar>, an C<irc_ctcp> event will be sent with C<foo> as ARG0,
+Flibble foo bar>, an C<irc_ctcp> event will be sent with B<'foo'> as C<ARG0>,
 and the rest as given below.
 
 It is not recommended that you register for both C<irc_ctcp> and C<irc_ctcp_*>
@@ -2491,10 +2497,10 @@ events, since they will both be fired and presumably cause duplication.
 C<irc_ctcp_whatever> events are generated upon receipt of CTCP messages.
 For instance, receiving a CTCP PING request generates an C<irc_ctcp_ping>
 event, CTCP ACTION (produced by typing "/me" in most IRC clients)
-generates an C<irc_ctcp_action> event, blah blah, so on and so forth. ARG0
-is the nick!hostmask of the sender. ARG1 is the channel/recipient
-name(s). ARG2 is the text of the CTCP message. On servers supporting the
-CAPAB IDENTIFY-MSG feature (e.g. FreeNode), CTCP ACTIONs will have ARG3,
+generates an C<irc_ctcp_action> event, blah blah, so on and so forth. C<ARG0>
+is the nick!hostmask of the sender. C<ARG1> is the channel/recipient
+name(s). C<ARG2> is the text of the CTCP message. On servers supporting the
+CAPAB IDENTIFY-MSG feature (e.g. FreeNode), CTCP ACTIONs will have C<ARG3>,
 which will be 1 if the sender has identified with NickServ, 0 otherwise.
 
 Note that DCCs are handled separately -- see the
@@ -2511,126 +2517,132 @@ such as C<irc_ctcp_*> events.
 
 The counterpart to L<C<irc_connected>|/"irc_connected">, sent whenever
 a socket connection to an IRC server closes down (whether intentionally or
-unintentionally). ARG0 is the server name.
+unintentionally). C<ARG0> is the server name.
 
 =head3 C<irc_error>
 
 You get this whenever the server sends you an ERROR message. Expect
 this to usually be accompanied by the sudden dropping of your
-connection. ARG0 is the server's explanation of the error.
+connection. C<ARG0> is the server's explanation of the error.
 
 =head3 C<irc_join>
 
-Sent whenever someone joins a channel that you're on. ARG0 is the
-person's nick!hostmask. ARG1 is the channel name.
+Sent whenever someone joins a channel that you're on. C<ARG0> is the
+person's nick!hostmask. C<ARG1> is the channel name.
 
 =head3 C<irc_invite>
 
-Sent whenever someone offers you an invitation to another channel. ARG0
-is the person's nick!hostmask. ARG1 is the name of the channel they want
+Sent whenever someone offers you an invitation to another channel. C<ARG0>
+is the person's nick!hostmask. C<ARG1> is the name of the channel they want
 you to join.
 
 =head3 C<irc_kick>
 
-Sent whenever someone gets booted off a channel that you're on. ARG0
-is the kicker's nick!hostmask. ARG1 is the channel name. ARG2 is the
-nick of the unfortunate kickee. ARG3 is the explanation string for the
+Sent whenever someone gets booted off a channel that you're on. C<ARG0>
+is the kicker's nick!hostmask. C<ARG1> is the channel name. C<ARG2> is the
+nick of the unfortunate kickee. C<ARG3> is the explanation string for the
 kick.
 
 =head3 C<irc_mode>
 
 Sent whenever someone changes a channel mode in your presence, or when
-you change your own user mode. ARG0 is the nick!hostmask of that
-someone. ARG1 is the channel it affects (or your nick, if it's a user
-mode change). ARG2 is the mode string (i.e., "+o-b"). The rest of the
-args (ARG3 .. $#_) are the operands to the mode string (nicks,
+you change your own user mode. C<ARG0> is the nick!hostmask of that
+someone. C<ARG1> is the channel it affects (or your nick, if it's a user
+mode change). C<ARG2> is the mode string (i.e., "+o-b"). The rest of the
+args (C<ARG3 .. $#_>) are the operands to the mode string (nicks,
 hostmasks, channel keys, whatever).
 
 =head3 C<irc_msg>
 
 Sent whenever you receive a PRIVMSG command that was addressed to you
-privately. ARG0 is the nick!hostmask of the sender. ARG1 is an array
-reference containing the nick(s) of the recipients. ARG2 is the text
-of the message. On FreeNode there is also ARG3, which will be 1 if the
+privately. C<ARG0> is the nick!hostmask of the sender. C<ARG1> is an array
+reference containing the nick(s) of the recipients. C<ARG2> is the text
+of the message. On FreeNode there is also C<ARG3>, which will be 1 if the
 sender has identified with NickServ, 0 otherwise.
 
 =head3 C<irc_nick>
 
-Sent whenever you, or someone around you, changes nicks. ARG0 is the
-nick!hostmask of the changer. ARG1 is the new nick that they changed
+Sent whenever you, or someone around you, changes nicks. C<ARG0> is the
+nick!hostmask of the changer. C<ARG1> is the new nick that they changed
 to.
 
 =head3 C<irc_notice>
 
-Sent whenever you receive a NOTICE command. ARG0 is the nick!hostmask
-of the sender. ARG1 is an array reference containing the nick(s) or
-channel name(s) of the recipients. ARG2 is the text of the NOTICE
+Sent whenever you receive a NOTICE command. C<ARG0> is the nick!hostmask
+of the sender. C<ARG1> is an array reference containing the nick(s) or
+channel name(s) of the recipients. C<ARG2> is the text of the NOTICE
 message.
 
 =head3 C<irc_part>
 
-Sent whenever someone leaves a channel that you're on. ARG0 is the
-person's nick!hostmask. ARG1 is the channel name. ARG2 is the part message.
+Sent whenever someone leaves a channel that you're on. C<ARG0> is the
+person's nick!hostmask. C<ARG1> is the channel name. C<ARG2> is the part
+message.
 
 =head3 C<irc_public>
 
-Sent whenever you receive a PRIVMSG command that was sent to a
-channel. ARG0 is the nick!hostmask of the sender. ARG1 is an array
-reference containing the channel name(s) of the recipients. ARG2 is
-the text of the message. On FreeNode there is also ARG3, which will be
+Sent whenever you receive a PRIVMSG command that was sent to a channel.
+C<ARG0> is the nick!hostmask of the sender. C<ARG1> is an array
+reference containing the channel name(s) of the recipients. C<ARG2> is
+the text of the message. On FreeNode there is also C<ARG3>, which will be
 1 if the sender has identified with NickServ, 0 otherwise.
 
 =head3 C<irc_quit>
 
 Sent whenever someone on a channel with you quits IRC (or gets
-KILLed). ARG0 is the nick!hostmask of the person in question. ARG1 is
+KILLed). C<ARG0> is the nick!hostmask of the person in question. C<ARG1> is
 the clever, witty message they left behind on the way out.
 
 =head3 C<irc_socketerr>
 
-Sent when a connection couldn't be established to the IRC server. ARG0
+Sent when a connection couldn't be established to the IRC server. C<ARG0>
 is probably some vague and/or misleading reason for what failed.
 
 =head3 C<irc_topic>
 
-Sent when a channel topic is set or unset. ARG0 is the nick!hostmask of the
-sender. ARG1 is the channel affected. ARG2 will be either: a string if the
+Sent when a channel topic is set or unset. C<ARG0> is the nick!hostmask of the
+sender. C<ARG1> is the channel affected. C<ARG2> will be either: a string if the
 topic is being set; or a zero-length string (i.e. '') if the topic is being
 unset. Note: replies to queries about what a channel topic *is*
 (i.e. TOPIC #channel), are returned as numerics, not with this event.
 
 =head3 C<irc_whois>
 
-Sent in response to a 'whois' query. ARG0 is a hashref, with the following
+Sent in response to a WHOIS query. C<ARG0> is a hashref, with the following
 keys: 
 
-'nick', the users nickname; 
+B<'nick'>, the users nickname; 
 
-'user', the users username; 
+B<'user'>, the users username; 
 
-'host', their hostname;
+B<'host'>, their hostname;
 
-'real', their real name;
+B<'real'>, their real name;
 
-'idle', their idle time in seconds;
+B<'idle'>, their idle time in seconds;
 
-'signon', the epoch time they signed on (will be undef if ircd does not support
+B<'signon'>, the epoch time they signed on (will be undef if ircd does not support
 this);
 
-'channels', an arrayref listing visible channels they are on, the channel is
+B<'channels'>, an arrayref listing visible channels they are on, the channel is
 prefixed with '@','+','%' depending on whether they have +o +v or +h;
 
-'server', their server ( might not be useful on some networks );
+B<'server'>, their server ( might not be useful on some networks );
 
-'oper', whether they are an IRCop, contains the IRC operator string if they are, 
+B<'oper'>, whether they are an IRCop, contains the IRC operator string if they are, 
 undef if they aren't.
 
-'actually', some ircds report the users actual ip address, that'll be here;
+B<'actually'>, some ircds report the users actual ip address, that'll be here;
+
+On ircu servers, if the user has registered with services, there will be
+another key:
+
+B<'account'>.
 
 On Freenode if the user has identified with NICKSERV there will be an
 additional key:
 
-'identified'.
+B<'identified'>.
 
 =head3 C<irc_whowas>
 
@@ -2639,51 +2651,52 @@ Similar to the above, except some keys will be missing.
 =head3 C<irc_raw>
 
 Enabled by passing C<< Raw => 1 >> to L<C<spawn>|/"spawn"> or
-L<C<connect>|/"connect">, ARG0 is the raw IRC string received by the component
-from the IRC server, before it has been mangled by filters and such like.
+L<C<connect>|/"connect">, C<ARG0> is the raw IRC string received by the
+component from the IRC server, before it has been mangled by filters and
+such like.
 
 =head3 C<irc_registered>
 
 Sent once to the requesting session on registration (see
-L<C<register>|/"register">). ARG0 is a reference tothe component's object.
+L<C<register>|/"register">). C<ARG0> is a reference tothe component's object.
 
 =head3 C<irc_shutdown>
 
 Sent to all registered sessions when the component has been asked to
-L<C<shutdown>|/"shutdown">. ARG0 will be the session ID of the requesting
+L<C<shutdown>|/"shutdown">. C<ARG0> will be the session ID of the requesting
 session.
 
 =head3 C<irc_isupport>
 
 Emitted by the first event after an L<C<irc_005>|/"All numeric events">, to
-indicate that isupport information has been gathered. ARG0 is the
+indicate that isupport information has been gathered. C<ARG0> is the
 L<POE::Component::IRC::Plugin::ISupport|POE::Component::IRC::Plugin::ISupport>
 object.
 
 =head3 C<irc_delay_set>
 
 Emitted on a succesful addition of a delayed event using the
-L<C<delay>|/"delay"> method. ARG0 will be the alarm_id which can be used
+L<C<delay>|/"delay"> method. C<ARG0> will be the alarm_id which can be used
 later with L<C<delay_remove>|/"delay_remove">. Subsequent parameters are
 the arguments that were passed to L<C<delay>|/"delay">.
 
 =head3 C<irc_delay_removed>
 
-Emitted when a delayed command is successfully removed. ARG0 will be the
+Emitted when a delayed command is successfully removed. C<ARG0> will be the
 alarm_id that was removed. Subsequent parameters are the arguments that were
-passed to C<delay>.
+passed to L<C<delay>|/"delay">.
 
 =head3 C<irc_socks_failed>
 
 Emitted whenever we fail to connect successfully to a SOCKS server or the
-SOCKS server is not actually a SOCKS server. ARG0 will be some vague reason
+SOCKS server is not actually a SOCKS server. C<ARG0> will be some vague reason
 as to what went wrong. Hopefully.
 
 =head3 C<irc_socks_rejected>
 
-Emitted whenever a SOCKS connection is rejected by a SOCKS server. ARG0 is
-the SOCKS code, ARG1 the SOCKS server address, ARG2 the SOCKS port and ARG3
-the SOCKS user id (if defined).
+Emitted whenever a SOCKS connection is rejected by a SOCKS server. C<ARG0> is
+the SOCKS code, C<ARG1> the SOCKS server address, C<ARG2> the SOCKS port and
+C<ARG3> the SOCKS user id (if defined).
 
 =head2 Somewhat Less Important Events
 
@@ -2704,7 +2717,7 @@ informational purposes.
 =head3 C<irc_snotice>
 
 A weird, non-RFC-compliant message from an IRC server. Don't worry
-about it. ARG0 is the text of the server's message.
+about it. C<ARG0> is the text of the server's message.
 
 =head2 All numeric events
 
@@ -2715,10 +2728,10 @@ out-of-date... the list in the back of Net::IRC::Event.pm is more
 complete, and different IRC networks have different and incompatible
 lists. Ack!) As an example, say you wanted to handle event 376
 (RPL_ENDOFMOTD, which signals the end of the MOTD message). You'd
-register for '376', and listen for C<irc_376> events. Simple, no? ARG0
-is the name of the server which sent the message. ARG1 is the text of
-the message. ARG2 is an ARRAYREF of the parsed message, so there is no
-need to parse ARG1 yourself.
+register for '376', and listen for C<irc_376> events. Simple, no? C<ARG0>
+is the name of the server which sent the message. C<ARG1> is the text of
+the message. C<ARG2> is an array reference of the parsed message, so there
+is no need to parse C<ARG1> yourself.
 
 =head1 SIGNALS
 

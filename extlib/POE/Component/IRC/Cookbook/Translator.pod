@@ -2,13 +2,13 @@
 
 POE::Component::IRC::Cookbook::Translator - A bot that can translate text
 
-=head1 DESCRIPTION
+=head1 SYNOPSIS
 
 This bot uses L<POE::Component::Lingua::Translate|POE::Component::Lingua::Translate>
 to translate text for channel members. It makes use of the C<BotCommand> plugin
 to handle the translate command.
 
-=head1 SYNOPSIS
+=head1 DESCRIPTION
 
  #!/usr/bin/env perl
 
@@ -53,7 +53,7 @@ to handle the translate command.
      ));
 
      $irc->yield(register => 'botcmd_trans');
-     $irc->yield(connect => );
+     $irc->yield('connect');
      return;
  }
 

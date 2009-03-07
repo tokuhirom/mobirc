@@ -18,7 +18,7 @@ requires 'HTTP::Session' => '0.29';
 # poe
 requires 'POE'                 => '1.003';
 requires 'POE::Sugar::Args'    => '1.3';
-requires 'POE::Component::IRC' => '5.88';
+requires 'POE::Component::IRC' => '6.02';
 
 # mobile stuff
 requires 'HTTP::MobileAttribute' => '0.13';

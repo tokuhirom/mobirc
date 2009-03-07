@@ -2,13 +2,17 @@ package POE::Component::IRC::Plugin::CTCP;
 
 use strict;
 use warnings;
+use Carp;
 use POE::Component::IRC::Plugin qw( :ALL );
 use POSIX qw(strftime);
 
-our $VERSION = '1.3';
+our $VERSION = '6.02';
 
 sub new {
-    my ($package, %args) = @_;
+    my ($package) = shift;
+    croak "$package requires an even number of arguments" if @_ & 1;
+    my %args = @_;
+    
     $args{ lc $_ } = delete $args{ $_ } for keys %args;
     $args{eat} = 1 if !defined ( $args{eat} ) || $args{eat} eq '0';
     return bless \%args, $package;
@@ -96,7 +100,7 @@ __END__
 
 =head1 NAME
 
-POE::Component::IRC::Plugin::CTCP - A PoCo-IRC plugin that auto-responds to CTCP requests.
+POE::Component::IRC::Plugin::CTCP - A PoCo-IRC plugin that auto-responds to CTCP requests
 
 =head1 SYNOPSIS
 
@@ -139,8 +143,9 @@ POE::Component::IRC::Plugin::CTCP - A PoCo-IRC plugin that auto-responds to CTCP
 =head1 DESCRIPTION
 
 POE::Component::IRC::Plugin::CTCP is a L<POE::Component::IRC|POE::Component::IRC>
-plugin. It watches for 'irc_ctcp_version', 'irc_ctcp_userinfo', 'irc_ctcp_ping',
-'irc_ctcp_time' and 'irc_ctcp_source' events and autoresponds on your behalf.
+plugin. It watches for C<irc_ctcp_version>, C<irc_ctcp_userinfo>,
+C<irc_ctcp_ping>, C<irc_ctcp_time> and C<irc_ctcp_source> events and
+autoresponds on your behalf.
 
 =head1 METHODS
 
@@ -148,24 +153,24 @@ plugin. It watches for 'irc_ctcp_version', 'irc_ctcp_userinfo', 'irc_ctcp_ping',
 
 Takes a number of optional arguments:
 
-'version', a string to send in response to 'irc_ctcp_version'. Default is
+B<'version'>, a string to send in response to C<irc_ctcp_version>. Default is
 PoCo-IRC and version;
 
-'userinfo', a string to send in response to 'irc_ctcp_userinfo'. Default is
+B<'userinfo'>, a string to send in response to C<irc_ctcp_userinfo>. Default is
 'm33p';
 
-'source', a string to send in response to 'irc_ctcp_source'. Default is
+B<'source'>, a string to send in response to C<irc_ctcp_source>. Default is
 L<http://search.cpan.org/dist/POE-Component-IRC>.
 
-'eat', by default the plugin uses PCI_EAT_CLIENT, set this to 0 to disable this
+B<'eat'>, by default the plugin uses PCI_EAT_CLIENT, set this to 0 to disable this
 behaviour;
 
 Returns a plugin object suitable for feeding to
-L<POE::Component::IRC|POE::Component::IRC>'s plugin_add() method.
+L<POE::Component::IRC|POE::Component::IRC>'s C<plugin_add> method.
 
 =head2 C<eat>
 
-With no arguments, returns true or false on whether the plugin is "eating" ctcp
+With no arguments, returns true or false on whether the plugin is "eating" CTCP
 events that it has dealt with. An argument will set "eating" to on or off
 appropriately, depending on whether the value is true or false.
 

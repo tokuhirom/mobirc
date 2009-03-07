@@ -7,18 +7,18 @@ use POE::Filter::IRCD;
 use File::Basename qw(fileparse);
 use base qw(POE::Filter);
 
-our $VERSION = '1.7';
+our $VERSION = '6.02';
 
 my %irc_cmds = (
     qr/^\d{3}$/ => sub {
         my ($self, $event, $line) = @_;
         $event->{args}->[0] = _decolon( $line->{prefix} );
         shift @{ $line->{params} };
-        if ( $line->{params}->[0] && $line->{params}->[0] =~ /\s+/ ) {
+        if ( $line->{params}->[0] && $line->{params}->[0] =~ /\x20/ ) {
             $event->{args}->[1] = $line->{params}->[0];
         }
         else {
-            $event->{args}->[1] = join(' ', ( map { /\s+/ ? ":$_" : $_ } @{ $line->{params} } ) );
+            $event->{args}->[1] = join(' ', ( map { /\x20/ ? ":$_" : $_ } @{ $line->{params} } ) );
         }
         $event->{args}->[2] = $line->{params};
     },
@@ -78,31 +78,33 @@ my %dcc_types = (
     qr/CHAT|SEND/ => sub {
         my ($nick, $type, $args) = @_;
         my ($file, $addr, $port, $size);
-        return if !(($file, $addr, $port, $size) = $args =~ /^(".+"|\S+) +(\d+) +(\d+)(?: +(\d+))?/);
+        return if !(($file, $addr, $port, $size) = $args =~ /^(".+"|[^ ]+) +(\d+) +(\d+)(?: +(\d+))?/);
         
-        $file =~ s/^"|"$//g;
+        if ($file =~ s/^"//) {
+            $file =~ s/"$//;
+            $file =~ s/\\"/"/g;
+        }
         $file = fileparse($file);
         
         return (
             $port,
             {
-                open => undef,
                 nick => $nick,
                 type => $type,
                 file => $file,
                 size => $size,
-                done => 0,
                 addr => $addr,
                 port => $port,
             },
             $file,
             $size,
+            $addr,
         );
     },
     qr/ACCEPT|RESUME/ => sub {
         my ($nick, $type, $args) = @_;
         my ($file, $port, $position);
-        return if !(($file, $port, $position) = $args =~ /^(".+"|\S+) +(\d+) +(\d+)/);
+        return if !(($file, $port, $position) = $args =~ /^(".+"|[^ ]+) +(\d+) +(\d+)/);
 
         $file =~ s/^"|"$//g;
         $file = fileparse($file);
@@ -110,13 +112,10 @@ my %dcc_types = (
         return (
             $port,
             {
-                open => undef,
                 nick => $nick,
                 type => $type,
                 file => $file,
                 size => $position,
-                done => 0,
-                addr => undef,
                 port => $port,
             },
             $file,
@@ -183,8 +182,8 @@ sub get_one {
         return [ ];
     }
     
-    if ($line->{raw_line} =~ tr/\001//) {
-        return $self->_get_ctcp( $line->{raw_line} );
+    if ($line->{command} =~ /^PRIVMSG|NOTICE$/ && $line->{params}->[1] =~ tr/\001//) {
+        return $self->_get_ctcp($line);
     }
     
     my $event = {
@@ -283,77 +282,87 @@ sub _decolon {
     return $line;
 }
 
+## no critic (Subroutines::ProhibitExcessComplexity)
 sub _get_ctcp {
     my ($self, $line) = @_;
-    my ($who, $type, $where, $msg) = ($line =~ /^:(\S+) +(\S+) +(\S+) +:?(.*)$/) or return [];
+
     # Is this a CTCP request or reply?
-    $type = $type eq 'PRIVMSG' ? 'ctcp' : 'ctcpreply';
+    my $ctcp_type = $line->{command} eq 'PRIVMSG' ? 'ctcp' : 'ctcpreply';
     
     # CAPAP IDENTIFY-MSG is only applied to ACTIONs
-    my $identified;
-    ($msg, $identified) = _split_idmsg($msg) if $self->{identifymsg} && $msg =~ /.ACTION/;
+    my ($msg, $identified) = ($line->{params}->[1], undef);
+    ($msg, $identified) = _split_idmsg($msg) if $self->{identifymsg} && $msg =~ /^.ACTION/;
     
     my ($ctcp, $text) = _ctcp_dequote($msg);
-    my $nick = (split /!/, $who)[0];
+    my $nick = defined $line->{prefix} ? (split /!/, $line->{prefix})[0] : undef;
 
     my $events = [ ];
     my ($name, $args);
     CTCP: for my $string (@$ctcp) {
         if (!(($name, $args) = $string =~ /^(\w+)(?: +(.*))?/)) {
-            warn "Received malformed CTCP message from $nick: $string\n" if $self->{debug};
+            defined $nick
+                ? do { warn "Received malformed CTCP message from $nick: $string\n" if $self->{debug} }
+                : do { warn "Trying to send malformed CTCP message: $string\n" if $self->{debug} }
+            ;
             last CTCP;
         }
             
         if (lc $name eq 'dcc') {
-            my ($type, $rest);
+            my ($dcc_type, $rest);
             
-            if (!(($type, $rest) = $args =~ /^(\w+) +(.+)/)) {
-                warn "Received malformed DCC request from $nick: $args\n" if $self->{debug};
+            if (!(($dcc_type, $rest) = $args =~ /^(\w+) +(.+)/)) {
+                defined $nick
+                    ? do { warn "Received malformed DCC request from $nick: $args\n" if $self->{debug} }
+                    : do { warn "Trying to send malformed DCC request: $args\n" if $self->{debug} }
+                ;
                 last CTCP;
 
             }
-            $type = uc $type;
+            $dcc_type = uc $dcc_type;
 
-            my ($handler) = grep { $type =~ /$_/ } keys %dcc_types;
+            my ($handler) = grep { $dcc_type =~ /$_/ } keys %dcc_types;
             if (!$handler) {
-                warn "Unhandled DCC $type request: $rest\n" if $self->{debug};
+                warn "Unhandled DCC $dcc_type request: $rest\n" if $self->{debug};
                 last CTCP;
             }
 
-            my @dcc_args = $dcc_types{$handler}->($nick, $type, $rest);
+            my @dcc_args = $dcc_types{$handler}->($nick, $dcc_type, $rest);
             if (!@dcc_args) {
-                warn "Received malformed DCC $type request from $nick: $rest\n" if $self->{debug};
+                defined $nick
+                    ? do { warn "Received malformed DCC $dcc_type request from $nick: $rest\n" if $self->{debug} }
+                    : do { warn "Trying to send malformed DCC $dcc_type request: $rest\n" if $self->{debug} }
+                ;
                 last CTCP;
             }
 
             push @$events, {
                 name => 'dcc_request',
                 args => [
-                    $nick,
-                    $type,
+                    $line->{prefix},
+                    $dcc_type,
                     @dcc_args,
                 ],
-                raw_line => $line,
+                raw_line => $line->{raw_line},
             };
         }
         else {
             push @$events, {
-                name => $type . '_' . lc $name,
+                name => $ctcp_type . '_' . lc $name,
                 args => [
-                    $who,
-                    [split /,/, $where],
+                    $line->{prefix},
+                    [split /,/, $line->{params}->[0]],
                     (defined $args ? $args : ''),
                     (defined $identified ? $identified : () ),
                 ],
-                raw_line => $line,
+                raw_line => $line->{raw_line},
             };
         }
     }
 
     if ($text && @$text) {
         my $what;
-        ($what) = $line =~ /^(:\S+ +\w+ +\S+ +)/
-            or warn "What the heck? '$line'\n" if $self->{debug};
+        ($what) = $line->{raw_line} =~ /^(:[^ ]+ +\w+ +[^ ]+ +)/
+            or warn "What the heck? '".$line->{raw_line}."'\n" if $self->{debug};
         $text = (defined $what ? $what : '') . ':' . join '', @$text;
         $text =~ s/\cP/^P/g;
         warn "CTCP: $text\n" if $self->{debug};
@@ -405,7 +414,7 @@ __END__
 =head1 NAME
 
 POE::Filter::IRC::Compat - A filter which converts L<POE::Filter::IRCD|POE::Filter::IRCD>
-output into L<POE::Component::IRC|POE::Component::IRC> events.
+output into L<POE::Component::IRC|POE::Component::IRC> events
 
 =head1 SYNOPSIS
 
@@ -451,7 +460,7 @@ L<POE::Component::IRC|POE::Component::IRC> compatible event hashrefs. Yay.
 
 =head2 C<get_one_start>, C<get_one>
 
-These perform a similar function as C<get()> but enable the filter to work with
+These perform a similar function as C<get> but enable the filter to work with
 L<POE::Filter::Stackable|POE::Filter::Stackable>.
 
 =head2 C<put>

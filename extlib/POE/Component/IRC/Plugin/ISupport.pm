@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use POE::Component::IRC::Plugin qw(:ALL);
 
-our $VERSION = '0.57';
+our $VERSION = '6.02';
 
 sub new {
     return bless { }, shift;
@@ -18,7 +18,7 @@ sub PCI_register {
     $self->{parser} = {
         CASEMAPPING => sub {
             my ($support, $key, $val) = @_;
-            $support->{ $key } = $val;
+            $support->{$key} = $val;
         },
         CHANLIMIT => sub {
             my ($support, $key, $val) = @_;
@@ -55,13 +55,9 @@ sub PCI_register {
         },
         PREFIX => sub {
             my ($support, $key, $val) = @_;
-            if ( my ($k, $v) = $val =~ /\(([^)]+)\)(.*)/ ) {
+            if (my ($k, $v) = $val =~ /\(([^)]+)\)(.*)/ ) {
                 @{ $support->{$key} }{ split(//, $k) } = split(//, $v);
             }
-        },
-        SILENCE => sub {
-            my ($support, $key, $val) = @_;
-            $support->{$key} = length($val) ? $val : 'off';
         },
         STATUSMSG => sub {
             my ($support, $key, $val) = @_;
@@ -70,24 +66,17 @@ sub PCI_register {
         TARGMAX => sub {
             my ($support, $key, $val) = @_;
             while ($val =~ /([^:]+):(\d*),?/g) {
-            $support->{$key}->{$1} = $2;
-          }
+                my ($k, $v) = ($1, $2);
+                $support->{$key}->{$k} = $v;
+            }
         },
         EXCEPTS => sub {
             my ($support, $flag) = @_;
             $support->{$flag} = 'e';
         },
-        INVEX   => sub {
+        INVEX => sub {
             my ($support, $flag) = @_;
             $support->{$flag} = 'I';
-        },
-        MODES   => sub {
-            my ($support, $flag) = @_;
-            $support->{$flag} = '';
-        },
-        SILENCE => sub {
-            my ($support, $flag) = @_;
-            $support->{$flag} = 'off';
         },
     };
 
@@ -125,8 +114,8 @@ sub S_005 {
             }
             else {
                 # AWAYLEN CHANNELLEN CHIDLEN EXCEPTS INVEX KICKLEN MAXBANS
-                # MAXCHANNELS MAXTARGETS MODES NETWORK NICKLEN SILENCE STD
-                # TOPICLEN WATCH
+                # MAXCHANNELS MAXTARGETS MODES NETWORK NICKLEN STD TOPICLEN
+                # WATCH
                 $support->{$key} = $val;
             }
         }
@@ -182,7 +171,7 @@ __END__
 =head1 NAME
 
 POE::Component::IRC::Plugin::ISupport - A PoCo-IRC plugin that handles server
-capabilities.
+capabilities
 
 =head1 DESCRIPTION
 
@@ -196,7 +185,7 @@ define the capabilities support by the server.
 Takes no arguments.
 
 Returns a plugin object suitable for feeding to
-L<POE::Component::IRC|POE::Component::IRC>'s plugin_add() method.
+L<POE::Component::IRC|POE::Component::IRC>'s C<plugin_add> method.
 
 =head2 C<isupport>
 
@@ -207,7 +196,7 @@ capabilities is available at L<http://www.irc.org/tech_docs/005.html>.
 =head2 C<isupport_dump_keys>
 
 Takes no arguments, returns a list of the available server capabilities,
-which can be used with isupport().
+which can be used with C<isupport>.
 
 =head1 INPUT
 
@@ -228,7 +217,7 @@ it emits an C<irc_isupport> signal.
 
 Emitted by: the first signal received after C<irc_005>
 
-ARG0 will be the plugin object itself for ease of use.
+C<ARG0> will be the plugin object itself for ease of use.
 
 This is emitted when the support report has finished.
 

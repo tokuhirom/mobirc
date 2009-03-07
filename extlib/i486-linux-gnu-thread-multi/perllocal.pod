@@ -1,10 +1,10 @@
-=head2 Tue Feb 10 20:17:30 2009: C<Module> L<YAML|YAML>
+=head2 Sat Mar  7 13:05:02 2009: C<Module> L<POE|POE>
 
 =over 4
 
 =item *
 
-C<installed into: /tmp/RR9supEmoQ/outputdir/lib/perl5>
+C<installed into: /tmp/jMiHNMqaEr/outputdir/lib/perl5>
 
 =item *
 
@@ -12,7 +12,7 @@ C<LINKTYPE: dynamic>
 
 =item *
 
-C<VERSION: 0.68>
+C<VERSION: 1.003>
 
 =item *
 
@@ -20,13 +20,13 @@ C<EXE_FILES: >
 
 =back
 
-=head2 Tue Feb 10 20:17:32 2009: C<Module> L<Carp::Clan|Carp::Clan>
+=head2 Sat Mar  7 13:05:04 2009: C<Module> L<POE::Component::Pluggable|POE::Component::Pluggable>
 
 =over 4
 
 =item *
 
-C<installed into: /tmp/RR9supEmoQ/outputdir/lib/perl5>
+C<installed into: /tmp/jMiHNMqaEr/outputdir/lib/perl5>
 
 =item *
 
@@ -34,7 +34,7 @@ C<LINKTYPE: dynamic>
 
 =item *
 
-C<VERSION: 6.00>
+C<VERSION: 1.16>
 
 =item *
 
@@ -42,13 +42,13 @@ C<EXE_FILES: >
 
 =back
 
-=head2 Tue Feb 10 20:17:33 2009: C<Module> L<Class::Data::Inheritable|Class::Data::Inheritable>
+=head2 Sat Mar  7 13:05:06 2009: C<Module> L<POE::Filter::IRCD|POE::Filter::IRCD>
 
 =over 4
 
 =item *
 
-C<installed into: /tmp/RR9supEmoQ/outputdir/lib/perl5>
+C<installed into: /tmp/jMiHNMqaEr/outputdir/lib/perl5>
 
 =item *
 
@@ -56,7 +56,7 @@ C<LINKTYPE: dynamic>
 
 =item *
 
-C<VERSION: 0.08>
+C<VERSION: 2.38>
 
 =item *
 
@@ -64,13 +64,13 @@ C<EXE_FILES: >
 
 =back
 
-=head2 Tue Feb 10 20:17:35 2009: C<Module> L<Class::Inspector|Class::Inspector>
+=head2 Sat Mar  7 13:06:22 2009: C<Module> L<POE::Component::IRC|POE::Component::IRC>
 
 =over 4
 
 =item *
 
-C<installed into: /tmp/RR9supEmoQ/outputdir/lib/perl5>
+C<installed into: /tmp/jMiHNMqaEr/outputdir/lib/perl5>
 
 =item *
 
@@ -78,95 +78,7 @@ C<LINKTYPE: dynamic>
 
 =item *
 
-C<VERSION: 1.23>
-
-=item *
-
-C<EXE_FILES: >
-
-=back
-
-=head2 Tue Feb 10 20:17:36 2009: C<Module> L<Class::Accessor|Class::Accessor>
-
-=over 4
-
-=item *
-
-C<installed into: /tmp/RR9supEmoQ/outputdir/lib/perl5>
-
-=item *
-
-C<LINKTYPE: dynamic>
-
-=item *
-
-C<VERSION: 0.31>
-
-=item *
-
-C<EXE_FILES: >
-
-=back
-
-=head2 Tue Feb 10 20:17:37 2009: C<Module> L<UNIVERSAL::require|UNIVERSAL::require>
-
-=over 4
-
-=item *
-
-C<installed into: /tmp/RR9supEmoQ/outputdir/lib/perl5>
-
-=item *
-
-C<LINKTYPE: dynamic>
-
-=item *
-
-C<VERSION: 0.11>
-
-=item *
-
-C<EXE_FILES: >
-
-=back
-
-=head2 Tue Feb 10 20:17:39 2009: C<Module> L<Class::Component|Class::Component>
-
-=over 4
-
-=item *
-
-C<installed into: /tmp/RR9supEmoQ/outputdir/lib/perl5>
-
-=item *
-
-C<LINKTYPE: dynamic>
-
-=item *
-
-C<VERSION: 0.17>
-
-=item *
-
-C<EXE_FILES: >
-
-=back
-
-=head2 Tue Feb 10 20:17:44 2009: C<Module> L<HTTP::MobileAttribute|HTTP::MobileAttribute>
-
-=over 4
-
-=item *
-
-C<installed into: /tmp/RR9supEmoQ/outputdir/lib/perl5>
-
-=item *
-
-C<LINKTYPE: dynamic>
-
-=item *
-
-C<VERSION: 0.13>
+C<VERSION: 6.02>
 
 =item *
 

@@ -3,7 +3,7 @@ package POE::Component::IRC::Constants;
 use strict;
 use warnings;
 
-our $VERSION = '0.03';
+our $VERSION = '6.02';
 
 require Exporter;
 use base qw(Exporter);
@@ -39,7 +39,7 @@ __END__
 =head1 NAME
 
 POE::Component::IRC::Constants - Defines constants required by
-L<POE::Component::IRC|POE::Component::IRC>.
+L<POE::Component::IRC|POE::Component::IRC>
 
 =head1 SYNOPSIS
 

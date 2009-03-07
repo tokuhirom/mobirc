@@ -16,7 +16,7 @@ use POE::Component::IRC::Common qw(:ALL);
 use POE::Component::IRC::Plugin qw(:ALL);
 use base qw(POE::Component::IRC);
 
-our $VERSION = '2.52';
+our $VERSION = '6.02';
 
 # Event handlers for tracking the STATE. $self->{STATE} is used as our namespace.
 # u_irc() is used to create unique keys.
@@ -144,7 +144,7 @@ sub S_quit {
     # Check if it is a netsplit
 #    if ($msg) {
 #        SWITCH: {
-#            my @args = split /\s/, $msg;
+#            my @args = split /\x20/, $msg;
 #            if ( @args != 2 ) {
 #                last SWITCH;
 #           }
@@ -275,7 +275,7 @@ sub S_306 {
 }
 
 # this code needs refactoring
-## no critic
+## no critic (Subroutines::ProhibitExcessComplexity ControlStructures::ProhibitCascadingIfElse)
 sub S_mode {
     my ($self, $irc) = splice @_, 0, 2;
     my $mapping = $irc->isupport('CASEMAPPING');
@@ -287,7 +287,7 @@ sub S_mode {
 
     # CHANMODES is [$list_mode, $always_arg, $arg_when_set, $no_arg]
     # A $list_mode always has an argument
-    my $prefix = $irc->isupport('PREFIX') || { 'o', '@', 'v', '+' };
+    my $prefix = $irc->isupport('PREFIX') || { o => '@', v => '+' };
     my $statmodes = join '', keys %{ $prefix };
     my $chanmodes = $irc->isupport('CHANMODES') || [ qw(beI k l imnpstaqr) ];
     my $alwaysarg = join '', $statmodes,  @{ $chanmodes }[0 .. 1];
@@ -348,9 +348,6 @@ sub S_mode {
         if ( $self->{STATE}->{Chans}->{ $uchan }->{Mode} ) {
             $self->{STATE}->{Chans}->{ $uchan }->{Mode} = join('', sort {uc $a cmp uc $b} ( split( //, $self->{STATE}->{Chans}->{ $uchan }->{Mode} ) ) );
         }
-        else {
-            delete $self->{STATE}->{Chans}->{ $uchan }->{Mode};
-        }
     }
     else {
         my $parsed_mode = parse_mode_line( @modes );
@@ -396,7 +393,7 @@ sub S_352 {
     my $mapping = $irc->isupport('CASEMAPPING');
     my ($channel,$user,$host,$server,$nick,$status,$rest) = @{ ${ $_[2] } };
     $rest =~ s/^://;
-    my ($hops, $real) = split /\s/, $rest, 2;
+    my ($hops, $real) = split /\x20/, $rest, 2;
     my $unick = u_irc $nick, $mapping;
     my $uchan = u_irc $channel, $mapping;
 
@@ -418,7 +415,7 @@ sub S_352 {
     if ( exists $self->{STATE}->{Chans}->{ $uchan } ) {
         my $whatever = '';
         my $existing = $self->{STATE}->{Nicks}->{ $unick }->{CHANS}->{ $uchan } || '';    
-        my $prefix = $irc->isupport('PREFIX') || { 'o', '@', 'v', '+' };
+        my $prefix = $irc->isupport('PREFIX') || { o =>, '@', v => '+' };
 
         for my $mode ( keys %{ $prefix } ) {
             if ($status =~ /\Q$prefix->{$mode}/ && $existing !~ /\Q$prefix->{$mode}/ ) {
@@ -1051,8 +1048,8 @@ __END__
 
 =head1 NAME
 
-POE::Component::IRC::State - a fully event-driven IRC client module with
-channel/nick tracking.
+POE::Component::IRC::State - A fully event-driven IRC client module with
+nickname and channel tracking
 
 =head1 SYNOPSIS
 
@@ -1133,7 +1130,7 @@ channel/nick tracking.
 
      for my $arg ( @$args ) {
          if (ref $arg  eq 'ARRAY') {
-             push( @output, '[' . join(' ,', @$arg ) . ']' );
+             push( @output, '[' . join(', ', @$arg ) . ']' );
          }
          else {
              push ( @output, "'$arg'" );
@@ -1170,7 +1167,7 @@ L<C<is_away>|/"is_away"> method for users other than yourself.
 C<WHO nick> for every person which joins a channel. Defaults to on
 (the C<WHO> is sent). If you turn this off, L<C<is_operator>|/"is_operator">
 will not work and L<C<nick_info>|/"nick_info"> will only return the keys
-C<'Nick'>, C<'User'>, C<'Host'> and C<'Userhost'>.
+B<'Nick'>, B<'User'>, B<'Host'> and B<'Userhost'>.
 
 =head1 METHODS
 
@@ -1183,7 +1180,7 @@ Takes no parameters. Returns the current user mode set for the bot.
 
 =head2 C<is_user_mode_set>
 
-Expects single user mode flag [A-Za-z]. Returns a true value if that user
+Expects single user mode flag C<[A-Za-z]>. Returns a true value if that user
 mode is set.
 
 =head2 C<channels>
@@ -1201,20 +1198,20 @@ If the component happens to not be on any channels an empty hashref is returned.
 =head2 C<nicks>
 
 Takes no parameters. Returns a list of all the nicks, including itself, that it
-knows about. If the component
-happens to be on no channels then an empty list is returned.
+knows about. If the component happens to be on no channels then an empty list
+is returned.
 
 =head2 C<channel_list>
 
 Expects a channel as parameter. Returns a list of all nicks on the specified
-channel. If the component happens
-to not be on that channel an empty list will be returned.
+channel. If the component happens to not be on that channel an empty list will
+be returned.
 
 =head2 C<is_away>
 
 Expects a nick as parameter. Returns a true value if the specified nick is away.
 Returns a false value if the nick is not away or not in the state. This will
-only work for your IRC user unless you specified a value for 'AwayPoll' in
+only work for your IRC user unless you specified a value for B<'AwayPoll'> in
 L<C<spawn>|POE::Component::IRC/"spawn">.
 
 =head2 C<is_operator>
@@ -1225,7 +1222,7 @@ or is not in the state.
 
 =head2 C<is_channel_mode_set>
 
-Expects a channel and a single mode flag [A-Za-z]. Returns a true value
+Expects a channel and a single mode flag C<[A-Za-z]>. Returns a true value
 if that mode is set on the channel.
 
 =head2 C<channel_creation_time>
@@ -1305,8 +1302,8 @@ Expects a nickname. Returns a hashref containing similar information to that
 returned by WHOIS. Returns a false value if the nickname doesn't exist in the
 state. The hashref contains the following keys:
 
-'Nick', 'User', 'Host', 'Userhost', 'Hops', 'Real', 'Server' and, if
-applicable, 'IRCop'.
+B<'Nick'>, B<'User'>, B<'Host'>, B<'Userhost'>, B<'Hops'>, B<'Real'>,
+B<'Server'> and, if applicable, B<'IRCop'>.
 
 =head2 C<ban_mask>
 
@@ -1318,35 +1315,36 @@ the channel doesn't exist in the state or there are no matches.
 
 Expects a channel as a parameter. Returns a hashref containing the banlist
 if the channel is in the state, a false value if not. The hashref keys are the
-entries on the list, each with the keys 'SetBy' and 'SetAt'. These keys will
-hold the nick!hostmask of the user who set the entry (or just the nick if it's
-all the ircd gives us), and the time at which it was set respectively.
+entries on the list, each with the keys B<'SetBy'> and B<'SetAt'>. These keys
+will hold the nick!hostmask of the user who set the entry (or just the nick
+if it's all the ircd gives us), and the time at which it was set respectively.
 
 =head2 C<channel_invex_list>
 
 Expects a channel as a parameter. Returns a hashref containing the invite
 exception list if the channel is in the state, a false value if not. The
-hashref keys are the entries on the list, each with the keys 'SetBy' and 'SetAt'.
-These keys will hold the nick!hostmask of the user who set the entry (or just
-the nick if it's all the ircd gives us), and the time at which it was set
-respectively.
+hashref keys are the entries on the list, each with the keys B<'SetBy'> and
+B<'SetAt'>. These keys will hold the nick!hostmask of the user who set the
+entry (or just the nick if it's all the ircd gives us), and the time at which
+it was set respectively.
 
 =head2 C<channel_except_list>
 
 Expects a channel as a parameter. Returns a hashref containing the ban
 exception list if the channel is in the state, a false value if not. The
-hashref keys are the entries on the list, each with the keys 'SetBy' and
-'SetAt'. These keys will hold the nick!hostmask of the user who set the entry
-(or just the nick if it's all the ircd gives us), and the time at which it was
-set respectively.
+hashref keys are the entries on the list, each with the keys B<'SetBy'> and
+B<'SetAt'>. These keys will hold the nick!hostmask of the user who set the
+entry (or just the nick if it's all the ircd gives us), and the time at which
+it was set respectively.
 
 =head2 C<channel_topic>
 
 Expects a channel as a parameter. Returns a hashref containing topic
 information if the channel is in the state, a false value if not. The hashref
-contains the following keys: 'Value', 'SetBy', 'SetAt'. These keys will hold
-the topic itself, the nick!hostmask of the user who set it (or just the nick
-if it's all the ircd gives us), and the time at which it was set respectively.
+contains the following keys: B<'Value'>, B<'SetBy'>, B<'SetAt'>. These keys
+will hold the topic itself, the nick!hostmask of the user who set it (or just
+the nick if it's all the ircd gives us), and the time at which it was set
+respectively.
 
 =head2 C<nick_channel_modes>
 
@@ -1356,107 +1354,108 @@ channel in the state, a false value will be returned.
 
 =head1 OUTPUT
 
-As well as all the usual L<POE::Component::IRC|POE::Component::IRC> 'irc_*'
+As well as all the usual L<POE::Component::IRC|POE::Component::IRC> C<irc_*>
 events, there are the following events you can register for:
 
 =head2 C<irc_away_sync_start>
 
 Sent whenever the component starts to synchronise the away statuses of channel
-members. ARG0 is the channel name. You will only receive this event if you
-specified a value for 'AwayPoll' in L<C<spawn>|POE::Component::IRC/"spawn">.
+members. C<ARG0> is the channel name. You will only receive this event if you
+specified a value for B<'AwayPoll'> in L<C<spawn>|POE::Component::IRC/"spawn">.
 
 =head2 C<irc_away_sync_end>
 
 Sent whenever the component has completed synchronising the away statuses of
-channel members. ARG0 is the channel name. You will only receive this event if
-you specified a value for 'AwayPoll' in L<C<spawn>|POE::Component::IRC/"spawn">.
+channel members. C<ARG0> is the channel name. You will only receive this event if
+you specified a value for B<'AwayPoll'> in L<C<spawn>|POE::Component::IRC/"spawn">.
 
 =head2 C<irc_chan_sync>
 
 Sent whenever the component has completed synchronising a channel that it has
-joined. ARG0 is the channel name and ARG1 is the time in seconds that the
-channel took to synchronise.
+joined. C<ARG0> is the channel name and C<ARG1> is the time in seconds that
+the channel took to synchronise.
 
 =head2 C<irc_chan_sync_invex>
 
 Sent whenever the component has completed synchronising a channel's INVEX
 (invite list). Usually triggered by the component being opped on a channel.
-ARG0 is the channel name.
+C<ARG0> is the channel name.
 
 =head2 C<irc_chan_sync_excepts>
 
 Sent whenever the component has completed synchronising a channel's EXCEPTS
 (ban exemption list). Usually triggered by the component being opped on a
-channel. ARG0 is the channel.
+channel. C<ARG0> is the channel.
 
 =head2 C<irc_nick_sync>
 
 Sent whenever the component has completed synchronising a user who has joined
-a channel the component is on. ARG0 is the user's nickname and ARG1 the channel
-they have joined.
+a channel the component is on. C<ARG0> is the user's nickname and C<ARG1> the
+channel they have joined.
 
 =head2 C<irc_chan_mode>
 
-This is almost identical to irc_mode, except that it's sent once for each
-individual mode with it's respective argument if it has one (ie. the banmask
-if it's +b or -b). However, this event is only sent for channel modes.
+This is almost identical to L<C<irc_mode>|POE::Component::IRC/"irc_mode">,
+except that it's sent once for each individual mode with it's respective
+argument if it has one (ie. the banmask if it's +b or -b). However, this
+event is only sent for channel modes.
 
 =head2 C<irc_user_mode>
 
-This is almost identical to irc_mode, except it is sent for each individual
-umode that is being set.
+This is almost identical to L<C<irc_mode>|POE::Component::IRC/"irc_mode">,
+except it is sent for each individual umode that is being set.
 
 =head2 C<irc_user_away>
 
-Sent when an IRC user sets his/her status to away. ARG0 is the nickname, ARG1
-is an arrayref of channel names that are common to the nickname and the
-component. You will only receive this event if you specified a value for
-'AwayPoll' in C<spawn>.
+Sent when an IRC user sets his/her status to away. C<ARG0> is the nickname,
+C<ARG1> is an arrayref of channel names that are common to the nickname
+and the component. You will only receive this event if you specified a value
+for B<'AwayPoll'> in L<C<spawn>|POE::Component::IRC/"spawn">.
 
 =head2 C<irc_user_back>
 
-Sent when an IRC user unsets his/her away status. ARG0 is the nickname, ARG1
-is an arrayref of channel names that are common to the nickname and the
-component. You will only receive this event if you specified a value for
-'AwayPoll' in L<C<spawn>|POE::Component::IRC/"spawn">.
+Sent when an IRC user unsets his/her away status. C<ARG0> is the nickname,
+C<ARG1> is an arrayref of channel names that are common to the nickname and
+the component. You will only receive this event if you specified a value for
+B<'AwayPoll'> in L<C<spawn>|POE::Component::IRC/"spawn">.
 
-The following two 'irc_*' events are the same as their
+The following two C<irc_*> events are the same as their
 L<POE::Component::IRC|POE::Component::IRC> counterparts, with the additional
 parameters:
 
 =head2 C<irc_quit>
 
-ARG2 contains an arrayref of channel names that are common to the quitting
+C<ARG2> contains an arrayref of channel names that are common to the quitting
 client and the component.
 
 =head2 C<irc_nick>
 
-ARG2 contains an arrayref of channel names that are common to the nick changing
-client and the component.
+C<ARG2> contains an arrayref of channel names that are common to the nick
+hanging client and the component.
 
 =head2 C<irc_kick>
 
-Additional parameter ARG4 contains the full nick!user@host of the kicked
+Additional parameter C<ARG4> contains the full nick!user@host of the kicked
 individual.
 
 =head1 CAVEATS
 
-The component gathers information by registering for 'irc_quit', 'irc_nick',
-'irc_join', 'irc_part', 'irc_mode', 'irc_kick' and various numeric replies.
+The component gathers information by registering for C<irc_quit>, C<irc_nick>,
+C<irc_join>, C<irc_part>, C<irc_mode>, C<irc_kick> and various numeric replies.
 When the component is asked to join a channel, when it joins it will issue
 'WHO #channel', 'MODE #channel', and 'MODE #channel b'. These will solicit
-between them the numerics, 'irc_352', 'irc_324' and 'irc_329', respectively.
+between them the numerics, C<irc_352>, C<irc_324> and C<irc_329>, respectively.
 When someone joins a channel the bot is on, it issues a 'WHO nick'. You may
 want to ignore these. 
 
 Currently, whenever the component sees a topic or channel list change, it will
-use C<time()> for the SetAt value and the full address of the user who set it
+use C<time> for the SetAt value and the full address of the user who set it
 for the SetBy value. When an ircd gives us its record of such changes, it will
 use its own time (obviously) and may only give us the nickname of the user,
-rather than their full address. Thus, if our C<time()> and the ircd's time do
+rather than their full address. Thus, if our C<time> and the ircd's time do
 not match, or the ircd uses the nickname only, ugly inconsistencies can develop.
-This leaves the SetAt and SetBy values inaccurate at best, and you should use
-them with this in mind (for now, at least).
+This leaves the B<'SetAt'> and B<'SetBy'> values inaccurate at best, and you
+should use them with this in mind (for now, at least).
 
 =head1 AUTHOR
 

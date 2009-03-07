@@ -2,12 +2,12 @@
 
 POE::Component::IRC::Cookbook::BasicBot - A basic IRC bot
 
-=head1 DESCRIPTION
+=head1 SYNOPSIS
 
 This a very basic bot that connects to IRC, joins a few channels, and announces
 its arrival.
 
-=head1 SYNOPSIS
+=head1 DESCRIPTION
 
 We start off quite simply:
 
@@ -50,7 +50,7 @@ for the C<irc_join> event, and connect to the IRC server.
      ));
 
      $irc->yield(register => 'join');
-     $irc->yield(connect => { });
+     $irc->yield('connect');
  }
 
 Now comes our C<irc_join> event handler. We send a message to the channel

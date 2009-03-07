@@ -2,13 +2,16 @@ package POE::Component::IRC::Plugin::BotCommand;
 
 use strict;
 use warnings;
+use Carp;
 use POE::Component::IRC::Common qw( parse_user );
 use POE::Component::IRC::Plugin qw( :ALL );
 
-our $VERSION = '1.1';
+our $VERSION = '6.02';
 
 sub new {
-    my ($package, %args) = @_;
+    my ($package) = shift;
+    croak "$package requires an even number of arguments" if @_ & 1;
+    my %args = @_;
     
     for my $cmd (keys %{ $args{Commands} }) {
         $args{Commands}->{lc $cmd} = delete $args{Commands}->{$cmd};
@@ -66,7 +69,7 @@ sub S_public {
     my $me = $irc->nick_name();
 
     if ($self->{Addressed}) {
-        return PCI_EAT_NONE if !(($what) = $what =~ m/^\s*\Q$me\E[\:\,\;\.\~]?\s*(.*)$/);
+        return PCI_EAT_NONE if !(($what) = $what =~ m/^\s*\Q$me\E[:,;.!?~]?\s*(.*)$/);
     }
     else {
         return PCI_EAT_NONE if $what !~ s/^$self->{Prefix}//;
@@ -111,8 +114,8 @@ __END__
 
 =head1 NAME
 
-POE::Component::IRC::Plugin::BotCommand - A PoCo-IRC plugin which makes it easy
-to handle commands issued to your bot.
+POE::Component::IRC::Plugin::BotCommand - A PoCo-IRC plugin which handles
+commands issued to your bot
 
 =head1 SYNOPSIS
 
@@ -209,21 +212,22 @@ available commands, and information on how to use them.
 
 Four optional arguments:
 
-'Commands', a hash reference, with your commands as keys, and usage information
+B<'Commands'>, a hash reference, with your commands as keys, and usage information
 as values. If the usage string contains newlines, the component will send one
 message for each line.
 
-'Addressed', requires users to address the bot by name in order
+B<'Addressed'>, requires users to address the bot by name in order
 to issue commands. Default is true.
 
-'Prefix', if 'Addressed' is false, all commands must be prefixed with this
+B<'Prefix'>, if B<'Addressed'> is false, all commands must be prefixed with this
 string. Default is '!'. You can set it to '' to allow bare commands.
 
-'Eat', set to true to make the plugin hide C<irc_public> events from other
-plugins if they contain a valid command. Default is false.
+B<'Eat'>, set to true to make the plugin hide
+C<irc_public|POE::Component::IRC/"irc_public"> events from other plugins if they
+contain a valid command. Default is false.
 
-Returns a plugin object suitable for feeding to L<POE::Component::IRC|POE::Component::IRC>'s
-plugin_add() method.
+Returns a plugin object suitable for feeding to
+L<POE::Component::IRC|POE::Component::IRC>'s C<plugin_add> method.
 
 =head2 C<add>
 
@@ -247,10 +251,10 @@ command names and the values being the usage strings.
 
 You will receive an event like this for every valid command issued. E.g. if
 'slap' were a valid command, you would receive an C<irc_botcmd_slap> event
-every time someone issued that command. ARG0 is the nick!hostmask of the user
-who issued the command. ARG1 is the name of the channel in which the command
-was issued. If the command was followed by any arguments, ARG2 will be a string
-containing them, otherwise ARG2 will be undefined.
+every time someone issued that command. C<ARG0> is the nick!hostmask of the
+user who issued the command. C<ARG1> is the name of the channel in which the
+command was issued. If the command was followed by any arguments, C<ARG2>
+will be a string containing them, otherwise C<ARG2> will be undefined.
 
 =head1 AUTHOR
 

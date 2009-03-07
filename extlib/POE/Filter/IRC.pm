@@ -6,7 +6,7 @@ use POE::Filter::Stackable;
 use POE::Filter::IRCD;
 use POE::Filter::IRC::Compat;
 
-our $VERSION = '5.1';
+our $VERSION = '6.02';
 
 sub new {
     my ($package, %opts) = @_;
@@ -24,7 +24,7 @@ __END__
 
 =head1 NAME
 
-POE::Filter::IRC -- A POE-based parser for the IRC protocol.
+POE::Filter::IRC -- A POE-based parser for the IRC protocol
 
 =head1 SYNOPSIS
 

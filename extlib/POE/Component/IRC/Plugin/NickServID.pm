@@ -2,13 +2,17 @@ package POE::Component::IRC::Plugin::NickServID;
 
 use strict;
 use warnings;
+use Carp;
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Component::IRC::Common qw( u_irc );
 
-our $VERSION = '1.2';
+our $VERSION = '6.02';
 
 sub new {
-    my ($package, %self) = @_;
+    my ($package) = shift;
+    croak "$package requires an even number of arguments" if @_ & 1;
+    my %self = @_;
+    
     die "$package requires a Password" if !defined $self{Password};
     return bless \%self, $package;
 }
@@ -16,7 +20,7 @@ sub new {
 sub PCI_register {
     my ($self, $irc) = @_;
     $self->{nick} = $irc->{nick};
-    $irc->plugin_register($self, 'SERVER', qw(001 nick));
+    $irc->plugin_register($self, 'SERVER', qw(004 nick));
     return 1;
 }
 
@@ -24,9 +28,16 @@ sub PCI_unregister {
     return 1;
 }
 
-sub S_001 {
+sub S_004 {
     my ($self, $irc) = splice @_, 0, 2;
-    $irc->yield(nickserv => "IDENTIFY $self->{Password}");
+    my $version = ${ $_[2] }->[1];
+
+    if ($version =~ /ratbox/i) {
+        $irc->yield(quote => "NS IDENTIFY $self->{Password}");
+    }
+    else {
+        $irc->yield(nickserv => "IDENTIFY $self->{Password}");
+    }
     return PCI_EAT_NONE;
 }
 
@@ -46,7 +57,7 @@ __END__
 =head1 NAME
 
 POE::Component::IRC::Plugin::NickServID - A PoCo-IRC plugin
-which identifies with FreeNode's NickServ when needed.
+which identifies with FreeNode's NickServ when needed
 
 =head1 SYNOPSIS
 

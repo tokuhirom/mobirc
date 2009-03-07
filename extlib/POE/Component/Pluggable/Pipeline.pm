@@ -3,12 +3,15 @@ package POE::Component::Pluggable::Pipeline;
 use strict;
 use warnings;
 use Carp;
+use Scalar::Util qw(weaken);
 use vars qw($VERSION);
 
-$VERSION = '1.10';
+$VERSION = '1.12';
 
 sub new {
   my ($package, $pluggable) = @_;
+
+  weaken( $pluggable );
 
   return bless {
     PLUGS => {},
@@ -29,7 +32,8 @@ sub push {
     push @{ $self->{PIPELINE} }, $plug;
     $self->{PLUGS}{$alias} = $plug;
     $self->{PLUGS}{$plug} = $alias;
-    $self->{OBJECT}->_pluggable_event("$self->{OBJECT}->{_pluggable_prefix}plugin_add" => $alias => $plug);
+    $self->{OBJECT}->_pluggable_event("$self->{OBJECT}->{_pluggable_prefix}plugin_add" => $alias => $plug)
+	if defined $self->{OBJECT};
     return scalar @{ $self->{PIPELINE} };
   }
   else { return }
@@ -46,7 +50,8 @@ sub pop {
   delete $self->{HANDLES}{$plug};
 
   $self->_unregister($alias, $plug);
-  $self->{OBJECT}->_pluggable_event("$self->{OBJECT}->{_pluggable_prefix}plugin_del" => $alias => $plug);
+  $self->{OBJECT}->_pluggable_event("$self->{OBJECT}->{_pluggable_prefix}plugin_del" => $alias => $plug)
+	if defined $self->{OBJECT};
 
   return wantarray ? ($plug, $alias) : $plug;
 }
@@ -62,7 +67,9 @@ sub unshift {
     unshift @{ $self->{PIPELINE} }, $plug;
     $self->{PLUGS}{$alias} = $plug;
     $self->{PLUGS}{$plug} = $alias;
-    $self->{OBJECT}->_pluggable_event("$self->{OBJECT}->{_pluggable_prefix}plugin_add" => $alias => $plug);
+    $self->{OBJECT}->_pluggable_event("$self->{OBJECT}->{_pluggable_prefix}plugin_add" => $alias => $plug)
+	if defined $self->{OBJECT};
+
     return scalar @{ $self->{PIPELINE} };
   }
   else { return }
@@ -81,7 +88,8 @@ sub shift {
   delete $self->{HANDLES}{$plug};
 
   $self->_unregister($alias, $plug);
-  $self->{OBJECT}->_pluggable_event("$self->{OBJECT}->{_pluggable_prefix}plugin_del" => $alias => $plug);
+  $self->{OBJECT}->_pluggable_event("$self->{OBJECT}->{_pluggable_prefix}plugin_del" => $alias => $plug)
+	if defined $self->{OBJECT};
 
   return wantarray ? ($plug, $alias) : $plug;
 }
@@ -100,7 +108,8 @@ sub replace {
   delete $self->{HANDLES}{$old_p};
   
   $self->_unregister($old_a, $old_p);
-  $self->{OBJECT}->_pluggable_event("$self->{OBJECT}->{_pluggable_prefix}plugin_del" => $old_a => $old_p);
+  $self->{OBJECT}->_pluggable_event("$self->{OBJECT}->{_pluggable_prefix}plugin_del" => $old_a => $old_p)
+	if defined $self->{OBJECT};
 
   $@ = "Plugin named '$new_a' already exists ($self->{PLUGS}{$new_a}", return
     if $self->{PLUGS}{$new_a};
@@ -115,7 +124,8 @@ sub replace {
       $_ = $new_p, last if $_ == $old_p;
     }
 
-    $self->{OBJECT}->_pluggable_event("$self->{OBJECT}->{_pluggable_prefix}plugin_add" => $new_a => $new_p);
+    $self->{OBJECT}->_pluggable_event("$self->{OBJECT}->{_pluggable_prefix}plugin_add" => $new_a => $new_p)
+	if defined $self->{OBJECT};
     return 1;
   }
   else { return }
@@ -142,7 +152,8 @@ sub remove {
   }
 
   $self->_unregister($old_a, $old_p);
-  $self->{OBJECT}->_pluggable_event("$self->{OBJECT}->{_pluggable_prefix}plugin_del" => $old_a => $old_p);
+  $self->{OBJECT}->_pluggable_event("$self->{OBJECT}->{_pluggable_prefix}plugin_del" => $old_a => $old_p)
+	if defined $self->{OBJECT};
 
   return wantarray ? ($old_p, $old_a) : $old_p;
 }
@@ -200,7 +211,8 @@ sub insert_before {
       ++$i;
     }
 
-    $self->{OBJECT}->_pluggable_event("$self->{OBJECT}->{_pluggable_prefix}plugin_add" => $new_a => $new_p);
+    $self->{OBJECT}->_pluggable_event("$self->{OBJECT}->{_pluggable_prefix}plugin_add" => $new_a => $new_p)
+	if defined $self->{OBJECT};
     return 1;
   }
   else { return }
@@ -231,7 +243,8 @@ sub insert_after {
       ++$i;
     }
 
-    $self->{OBJECT}->_pluggable_event("$self->{OBJECT}->{_pluggable_prefix}plugin_add" => $new_a => $new_p);
+    $self->{OBJECT}->_pluggable_event("$self->{OBJECT}->{_pluggable_prefix}plugin_add" => $new_a => $new_p)
+	if defined $self->{OBJECT};
     return 1;
   }
   else { return }
@@ -277,6 +290,7 @@ sub bump_down {
 
 sub _register {
   my ($self, $alias, $plug) = @_;
+  return unless defined $self->{OBJECT};
 
   my $return;
   my $sub = "$self->{OBJECT}->{_pluggable_reg_prefix}register";
@@ -288,6 +302,7 @@ sub _register {
 
 sub _unregister {
   my ($self, $alias, $plug) = @_;
+  return unless defined $self->{OBJECT};
 
   my $return;
   my $sub = "$self->{OBJECT}->{_pluggable_reg_prefix}unregister";

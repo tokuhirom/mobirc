@@ -2,12 +2,12 @@
 
 POE::Component::IRC::Cookbook::Resolver - A bot that can resolve DNS records
 
-=head1 DESCRIPTION
+=head1 SYNOPSIS
 
 This bot uses L<POE::Component::Client::DNS|POE::Component::Client::DNS>
 to DNS records for channel members.
 
-=head1 SYNOPSIS
+=head1 DESCRIPTION
 
  #!/usr/bin/env perl
 
@@ -49,7 +49,7 @@ to DNS records for channel members.
      $heap->{dns} = POE::Component::Client::DNS->spawn();
 
      $irc->yield(register => 'botcmd_resolve');
-     $irc->yield(connect => );
+     $irc->yield('connect');
      return;
  }
 

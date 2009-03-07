@@ -16,7 +16,7 @@ use POE;
 use POE::Component::IRC::Constants qw(:ALL);
 use base qw(POE::Component::IRC);
 
-our $VERSION = '1.4';
+our $VERSION = '6.02';
 
 sub _create {
     my $self = shift;
@@ -63,32 +63,10 @@ sub _create {
         voice
         );
 
-  my @lbot_commands = qw(
-        whoami
-        whois
-        chanlev
-        adduser
-        removeuser
-        showcommands
-        op
-        voice
-        invite
-        setinvite
-        clearinvite
-        recover
-        deopall
-        unbanall
-        clearchan
-        version
-        welcome
-        requestowner
-        );
 
   $self->{OBJECT_STATES_HASHREF}->{'qbot_' . $_} = '_qnet_bot_commands' for @qbot_commands;
-  $self->{OBJECT_STATES_HASHREF}->{'lbot_' . $_} = '_qnet_bot_commands' for @lbot_commands;
   $self->{server} = 'irc.quakenet.org';
   $self->{QBOT} = 'Q@Cserve.quakenet.org';
-  $self->{LBOT} = 'L@lightweight.quakenet.org';
 
   return 1;
 }
@@ -110,7 +88,7 @@ sub _qnet_bot_commands {
 sub service_bots {
     my ($self, %args) = @_;
 
-    for my $botname ( qw(QBOT LBOT) ) {
+    for my $botname ( qw(QBOT) ) {
         if ( defined ( $args{$botname} ) ) {
             $self->{$botname} = $args{$botname};
         }
@@ -124,7 +102,7 @@ __END__
 
 =head1 NAME
 
-POE::Component::IRC::Qnet - a fully event-driven IRC client module for Quakenet.
+POE::Component::IRC::Qnet - A fully event-driven IRC client module for Quakenet
 
 =head1 SYNOPSIS
 
@@ -177,8 +155,6 @@ POE::Component::IRC::Qnet - a fully event-driven IRC client module for Quakenet.
      # Lets authenticate with Quakenet's Q bot
      $kernel->post( $sender => qbot_auth => $qauth => $qpass );
 
-     # In any irc_* events SENDER will be the PoCo-IRC session
-     $kernel->post( $sender => join => $_ ) for @channels;
      return;
  }
 
@@ -201,7 +177,7 @@ POE::Component::IRC::Qnet - a fully event-driven IRC client module for Quakenet.
 
      for my $arg ( @$args ) {
          if (ref $arg eq 'ARRAY') {
-             push( @output, '[' . join(' ,', @$arg ) . ']' );
+             push( @output, '[' . join(', ', @$arg ) . ']' );
          }
          else {
              push ( @output, "'$arg'" );
@@ -219,23 +195,23 @@ documentation for L<POE::Component::IRC|POE::Component::IRC> for general usage.
 This document covers the extensions.
 
 The module provides a number of additional commands for communicating with the
-Quakenet service bots, Q and L.
+Quakenet service bot Q.
 
 =head1 METHODS
 
 =head2 C<service_bots>
 
-The component will query Q and L using their default names on Quakenet. If you
+The component will query Q its default name on Quakenet. If you
 wish to override these settings, use this method to configure them. 
 
- $irc->service_bots(QBOT => 'W@blah.network.net', LBOT => 'Z@blah.network.net');
+ $irc->service_bots(QBOT => 'W@blah.network.net');
 
 In most cases you shouldn't need to mess with these >;o)
 
 =head1 INPUT
 
 The Quakenet service bots accept input as PRIVMSG. This module provides a
-wrapper around the L<POE::Component::IRC|POE::Component::IRC> "privmsg" command.
+wrapper around the L<POE::Component::IRC> "privmsg" command.
 
 =head2 C<qbot_*>
 
@@ -244,13 +220,6 @@ the event.
 
  $kernel->post ('my client' => qbot_auth => $q_user => $q_pass);
 
-=head2 C<lbot_*>
-
-Send commands to the L bot. Pass additional command parameters as arguments to
-the event.
-
- $kernel->post ('my client' => lbot_chanlev => $channel);
-
 =head1 OUTPUT
 
 All output from the Quakenet service bots is sent as NOTICEs.
@@ -258,8 +227,8 @@ Use L<C<irc_notice>|POE::Component::IRC/"irc_notice"> to trap these.
 
 =head2 C<irc_whois>
 
-Has all the same hash keys in ARG1 as L<POE::Component::IRC|POE::Component::IRC>,
-with the addition of 'account', which contains the name of their Q auth account,
+Has all the same hash keys in C<ARG1> as L<POE::Component::IRC|POE::Component::IRC>,
+with the addition of B<'account'>, which contains the name of their Q auth account,
 if they have authed, or a false value if they haven't.
 
 =head1 BUGS
@@ -277,7 +246,7 @@ Dennis Taylor, <dennis@funkplanet.com>
 
 =head1 SEE ALSO
 
-L<POE::Component::IRC|POE::Component::IRC>
+L<POE::Component::IRC>
 
 L<http://www.quakenet.org/>
 

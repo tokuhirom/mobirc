@@ -2,13 +2,13 @@
 
 POE::Component::IRC::Cookbook::MegaHAL - A blabbering IRC bot
 
-=head1 DESCRIPTION
+=head1 SYNOPSIS
 
 This bot uses L<POE::Component::IRC::Plugin::MegaHAL|POE::Component::IRC::Plugin::MegaHAL>
 for most of its magic. As of yet, this recipe just contains a SYNOPSIS that is
 copied from its documentation.
 
-=head1 SYNOPSIS
+=head1 DESCRIPTION
 
  #!/usr/bin/env perl
  

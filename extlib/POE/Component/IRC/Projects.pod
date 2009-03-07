@@ -1,6 +1,7 @@
 =head1 NAME
 
-POE::Component::IRC::Projects - Listing of projects that use L<POE::Component::IRC>.
+POE::Component::IRC::Projects - A listing of projects that use
+L<POE::Component::IRC|POE::Component::IRC>
 
 =head1 SYNOPSIS
 
