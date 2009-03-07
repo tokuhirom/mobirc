@@ -1,7 +1,8 @@
 package HTTP::Engine::Types::Core;
-use strict;
-
-use MouseX::Types -declare => [qw/Interface Uri Header Handler/];
+use Any::Moose;
+use Any::Moose (
+    'X::Types' => [-declare => [qw/Interface Uri Header Handler/]],
+);
 
 use URI;
 use URI::WithBase;
@@ -11,7 +12,7 @@ use HTTP::Headers::Fast;
 do {
     role_type Interface, { role => "HTTP::Engine::Role::Interface" };
 
-    coerce Interface, from HashRef => via {
+    coerce Interface, from 'HashRef' => via {
         my $module  = $_->{module};
         my $plugins = $_->{plugins} || [];
         my $args    = $_->{args};
@@ -21,7 +22,7 @@ do {
             $module = join( '::', "HTTP", "Engine", "Interface", $module );
         }
 
-        Mouse::load_class($module);
+        Any::Moose::load_class($module);
 
         return $module->new(%$args);
     };
@@ -30,7 +31,7 @@ do {
 do {
     class_type Uri, { class => "URI::WithBase" };
 
-    coerce Uri, from Str => via {
+    coerce Uri, from 'Str' => via {
 
         # generate base uri
         my $uri  = URI->new($_);
@@ -50,13 +51,13 @@ do {
         where { $_->isa('HTTP::Headers::Fast') || $_->isa('HTTP::Headers') };
 
     coerce Header,
-        from ArrayRef => via { HTTP::Headers::Fast->new( @{$_} ) },
-        from HashRef  => via { HTTP::Headers::Fast->new( %{$_} ) };
+        from 'ArrayRef' => via { HTTP::Headers::Fast->new( @{$_} ) },
+        from 'HashRef'  => via { HTTP::Headers::Fast->new( %{$_} ) };
 };
 
 do {
     subtype Handler, as 'CodeRef';
-    coerce Handler, from Str => via { \&{$_} };
+    coerce Handler, from 'Str' => via { \&{$_} };
 };
 
 1;
@@ -69,7 +70,7 @@ HTTP::Engine::Types::Core - Core HTTP::Engine Types
 
 =head1 SYNOPSIS
 
-  use Mouse;
+  use Any::Moose;
   use HTTP::Engine::Types::Core qw( Interface );
 
   has 'interface' => (
@@ -87,6 +88,6 @@ Kazuhiro Osawa and HTTP::Engine Authors.
 
 =head1 SEE ALSO
 
-L<HTTP::Engine>, L<MouseX::Types>
+L<HTTP::Engine>, L<MouseX::Types>, L<MooseX::Types>
 
 =cut

@@ -1,7 +1,7 @@
 package HTTP::Engine::RequestBuilder::NoEnv;
-use Mouse;
+use Any::Moose;
 
-with $_ for qw(
+with qw(
     HTTP::Engine::Role::RequestBuilder::Standard
     HTTP::Engine::Role::RequestBuilder::HTTPBody
     HTTP::Engine::Role::RequestBuilder::NoEnv

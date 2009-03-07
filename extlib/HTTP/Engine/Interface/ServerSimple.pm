@@ -1,4 +1,5 @@
 package HTTP::Engine::Interface::ServerSimple;
+use Any::Moose;
 use HTTP::Engine::Interface
     builder => 'NoEnv',
     writer  => {
@@ -33,7 +34,7 @@ sub run {
     my $headers;
     my %setup;
     my $server;
-    $server = Mouse::Meta::Class
+    $server = any_moose('::Meta::Class')
         ->create_anon_class(
             superclasses => ['HTTP::Server::Simple'],
             methods => {

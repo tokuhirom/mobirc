@@ -1,5 +1,5 @@
 package HTTP::Engine::Role::RequestBuilder::Standard;
-use Mouse::Role;
+use Any::Moose '::Role';
 
 use Socket qw[AF_INET inet_aton];
 

@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 package HTTP::Engine::Role::RequestBuilder::HTTPBody;
-use Mouse::Role;
+use Any::Moose '::Role';
 
 with qw(
     HTTP::Engine::Role::RequestBuilder::ReadBody

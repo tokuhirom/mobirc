@@ -1,7 +1,7 @@
 package HTTP::Engine;
 use 5.00800;
-use Mouse;
-our $VERSION = '0.1.1';
+use Any::Moose;
+our $VERSION = '0.1.4';
 use HTTP::Engine::Request;
 use HTTP::Engine::Request::Upload;
 use HTTP::Engine::Response;
@@ -14,7 +14,7 @@ has 'interface' => (
     handles => [ qw(run) ],
 );
 
-no Mouse;
+no Any::Moose;
 $_->meta->make_immutable(inline_destructor => 1) for qw(
     HTTP::Engine::Request::Upload
     HTTP::Engine::Request
@@ -68,6 +68,10 @@ The specification is changed by the situation.
 
 I want to perform Async support. (AnyEvent? Danga::Socket? IO::Async?)
 
+=head3 0.1.4
+
+switched to L<Any::Moose>
+
 =head2 0.0.99_x
 
 It is an adjustment stage to the following version.
@@ -84,6 +88,10 @@ version over 0.0.13 is incompatible of version under 0.0.12.
 using L<HTTP::Engine::Compat> module if you want compatibility of version under 0.0.12.
 
 version 0.0.13 is unsupported of context and middleware.
+
+=head1 MIDDLEWARE
+
+Middleware can be used if you wish. Please see L<HTTP::Engine::Middleware>.
 
 =head1 DESCRIPTION
 
@@ -240,11 +248,16 @@ otsune
 
 gugod
 
+stevan
+
 =head1 SEE ALSO
 
+L<HTTP::Engine::Middleware>,
 L<HTTP::Engine::Compat>,
 L<HTTPEx::Declare>,
-L<Mouse>
+L<Any::Moose>,
+L<Mouse>,
+L<Moose>
 
 =head1 REPOSITORY
 

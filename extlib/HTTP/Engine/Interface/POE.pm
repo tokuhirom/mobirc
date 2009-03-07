@@ -1,6 +1,6 @@
 package HTTP::Engine::Interface::POE;
 our $CLIENT; ## no critic
-
+use Any::Moose;
 use HTTP::Engine::Interface
     builder => 'NoEnv',
     writer  =>  {
@@ -44,7 +44,7 @@ has alias => (
     isa      => 'Str | Undef',
 );
 
-my $filter = Mouse::Meta::Class->create(
+my $filter = any_moose('::Meta::Class')->create(
     'HTTP::Engine::Interface::POE::Filter',
     superclasses => ['POE::Filter::HTTPD'],
     methods => {

@@ -2,9 +2,25 @@ package HTTP::Engine::Interface::Test;
 use HTTP::Engine::Interface
     builder => 'NoEnv',
     writer  => {
-        finalize => sub {
-            my ( $self, $req, $res ) = @_;
-            $res->as_http_response;
+        attributes => {
+            output_body_buffer => {
+                is => 'rw',
+            },
+        },
+        around => {
+            finalize => sub {
+                my $next = shift;
+                my ( $self, $req, $res ) = @_;
+                $self->output_body_buffer('');
+                $next->(@_);
+                $res->body( $self->output_body_buffer );
+                $res->as_http_response;
+            },
+        },
+        output_header => sub {},
+        write => sub {
+            my($self, $buffer) = @_;
+            $self->output_body_buffer( $self->output_body_buffer . $buffer );
         },
     }
 ;

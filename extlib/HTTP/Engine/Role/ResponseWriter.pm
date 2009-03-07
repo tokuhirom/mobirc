@@ -1,5 +1,5 @@
 package HTTP::Engine::Role::ResponseWriter;
-use Mouse::Role;
+use Any::Moose '::Role';
 
 requires qw(finalize);
 

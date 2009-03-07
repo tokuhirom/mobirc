@@ -1,5 +1,5 @@
 package HTTP::Engine::Role::RequestBuilder::NoEnv;
-use Mouse::Role;
+use Any::Moose '::Role';
 
 # all of these will be passed to handle_request
 sub _build_uri             { die "explicit parameter(uri)"             }

@@ -1,5 +1,5 @@
 package HTTP::Engine::Role::Request;
-use Mouse::Role;
+use Any::Moose '::Role';
 
 requires qw(
     context

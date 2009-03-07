@@ -1,5 +1,5 @@
 package HTTP::Engine::Request::Upload;
-use Mouse;
+use Any::Moose;
 has filename => (
     is => 'ro',
 );
@@ -68,7 +68,7 @@ sub slurp {
     $content;
 }
 
-no Mouse;
+no Any::Moose;
 1;
 __END__
 

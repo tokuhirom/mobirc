@@ -1,5 +1,5 @@
 package HTTP::Engine::Role::ResponseWriter::OutputBody;
-use Mouse::Role;
+use Any::Moose '::Role';
 
 has chunk_size => (
     is      => 'ro',

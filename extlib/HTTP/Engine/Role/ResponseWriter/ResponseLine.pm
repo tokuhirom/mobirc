@@ -1,5 +1,5 @@
 package HTTP::Engine::Role::ResponseWriter::ResponseLine;
-use Mouse::Role;
+use Any::Moose '::Role';
 use HTTP::Status ();
 
 sub response_line {
