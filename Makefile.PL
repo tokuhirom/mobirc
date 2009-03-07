@@ -5,7 +5,7 @@ all_from 'lib/App/Mobirc.pm';
 license  'gpl';
 
 # Mouse.
-requires 'Mouse' => 0.16;
+requires 'Mouse' => 0.17;
 requires 'MouseX::Types' => 0.01;
 
 # http-engine
