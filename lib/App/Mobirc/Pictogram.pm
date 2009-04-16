@@ -3,6 +3,9 @@ use strict;
 use warnings;
 use base qw/Exporter/;
 our @EXPORT = qw/pictogram/;
+use HTTP::MobileAttribute plugins => [
+    'IS::DoCoMo', # is_foma
+];
 
 my $PICTMAP = {
     '0' => {
