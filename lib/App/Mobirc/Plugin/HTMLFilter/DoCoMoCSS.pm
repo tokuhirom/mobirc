@@ -40,7 +40,7 @@ hook 'html_filter' => sub {
             $element->attr('style', $style_attr);
         }
     }
-    $content = decode_utf8($tree->as_HTML);
+    $content = decode_utf8($tree->as_HTML('<>&'));
     $tree = $tree->delete;
 
     return ($req, $pict_unescape->());
