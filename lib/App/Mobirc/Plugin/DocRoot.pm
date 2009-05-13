@@ -74,7 +74,7 @@ hook html_filter => sub {
         }
     }
 
-    my $html = $tree->as_HTML(q[<>&"'{}], '    ');
+    my $html = $tree->as_HTML(q[<>&"'{}]);
     $tree = $tree->delete;
 
     return ($req, decode_utf8($html));
