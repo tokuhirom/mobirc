@@ -24,7 +24,12 @@ sub include {
     );
 }
 sub docroot {
-    (config->{global}->{root} || '/')
+    for my $plugin (@{ config->{plugin} }) {
+        if ($plugin->{module} eq "DocRoot") {
+            return ($plugin->{config}->{root} || '/');
+        }
+    }
+    return '/';
 }
 sub load_assets {
     my @path = @_;
