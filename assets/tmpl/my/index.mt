@@ -15,7 +15,7 @@
             <ol class="channels">
                 <? my $i = 0; for my $channel (server->channels_sorted) { next if (0 && !$channel->unread_lines && $i > 10); ?>
                     <li class="<?= $i % 2 ? 'even' : 'odd' ?>">
-                    <a class='channel' href="/my/channel?recent_mode=on&amp;channel=<?= $channel->name_urlsafe_encoded ?>">
+                    <a class='channel' href="/my/channel?channel=<?= $channel->name_urlsafe_encoded ?>">
                         <?= Text::VisualWidth::UTF8::width($channel->name) > 23 ? decode_utf8(Text::VisualWidth::UTF8::trim($channel->name, 22)) . '…': $channel->name?>
                         <span class='unread'><?= $channel->unread_lines ?></span>
                     </a>

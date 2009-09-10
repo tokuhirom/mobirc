@@ -4,12 +4,20 @@ if (form) {
     form.addEventListener("submit", function (e) {
         e.preventDefault();
 
-        var value = form.querySelector("input[name=msg]").value;
+        var input = form.querySelector("input[name=msg]");
+        input.disabled = true;
+        input.style.background = "#ccc";
+        
+        var img = document.createElement("img");
+        img.className = "loading";
+        img.src = docroot + "static/loading.gif";
+
+        form.appendChild(img);
 
         $.post(form.action, {
-            msg : value
+            msg : input.value
         }, function (data) {
-            location.reload();
+        //    location.reload();
         });
     }, false);
 }

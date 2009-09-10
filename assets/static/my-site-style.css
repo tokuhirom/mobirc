@@ -93,3 +93,8 @@ div.message div.body {
 	margin: 3px 0 0 0;
 }
 
+img.loading {
+	position: absolute;
+	top: 12px;
+	right: 10px;
+}
