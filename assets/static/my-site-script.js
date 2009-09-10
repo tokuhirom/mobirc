@@ -17,7 +17,7 @@ if (form) {
         $.post(form.action, {
             msg : input.value
         }, function (data) {
-        //    location.reload();
+            location.reload();
         });
     }, false);
 }
