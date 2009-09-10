@@ -46,6 +46,11 @@ has google_gwt => (
     isa => 'Bool',
 );
 
+has http_extract_image => (
+    is  => 'ro',
+    isa => 'Int',
+);
+
 hook message_body_filter => sub {
     my ( $self, $global_context, $text ) = @_;
 
@@ -113,6 +118,18 @@ sub process_http {
             $self->http_link_target,
             $link_string );
     }
+
+    if ( $self->http_extract_image && $encoded_uri =~ /(png|jpe?g|gif)$/) {
+        $out =
+        sprintf(
+            '<a href="%s" rel="nofollow" class="url" target="%s"><img src="http://mgw.hatena.ne.jp/?url=%s&amp;size=%s" alt="%s"/></a>',
+            $encoded_uri,
+            $self->http_link_target,
+            $encoded_uri,
+            $self->http_extract_image,
+            $link_string );
+    }
+
 
     if ( $self->au_pcsv ) {
         $out .=
