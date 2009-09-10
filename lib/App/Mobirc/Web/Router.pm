@@ -4,6 +4,11 @@ use warnings;
 use HTTPx::Dispatcher;
 
 connect ''                         => { controller => 'Root', action => 'index' };
+connect 'static/:filename'         => { controller => 'Static', action => 'deliver' };
+
+connect 'my/'                      => { controller => 'My', action => 'index' };
+connect 'my/:action'               => { controller => 'My', };
+
 connect 'ajax/'                    => { controller => 'Ajax',   action => 'base' };
 connect 'account/:action',         => { controller => 'Account' };
 connect 'mobile/'                  => { controller => 'Mobile',   action => 'index' };
@@ -13,6 +18,5 @@ connect 'iphone/'                  => { controller => 'IPhone', action => 'base'
 connect 'iphone/:action'           => { controller => 'IPhone', };
 connect 'ajax/:action'             => { controller => 'Ajax' };
 connect 'mobile/:action'           => { controller => 'Mobile' };
-connect 'static/:filename'         => { controller => 'Static', action => 'deliver' };
 
 1;

@@ -1,0 +1,89 @@
+
+
+html {
+	background: #000;
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	background: #fff;
+	width: 314px;
+	margin: 0;
+	padding: 0;
+
+	font-size: 16px;
+	font-family: sans-serif;
+}
+
+a:link {
+	text-decoration: none;
+}
+
+.even {
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#D9D9D9), to(#C2C2C2), color-stop(.6,#CCCCCC));
+}
+
+.odd {
+	background: #fff;
+}
+
+ol.channels {
+	margin: 0;
+	padding: 0;
+}
+
+ol.channels li {
+	margin: 0;
+	padding: 0;
+}
+
+ol.channels li a {
+	display: block;
+	position: relative;
+	font-weight: bold;
+	font-size: 20px;
+	padding: 15px;
+	color: #333;
+	text-shadow: 0 0 5px #999;
+	white-space: nowrap;
+}
+
+ol.channels li a span.unread {
+	position: absolute;
+	right: 20px;
+	top: 15px;
+}
+
+form div.input {
+	padding: 5px;
+}
+
+form div.input input.text {
+	width: 100%;
+}
+
+div.message {
+	font-size: 12px;
+	padding: 10px;
+	position: relative;
+}
+
+div.message span.time {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	font-weight: bold;
+	color: #666666;
+	text-shadow: 0 0 5px #999;
+}
+
+div.message span.who {
+	font-weight: bold;
+	color: #000000;
+	text-shadow: 0 0 5px #999;
+}
+
+div.message div.body {
+}
+
