@@ -85,5 +85,6 @@ div.message span.who {
 }
 
 div.message div.body {
+	margin: 3px 0 0 0;
 }
 
