@@ -13,7 +13,7 @@
         <div id="content">
             <? my $message     = param('msg') || ''; ?>
 
-            <form action='/my/channel?channel=<?= $channel->name_urlsafe_encoded?>' method='post'>
+            <form action='/my/channel?channel=<?= $channel->name_urlsafe_encoded?>' method='post' id="input">
                 <div class="input">
                     <input value="<?= $message ?>" type="text" name="msg" size="10" class="text" />
                 </div>
@@ -37,7 +37,9 @@
             </div>
             <?       $i++ } ?>
             <?       if ($recent_mode) { ?>
-            <a href="/my/channel?channel=<?= $channel->name_urlsafe_encoded ?>">more</a>
+            <div class="more">
+                <a href="/my/channel?channel=<?= $channel->name_urlsafe_encoded ?>">more</a>
+            </div>
             <?       } ?>
             <?    } else { ?>
             <p>no message here</p>
