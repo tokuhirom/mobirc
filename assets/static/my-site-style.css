@@ -10,7 +10,7 @@ body {
 	background: #fff;
 	width: 314px;
 	margin: 0;
-	padding: 0;
+	padding: 0 0 50px 0;
 
 	font-size: 16px;
 	font-family: sans-serif;
@@ -70,11 +70,12 @@ form div.input input.text {
 }
 
 div.message {
+	position: relative;
 	font-weight: bold;
 	font-size: 12px;
-	color: #666;
 	padding: 5px 10px;
-	position: relative;
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#222222), to(#000000), color-stop(.6,#111111));
+	color: #fff;
 }
 
 div.message span.time {
@@ -84,17 +85,8 @@ div.message span.time {
 	right: 10px;
 	font-weight: bold;
 	padding: 5px 0;
-	color: #666666;
+	color: #fff;
 	text-shadow: 0 0 5px #999;
-}
-
-div.message span.who {
-	font-weight: bold;
-	color: #000000;
-	text-shadow: 0 0 5px #999;
-	display: block;
-	margin: -10px 0 0 0;
-	padding: 5px 0;
 }
 
 div.message div.body img {
@@ -111,10 +103,28 @@ div.message.notice,
 div.message.public {
 	font-weight: normal;
 	padding: 10px;
+	background: #fff;
+}
+
+div.message.notice span.who,
+div.message.public span.who {
+	display: block;
+	font-weight: bold;
+	margin: -10px -10px 0 -10px;
+	padding: 5px 10px;
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#D9D9D9), to(#C2C2C2), color-stop(.6,#CCCCCC));
+	color: #000000;
+	text-shadow: 0 0 5px #999;
+}
+
+div.message.notice span.time,
+div.message.public span.time {
+	color: #666666;
 }
 
 div.message.public div.body ,
 div.message.notice div.body {
+	margin: 5px 0 0 0;
 	color: #000;
 }
 

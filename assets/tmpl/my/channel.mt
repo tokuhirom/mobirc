@@ -24,7 +24,7 @@
             <?    if (@{$channel->message_log}) { ?>
             <?       my $meth = $recent_mode ? 'recent_log' : 'message_log'; ?>
             <?       my $i = 0; for my $message (reverse $channel->$meth) { ?>
-            <div class="message <?= $i % 2 ? 'even' : 'odd' ?> <?= $message->class ?>">
+            <div class="message <?= $message->class ?>">
                 <span class="time">
                     <?= sprintf "%02d:%02d", $message->hour, $message->minute ?></span>
                 </span>

@@ -16,7 +16,7 @@
                 <? my $favorites = ' ' . join(' ', split /\s*,\s*/, lc config->{global}->{favorites}) . ' '; ?>
                 <? my $channels  = [ sort { -($favorites =~ quotemeta(lc $a->name)) <=> -($favorites =~ quotemeta(lc $b->name)) } server->channels_sorted ];
 
-                <? my $i = 0; for my $channel (@$channels) { next if (!param('all') && !$channel->unread_lines && $i > 10); ?>
+                <? my $i = 0; for my $channel (@$channels) { next if (!$channel->name || !param('all') && !$channel->unread_lines && $i > 10); ?>
                 <li class="<?= $i % 2 ? 'even' : 'odd' ?>">
                     <a class='channel' href="/my/channel?channel=<?= $channel->name_urlsafe_encoded ?>">
                         <?= Text::VisualWidth::UTF8::width($channel->name) > 23 ? decode_utf8(Text::VisualWidth::UTF8::trim($channel->name, 22)) . '…': $channel->name?>
