@@ -29,6 +29,7 @@ sub handler {
     my $req = shift;
 
     my $session = _create_session($req);
+    warn $req->uri->path;
 
     local $CONTEXT = App::Mobirc::Web::Context->new(req => $req, session => $session);
     my $res = _handler($req, $session);

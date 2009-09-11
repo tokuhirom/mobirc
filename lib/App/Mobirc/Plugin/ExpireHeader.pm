@@ -35,7 +35,7 @@ hook response_filter => sub {
         $res->header(Expires => DateTime::Format::HTTP->format_datetime(DateTime->now->add(years => 10)));
         $res->header(ETag => $etag);
 
-        if ($req->header('If-None-Match') eq $etag) {
+        if (($req->header('If-None-Match') || "") eq $etag) {
             $res->status(304);
             $res->body("");
         }
