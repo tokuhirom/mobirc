@@ -31,7 +31,7 @@
 
                 <? if ($message->who) { ?>
                 <span class="who <?= $message->who_class ?>">
-                    <?= $message->who ?> says
+                    <?= $message->who ?>
                 </span>
                 <? } ?>
 
