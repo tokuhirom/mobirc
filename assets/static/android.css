@@ -89,6 +89,10 @@ div.message span.time {
 	text-shadow: 0 0 5px #999;
 }
 
+div.message div.body {
+	margin: 0 50px 0 0;
+}
+
 div.message div.body img {
 	display: block;
 	margin: 5px auto;
