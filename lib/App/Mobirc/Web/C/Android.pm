@@ -1,4 +1,4 @@
-package App::Mobirc::Web::C::My;
+package App::Mobirc::Web::C::Android;
 use App::Mobirc::Web::C;
 use App::Mobirc::Util;
 use Encode;
@@ -62,7 +62,7 @@ sub dispatch_clear_all_unread {
         $channel->clear_unread;
     }
 
-    redirect('/my/');
+    redirect('/android/');
 }
 
 # topic on every channel

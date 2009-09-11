@@ -3,7 +3,7 @@
 <h1>mobirc</h1>
 <div class="TopMenu">
     <ul>
-        <? for (qw/mobile ajax mobile-ajax iphone my/) { ?>
+        <? for (qw/mobile ajax mobile-ajax iphone android/) { ?>
             <li><a href="/<?= $_ ?>/"><?= $_ ?></a></li>
         <? } ?>
     </ul>

@@ -6,14 +6,14 @@
         <meta name="robots" content="noindex,nofollow" />
         <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
         <script src="/static/jquery.js" type="text/javascript"></script>
-        <link rel="stylesheet" href="/static/my-site-style.css" type="text/css" />
+        <link rel="stylesheet" href="/static/android.css" type="text/css" />
         <title>Mobirc</title>
     </head>
     <body>
         <div id="content">
             <? my $message     = param('msg') || ''; ?>
 
-            <form action='/my/channel?channel=<?= $channel->name_urlsafe_encoded?>' method='post' id="input">
+            <form action='/android/channel?channel=<?= $channel->name_urlsafe_encoded?>' method='post' id="input">
                 <div class="input">
                     <input value="<?= $message ?>" type="text" name="msg" size="10" class="text" />
                 </div>
@@ -38,7 +38,7 @@
             <?       $i++ } ?>
             <?       if ($recent_mode) { ?>
             <div class="more">
-                <a href="/my/channel?channel=<?= $channel->name_urlsafe_encoded ?>">More…</a>
+                <a href="/android/channel?channel=<?= $channel->name_urlsafe_encoded ?>">More…</a>
             </div>
             <?       } ?>
             <?    } else { ?>
@@ -51,6 +51,6 @@
         <script type="text/javascript">
             var docroot = '<?= docroot() ?>';
         </script>
-        <script src="/static/my-site-script.js" type="text/javascript"></script>
+        <script src="/static/android.js" type="text/javascript"></script>
     </body>
 </html>

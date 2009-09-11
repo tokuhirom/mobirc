@@ -6,8 +6,8 @@ use HTTPx::Dispatcher;
 connect ''                         => { controller => 'Root', action => 'index' };
 connect 'static/:filename'         => { controller => 'Static', action => 'deliver' };
 
-connect 'my/'                      => { controller => 'My', action => 'index' };
-connect 'my/:action'               => { controller => 'My', };
+connect 'android/'                 => { controller => 'Android', action => 'index' };
+connect 'android/:action'          => { controller => 'Android', };
 
 connect 'ajax/'                    => { controller => 'Ajax',   action => 'base' };
 connect 'account/:action',         => { controller => 'Account' };
