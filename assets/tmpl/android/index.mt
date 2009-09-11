@@ -26,18 +26,24 @@
                 <? $i++ } ?>
 
                 <? if (!param('all')) { ?>
-                <li class="<?= $i % 2 ? 'even' : 'odd' ?>">
+                <li class="<?= $i++ % 2 ? 'even' : 'odd' ?>">
                     <a class='channel' href="/android/?all=1">
                         More…
                     </a>
                 </li>
                 <? } else { ?>
-                <li class="<?= $i % 2 ? 'even' : 'odd' ?>">
+                <li class="<?= $i++ % 2 ? 'even' : 'odd' ?>">
                     <a class='channel' href="/android/clear_all_unread">
                         Clear All Unread
                     </a>
                 </li>
                 <? } ?>
+
+                <li class="<?= $i++ % 2 ? 'even' : 'odd' ?>">
+                    <a class='channel' href="/android/">
+                        Reload
+                    </a>
+                </li>
             </ol>
         </div>
         <script type="text/javascript">
