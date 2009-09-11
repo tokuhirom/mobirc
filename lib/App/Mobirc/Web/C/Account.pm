@@ -4,6 +4,10 @@ use App::Mobirc::Util;
 use Encode;
 
 sub dispatch_login {
+    if (config->{global}->{nopassword}) {
+        session->set('authorized', 1);
+        return redirect(param('return') || '/');
+    }
     render();
 }
 
