@@ -17,7 +17,8 @@ if (form) {
         $.post(form.action, {
             msg : input.value
         }, function (data) {
-            location.reload();
+            input.value = "";
+            location.replace(location.href);
         });
     }, false);
 }
