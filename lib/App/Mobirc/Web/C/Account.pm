@@ -12,7 +12,7 @@ sub post_dispatch_login_password {
     if (my $pw = param('password')) {
         if ($pw eq config->{global}->{password}) {
             session->set('authorized', 1);
-            redirect('/');
+            redirect(param('return') || '/');
         } else {
             redirect('/account/login?invalid_password=1');
         }
