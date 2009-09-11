@@ -30,7 +30,9 @@
                 </span>
 
                 <? if ($message->who) { ?>
-                <span class="who <?= $message->who_class ?>"><?= $message->who ?></span>
+                <span class="who <?= $message->who_class ?>">
+                    <?= $message->who ?> says
+                </span>
                 <? } ?>
 
                 <div class="body"><?= encoded_string($message->html_body) ?></div>
