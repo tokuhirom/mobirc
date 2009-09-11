@@ -7,7 +7,7 @@
         <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
         <script src="/static/jquery.js" type="text/javascript"></script>
         <link rel="stylesheet" href="/static/android.css" type="text/css" />
-        <title>Mobirc</title>
+        <title><?= $channel->name ?></title>
     </head>
     <body>
         <div id="content">
