@@ -6,7 +6,10 @@ use MIME::Base64::URLSafe qw(urlsafe_b64decode);
 use JSON qw/encode_json/;
 
 sub dispatch_index {
-    render();
+    my $res = render();
+    $res->header('Cache-Control' => 'no-cache, no-store, must-revalidate');
+    $res->header('Pragma' => 'no-cache');
+    $res;
 }
 
 sub dispatch_channels {

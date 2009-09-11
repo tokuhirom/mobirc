@@ -3,7 +3,9 @@
 <html>
     <head>
         <meta http-equiv="Content-Type"  content="text/html; charset=UTF-8" />
-        <meta http-equiv="Cache-Control" content="max-age=0" />
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta http-equiv="Pragma" content="no-cache" />
+
         <meta name="robots" content="noindex,nofollow" />
         <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
         <script src="/static/jquery.js" type="text/javascript"></script>
