@@ -24,7 +24,7 @@
             <?    if (@{$channel->message_log}) { ?>
             <?       my $meth = $recent_mode ? 'recent_log' : 'message_log'; ?>
             <?       my $i = 0; for my $message (reverse $channel->$meth) { ?>
-            <div class="message <?= $i % 2 ? 'even' : 'odd' ?>">
+            <div class="message <?= $i % 2 ? 'even' : 'odd' ?> <?= $message->class ?>">
                 <span class="time">
                     <?= sprintf "%02d:%02d", $message->hour, $message->minute ?></span>
                 </span>
@@ -33,19 +33,19 @@
                 <span class="who <?= $message->who_class ?>"><?= $message->who ?></span>
                 <? } ?>
 
-                <div class="body <?= $message->class ?>"><?= encoded_string($message->html_body) ?></div>
+                <div class="body"><?= encoded_string($message->html_body) ?></div>
             </div>
             <?       $i++ } ?>
             <?       if ($recent_mode) { ?>
             <div class="more">
-                <a href="/my/channel?channel=<?= $channel->name_urlsafe_encoded ?>">more</a>
+                <a href="/my/channel?channel=<?= $channel->name_urlsafe_encoded ?>">More…</a>
             </div>
             <?       } ?>
             <?    } else { ?>
-            <p>no message here</p>
+            <p>No message here.</p>
             <?    } ?>
             <? } else { ?>
-            <p>no such channel.</p>
+            <p>No such channel.</p>
             <? } ?>
         </div>
         <script type="text/javascript">

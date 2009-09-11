@@ -14,6 +14,7 @@ body {
 
 	font-size: 16px;
 	font-family: sans-serif;
+	line-height: 1.66;
 }
 
 a:link {
@@ -69,16 +70,20 @@ form div.input input.text {
 }
 
 div.message {
+	font-weight: bold;
 	font-size: 12px;
-	padding: 10px;
+	color: #666;
+	padding: 5px 10px;
 	position: relative;
 }
 
 div.message span.time {
+	display: block;
 	position: absolute;
-	top: 10px;
+	top: 0;
 	right: 10px;
 	font-weight: bold;
+	padding: 5px 0;
 	color: #666666;
 	text-shadow: 0 0 5px #999;
 }
@@ -87,15 +92,30 @@ div.message span.who {
 	font-weight: bold;
 	color: #000000;
 	text-shadow: 0 0 5px #999;
-}
-
-div.message div.body {
-	margin: 3px 0 0 0;
+	display: block;
+	margin: -10px 0 0 0;
+	padding: 5px 0;
 }
 
 div.message div.body img {
 	display: block;
 	margin: 5px auto;
+}
+
+
+div.message.join ,
+div.message.leave {
+}
+
+div.message.notice,
+div.message.public {
+	font-weight: normal;
+	padding: 10px;
+}
+
+div.message.public div.body ,
+div.message.notice div.body {
+	color: #000;
 }
 
 img.loading {
