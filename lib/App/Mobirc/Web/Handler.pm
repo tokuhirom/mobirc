@@ -7,6 +7,7 @@ use HTTP::Session::State::Cookie;
 use HTTP::Session::State::GUID;
 use HTTP::Session::State::MobileAttributeID;
 use Module::Find;
+use URI::Escape;
 
 use App::Mobirc;
 use App::Mobirc::Util;
@@ -116,7 +117,7 @@ sub process_request_noauth {
             return HTTP::Engine::Response->new(
                 status => 302,
                 headers => {
-                    Location => '/account/login?return=' . $req->path
+                    Location => '/account/login?return=' . uri_escape($req->request_uri)
                 }
             );
         }
