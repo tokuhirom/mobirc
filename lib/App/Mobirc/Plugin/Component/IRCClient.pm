@@ -71,7 +71,29 @@ hook process_command => sub {
 
     my $irc_incode = $self->incode;
     if ( $command && $channel->name =~ /^[#*%]/ ) {
-        if ( $command =~ m{^/} ) {
+        if    ( $command =~ m{^/me(.*)} ) {
+            DEBUG "CTCP ACTION";
+            my $body = $1;
+
+            $poe_kernel->post(
+                'mobirc_irc',
+                ctcp => $channel->name => 'ACTION',
+                $body
+            );
+
+            $channel->add_message(
+                App::Mobirc::Model::Message->new(
+                    who => decode(
+                        $irc_incode,
+                        $poe_kernel->alias_resolve('irc_session')
+                            ->get_heap->{irc}->nick_name
+                    ),
+                    body  => $body,
+                    class => 'ctcp_action',
+                )
+            );
+        }
+        elsif ( $command =~ m{^/} ) {
             DEBUG "SENDING COMMAND";
             $command =~ s!^/!!g;
 
@@ -79,7 +101,7 @@ hook process_command => sub {
               map { encode( $irc_incode, $_ ) } split /\s+/,
               $command;
 
-            $poe_kernel->post( 'mobirc_irc', @args );
+              $poe_kernel->post( 'mobirc_irc', @args );
         }
         else {
             DEBUG "NORMAL PRIVMSG";
