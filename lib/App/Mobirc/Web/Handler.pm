@@ -30,13 +30,14 @@ sub handler {
     my $req = shift;
 
     my $session = _create_session($req);
-    warn $req->uri->path;
 
     local $CONTEXT = App::Mobirc::Web::Context->new(req => $req, session => $session);
     my $res = _handler($req, $session);
     global_context->run_hook('response_filter', $res);
     $session->response_filter( $res );
     $session->finalize();
+    
+    DEBUG sprintf("%03d: %s", $res->status, $req->uri->path);
     $res;
 }
 
