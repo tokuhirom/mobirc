@@ -44,7 +44,7 @@
                 <span class="time">
                     <? if (my ($id) = $message->body =~ m{\[([a-z]+)\]}) { ?>
                     <select class="operations">
-                        <option selected="selected"><?= $id ?></option>
+                        <option selected="selected" value="">♥♣</option>
                         <option value="/me fav <?= $id ?>">fav</option>
                     </select>
                     <? } ?>

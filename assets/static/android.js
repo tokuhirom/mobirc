@@ -28,6 +28,7 @@ if (form) {
         with ({select : selects[i]}) select.addEventListener("change", function (e) {
             input.value = select.value;
             input.focus();
+            scrollTo(0, 0);
         });
     }
 
