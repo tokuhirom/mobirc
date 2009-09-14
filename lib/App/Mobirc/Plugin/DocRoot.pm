@@ -66,11 +66,17 @@ hook html_filter => sub {
         }
     }
     for my $elem ($tree->findnodes('//link')) {
-        $elem->attr(href => $root . $elem->attr('href'));
+        if (my $uri = $elem->attr('href')) {
+            if ($uri =~ m{^/}) {
+                $elem->attr(href => $root . $uri);
+            }
+        }
     }
     for my $elem ($tree->findnodes('//script')) {
-        if ($elem->attr('src')) {
-            $elem->attr(src => $root . $elem->attr('src'));
+        if (my $uri = $elem->attr('src')) {
+            if ($uri =~ m{^/}) {
+                $elem->attr(src => $root . $elem->attr('src'));
+            }
         }
     }
 

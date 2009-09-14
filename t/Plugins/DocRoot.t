@@ -9,7 +9,8 @@ my $global_context = global_context();
 $global_context->load_plugin( {module => 'DocRoot', config => {root => '/foo/'}} );
 
 filters {
-    input => [qw/convert/],
+    input    => [qw/convert strip_spaces/],
+    expected => [qw/strip_spaces/],
 };
 
 sub convert {
@@ -21,6 +22,11 @@ sub convert {
     };
     ok Encode::is_utf8($html);
     $html;
+}
+
+sub strip_spaces {
+    s/\n\s*//g;
+    s/\n//g;
 }
 
 __END__
