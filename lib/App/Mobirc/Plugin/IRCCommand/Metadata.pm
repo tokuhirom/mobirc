@@ -5,21 +5,19 @@ use App::Mobirc::Util;
 use Encode;
 use JSON;
 
-hook on_irc_msg => sub {
-	my ($self, $global_context, $poe, $who, $targets, $msg) = @_;
+hook on_irc_notice => sub {
+	my ($self, $global_context, $poe, $who, $channel_name, $msg) = @_;
 
-	if ($targets->[0] =~ /^metadata$/) {
-		# find latest message
-		my $latest_message = [
-			sort {
-				$b->time <=> $a->time
-			}
-			map {
-				$_->message_log->[-1] || ()
-			}
-			$global_context->server->channels
-		]->[0];
+	if ($who eq "metadata") {
+		$channel_name = $channel_name->[0];
+		$channel_name = normalize_channel_name($channel_name);
+
+		my $channel = $global_context->server->get_channel($channel_name);
+		my $latest_message = $channel->message_log->[-1];
+
 		$latest_message->{metadata} = eval { decode_json($msg) };
+
+		return 1;
 	}
 
 }
