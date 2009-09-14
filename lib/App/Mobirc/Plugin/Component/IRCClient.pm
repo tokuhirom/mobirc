@@ -167,6 +167,7 @@ hook 'run_component' => sub {
             irc_ctcp_action => \&on_irc_ctcp_action,
             irc_kick        => \&on_irc_kick,
             irc_snotice     => \&on_irc_snotice,
+            irc_msg         => \&on_irc_msg,
 
             autoping => \&do_autoping,
             connect  => \&do_connect,
@@ -184,8 +185,29 @@ hook 'run_component' => sub {
 # -------------------------------------------------------------------------
 
 sub on_irc_default {
+    my $poe = sweet_args;
+    my ( $event, $args ) = _get_args($poe);
+
     DEBUG "ignore unknown event: $_[ARG0]";
+
+    if ( $poe->heap->{global_context}
+        ->run_hook_first( 'on_irc_default', $poe, $event, $args ) )
+    {
+        return;
+    }
 }
+
+sub on_irc_msg {
+    my $poe = sweet_args;
+    my ( $who, $targets, $msg ) = _get_args($poe);
+
+    if ( $poe->heap->{global_context}
+        ->run_hook_first( 'on_irc_msg', $poe, $who, $targets, $msg ) )
+    {
+        return;
+    }
+}
+
 
 sub on_irc_start {
     my $poe = sweet_args;

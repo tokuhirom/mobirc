@@ -6,6 +6,22 @@
         <meta name="robots" content="noindex,nofollow" />
         <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
         <script src="/static/jquery.js" type="text/javascript"></script>
+        <script type="text/javascript" src="http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+
+        <script type="text/javascript">
+        // <![CDATA[
+            Hatena.Star.SiteConfig = {
+              entryNodes: {
+                'div.message': {
+                    uri       : 'a.uri',
+                    title     : 'div.body',
+                    container : 'span.who'
+                }
+              }
+            };
+        // ]]>
+        </script>
+        
         <link rel="stylesheet" href="/static/android.css" type="text/css" />
         <title><?= $channel->name ?></title>
     </head>
@@ -32,6 +48,11 @@
                 <? if ($message->who) { ?>
                 <span class="who <?= $message->who_class ?>">
                     <?= $message->who ?>
+
+                    <? if ($message->{metadata} && $message->{metadata}->{uri}) { ?>
+                        <a href="<?= $message->{metadata}->{uri} ?>" class="uri">URI</a>
+                    <? } ?>
+
                 </span>
                 <? } ?>
 
