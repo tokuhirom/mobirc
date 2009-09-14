@@ -42,11 +42,18 @@
             <?       my $i = 0; for my $message (reverse $channel->$meth) { ?>
             <div class="message <?= $message->class ?>">
                 <span class="time">
+                    <? if (my ($id) = $message->body =~ m{\[([a-z]+)\]}) { ?>
+                    <select class="operations">
+                        <option selected="selected"><?= $id ?></option>
+                        <option value="/me fav <?= $id ?>">fav</option>
+                    </select>
+                    <? } ?>
+
                     <?= sprintf "%02d:%02d", $message->hour, $message->minute ?></span>
                 </span>
 
                 <? if ($message->who) { ?>
-                <span class="who <?= $message->who_class ?>">
+                <span class="who <?= $message->who_class ?>" onclick="document.getElementById('foo').click()">
                     <?= $message->who ?>
 
                     <? if ($message->{metadata} && $message->{metadata}->{uri}) { ?>
@@ -56,7 +63,9 @@
                 </span>
                 <? } ?>
 
-                <div class="body"><?= encoded_string($message->html_body) ?></div>
+                <div class="body">
+                    <?= encoded_string($message->html_body) ?>
+                </div>
             </div>
             <?       $i++ } ?>
             <?       if ($recent_mode) { ?>

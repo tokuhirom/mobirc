@@ -1,10 +1,11 @@
 
 var form = document.getElementById("input");
 if (form) {
+    var input = form.querySelector("input[name=msg]");
+
     form.addEventListener("submit", function (e) {
         e.preventDefault();
 
-        var input = form.querySelector("input[name=msg]");
         input.disabled = true;
         input.style.background = "#ccc";
         
@@ -21,6 +22,15 @@ if (form) {
             location.replace(location.href);
         });
     }, false);
+
+    var selects = document.querySelectorAll("select.operations");
+    for (var i = 0, len = selects.length; i < len; i++) {
+        with ({select : selects[i]}) select.addEventListener("change", function (e) {
+            input.value = select.value;
+            input.focus();
+        });
+    }
+
 }
 
 var more = document.querySelectorAll('div.more a');

@@ -128,6 +128,14 @@ div.message.public span.who {
 	text-shadow: 0 0 5px #333;
 }
 
+div.message.notice img.avatar ,
+div.message.public img.avatar {
+	float: right;
+	margin: 5px 0 5px 10px;
+	height: 32px;
+}
+
+
 div.message.notice span.time,
 div.message.public span.time {
 	color: #dddddd;
@@ -135,7 +143,14 @@ div.message.public span.time {
 
 div.message.public div.body ,
 div.message.notice div.body {
+	min-height: 32px;
 	margin: 5px 0 0 0;
+}
+
+select {
+	background: transparent;
+    border: none;
+    color: #ccc;
 }
 
 img.loading {
