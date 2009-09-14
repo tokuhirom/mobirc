@@ -8,7 +8,7 @@ use JSON;
 hook on_irc_msg => sub {
 	my ($self, $global_context, $poe, $who, $targets, $msg) = @_;
 
-	if ($targets->[0] =~ /\@metadata$/) {
+	if ($targets->[0] =~ /^metadata$/) {
 		# find latest message
 		my $latest_message = [
 			sort {
