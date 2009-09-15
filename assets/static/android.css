@@ -158,3 +158,32 @@ img.loading {
 	top: 12px;
 	right: 10px;
 }
+
+
+/* HatenaStar4Android */
+.hatena-star-star-container {
+	cursor: pointer;
+}
+
+.hatena-star-star {
+	display: inline-block !important;
+	width: 11px !important;
+	height: 10px !important;
+	background: url('http://s.hatena.ne.jp/images/star.gif') !important;
+}
+
+.hatena-star-star.temp {
+	background: url('http://s.hatena.ne.jp/images/star-temp.gif') !important;
+}
+.hatena-star-star.green {
+	background: url('http://s.hatena.ne.jp/images/star-green.gif') !important;
+}
+.hatena-star-star.red {
+	background: url('http://s.hatena.ne.jp/images/star-red.gif') !important;
+}
+.hatena-star-star.blue {
+	background: url('http://s.hatena.ne.jp/images/star-blue.gif') !important;
+}
+.hatena-star-star.purple {
+	background: url('http://s.hatena.ne.jp/images/star-purple.gif') !important;
+}

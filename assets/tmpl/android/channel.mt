@@ -6,7 +6,11 @@
         <meta name="robots" content="noindex,nofollow" />
         <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
         <script src="/static/jquery.js" type="text/javascript"></script>
+        <!--
         <script type="text/javascript" src="http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+        -->
+        <script type="text/javascript" src="http://cho45.stfuawsc.com/jsdeferred/jsdeferred.mini.js"></script>
+        <script type="text/javascript" src="/static/HatenaStar4Android.js"></script>
 
         <script type="text/javascript">
         // <![CDATA[
