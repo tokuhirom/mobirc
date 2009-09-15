@@ -7,7 +7,7 @@
         <meta http-equiv="Pragma" content="no-cache" />
 
         <meta name="robots" content="noindex,nofollow" />
-        <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+        <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
         <script src="/static/jquery.js" type="text/javascript"></script>
         <link rel="stylesheet" href="/static/android.css" type="text/css" />
         <title>Mobirc</title>

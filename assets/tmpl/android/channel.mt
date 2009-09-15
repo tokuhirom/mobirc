@@ -4,7 +4,7 @@
         <meta http-equiv="Content-Type"  content="text/html; charset=UTF-8" />
         <meta http-equiv="Cache-Control" content="max-age=0" />
         <meta name="robots" content="noindex,nofollow" />
-        <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+        <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
         <script src="/static/jquery.js" type="text/javascript"></script>
         <script type="text/javascript" src="http://s.hatena.ne.jp/js/HatenaStar.js"></script>
 
