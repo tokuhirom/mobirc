@@ -79,7 +79,7 @@
                 <a href="/android/channel?channel=<?= $channel->name_urlsafe_encoded ?>">More…</a>
             </div>
             <?       } else { ?>
-            <div class="<?= $i++ % 2 ? 'even' : 'odd' ?>">
+            <div class="pager">
                 <a class='channel' href="/android/channel?channel=<?= $channel->name_urlsafe_encoded ?>;page=<?= $page + 1 ?>">
                     More…
                 </a>

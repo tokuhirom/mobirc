@@ -149,8 +149,8 @@ div.message.notice div.body {
 
 select {
 	background: transparent;
-    border: none;
-    color: #ccc;
+	border: none;
+	color: #ccc;
 }
 
 img.loading {
@@ -159,6 +159,19 @@ img.loading {
 	right: 10px;
 }
 
+.pager {
+
+}
+
+.pager a {
+	text-align: right;
+	padding: 10px;
+	display: block;
+	font-weight: bold;
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#111111), to(#111111), color-stop(.6,#222222));
+	text-decoration: none;
+	color: #fff;
+}
 
 /* HatenaStar4Android */
 .hatena-star-star-container {
