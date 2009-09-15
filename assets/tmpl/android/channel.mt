@@ -32,6 +32,7 @@
     <body>
         <div id="content">
             <? my $message     = param('msg') || ''; ?>
+            <? my $page        = param('page') || 1; ?>
 
             <form action='/android/channel?channel=<?= $channel->name_urlsafe_encoded?>' method='post' id="input">
                 <div class="input">
@@ -43,7 +44,8 @@
             <? if ($channel) { ?>
             <?    if (@{$channel->message_log}) { ?>
             <?       my $meth = $recent_mode ? 'recent_log' : 'message_log'; ?>
-            <?       my $i = 0; for my $message (reverse $channel->$meth) { ?>
+            <?       my $log  = [ reverse $channel->$meth  ] ?>
+            <?       my $i = 0; for my $message (splice @$log, ($page - 1) * 10, 10) { ?>
             <div class="message <?= $message->class ?>">
                 <span class="time">
                     <? if (my ($id) = $message->body =~ m{\[([a-z]+)\]}) { ?>
@@ -75,6 +77,12 @@
             <?       if ($recent_mode) { ?>
             <div class="more">
                 <a href="/android/channel?channel=<?= $channel->name_urlsafe_encoded ?>">More…</a>
+            </div>
+            <?       } else { ?>
+            <div class="<?= $i++ % 2 ? 'even' : 'odd' ?>">
+                <a class='channel' href="/android/channel?channel=<?= $channel->name_urlsafe_encoded ?>;page=<?= $page + 1 ?>">
+                    More…
+                </a>
             </div>
             <?       } ?>
             <?    } else { ?>
