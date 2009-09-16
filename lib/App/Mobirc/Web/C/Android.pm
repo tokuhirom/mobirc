@@ -12,23 +12,32 @@ sub dispatch_index {
     $res;
 }
 
-sub dispatch_channels {
-    my $body = encode_json [
-        map {
-            +{
-                unread       => $_->unread_lines,
-                name         => $_->name,
-                encoded_name => $_->name_urlsafe_encoded,
-            }
-        }
-        server->channels
-    ];
+sub dispatch_channel {
+    my $channel_name = decode_urlsafe_encoded('channel');
+    DEBUG "show channel page: $channel_name";
 
-    HTTP::Engine::Response->new(
-        status       => 200,
-        content_type => 'application/json',
-        body         => $body,
+    my $channel = server->get_channel($channel_name);
+
+    my $res = render(
+        $channel,
+        context->run_hook('channel_page_option', $channel) || [],
     );
+
+    $channel->clear_unread;
+
+    return $res;
+}
+
+sub post_dispatch_channel {
+    my $channel_name = decode_urlsafe_encoded('channel');
+    my $message = param('msg');
+
+    DEBUG "POST MESSAGE $message";
+
+    my $channel = server->get_channel($channel_name);
+    $channel->post_command($message);
+
+    redirect(req->uri->path . "?channel=" . $channel->name_urlsafe_encoded);
 }
 
 # recent messages on every channel
@@ -92,34 +101,24 @@ sub decode_urlsafe_encoded {
     decode_utf8 urlsafe_b64decode(param($name));
 }
 
-sub dispatch_channel {
-    my $channel_name = decode_urlsafe_encoded('channel');
-    DEBUG "show channel page: $channel_name";
+sub dispatch_channels {
+    my $body = encode_json [
+        map {
+            +{
+                unread       => $_->unread_lines,
+                name         => $_->name,
+                encoded_name => $_->name_urlsafe_encoded,
+            }
+        }
+        server->channels
+    ];
 
-    my $channel = server->get_channel($channel_name);
-
-    my $res = render(
-        $channel,
-        context->run_hook('channel_page_option', $channel) || [],
+    HTTP::Engine::Response->new(
+        status       => 200,
+        content_type => 'application/json',
+        body         => $body,
     );
-
-    $channel->clear_unread;
-
-    return $res;
 }
-
-sub post_dispatch_channel {
-    my $channel_name = decode_urlsafe_encoded('channel');
-    my $message = param('msg');
-
-    DEBUG "POST MESSAGE $message";
-
-    my $channel = server->get_channel($channel_name);
-    $channel->post_command($message);
-
-    redirect(req->uri->path . "?channel=" . $channel->name_urlsafe_encoded);
-}
-
 
 1;
 __END__
