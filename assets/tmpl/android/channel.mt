@@ -1,4 +1,8 @@
-? my ($channel, $channel_page_option) = @_
+? use List::MoreUtils qw(any);
+? my ($channel, $channel_page_option) = @_;
+? my $msg     = param('msg') || '';
+? my $page    = param('page') || 1;
+
 <html>
     <head>
         <meta http-equiv="Content-Type"  content="text/html; charset=UTF-8" />
@@ -27,16 +31,13 @@
         </script>
         
         <link rel="stylesheet" href="/static/android.css" type="text/css" />
-        <title><?= $channel->name ?></title>
+        <title><?= $page > 1 ? "$page " : "" ?><?= $channel->name ?></title>
     </head>
     <body>
         <div id="content">
-            <? my $message     = param('msg') || ''; ?>
-            <? my $page        = param('page') || 1; ?>
-
             <form action='/android/channel?channel=<?= $channel->name_urlsafe_encoded?>' method='post' id="input">
                 <div class="input">
-                    <input value="<?= $message ?>" type="text" name="msg" size="10" class="text" />
+                    <input value="<?= $msg ?>" type="text" name="msg" size="10" class="text" />
                 </div>
             </form>
 
@@ -46,7 +47,8 @@
             <?       my $meth = $recent_mode ? 'recent_log' : 'message_log'; ?>
             <?       my $log  = [ reverse $channel->$meth  ] ?>
             <?       my $i = 0; for my $message (splice @$log, ($page - 1) * 10, 10) { ?>
-            <div class="message <?= $message->class ?>">
+            <?          my $is_new = any { $message eq $_ } $channel->recent_log; ?>
+            <div class="message <?= $message->class ?> <?=  $is_new ? 'new' : ''?>">
                 <span class="time">
                     <? if (my ($id) = $message->body =~ m{\[([a-z]+)\]}) { ?>
                     <select class="operations">
@@ -75,13 +77,22 @@
             </div>
             <?       $i++ } ?>
             <?       if ($recent_mode) { ?>
-            <div class="more">
-                <a href="/android/channel?channel=<?= $channel->name_urlsafe_encoded ?>">More…</a>
+            <div class="pager">
+                <div class="more">
+                    <a href="/android/channel?channel=<?= $channel->name_urlsafe_encoded ?>">
+                        More…
+                    </a>
+                </div>
             </div>
             <?       } else { ?>
             <div class="pager">
                 <a class='channel' href="/android/channel?channel=<?= $channel->name_urlsafe_encoded ?>;page=<?= $page + 1 ?>">
                     More…
+                </a>
+            </div>
+            <div class="pager">
+                <a class='back' href="/android/">
+                    ← Channel List
                 </a>
             </div>
             <?       } ?>

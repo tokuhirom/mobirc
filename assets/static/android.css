@@ -49,7 +49,6 @@ ol.channels li {
 	padding: 0;
 }
 
-div.more a ,
 ol.channels li a {
 	display: block;
 	position: relative;
@@ -91,6 +90,7 @@ div.message span.time {
 	right: 10px;
 	font-weight: bold;
 	padding: 5px 0;
+	margin: 0;
 	color: #fff;
 	text-shadow: 0 0 5px #999;
 }
@@ -128,6 +128,12 @@ div.message.public span.who {
 	text-shadow: 0 0 5px #333;
 }
 
+div.message.notice.new span.who,
+div.message.public.new span.who {
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#969696), to(#828282), color-stop(.6,#636363));
+	color: #000;
+}
+
 div.message.notice img.avatar ,
 div.message.public img.avatar {
 	float: right;
@@ -150,6 +156,9 @@ div.message.notice div.body {
 select {
 	background: transparent;
 	border: none;
+	outline: none;
+	margin: 0;
+	padding: 0;
 	color: #ccc;
 }
 
@@ -171,6 +180,10 @@ img.loading {
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#111111), to(#111111), color-stop(.6,#222222));
 	text-decoration: none;
 	color: #fff;
+}
+
+.pager a.back {
+	text-align: left;
 }
 
 /* HatenaStar4Android */
@@ -200,3 +213,4 @@ img.loading {
 .hatena-star-star.purple {
 	background: url('http://s.hatena.ne.jp/images/star-purple.gif') !important;
 }
+
