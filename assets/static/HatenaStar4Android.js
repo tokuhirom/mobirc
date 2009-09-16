@@ -5,12 +5,7 @@
  *  * スターコメント機能
  *  * カラースター機能
  *  * 引用スター機能
- * 
- * また、スマートフォン向けに以下の最適化戦略をとっている
- *
- *  * 対象エントリ数が多すぎることがないということを前提に処理の分割をしない
- *    * 一気に処理しきる
- *  * 実装的に
+ *  * クロスブラウザ対応
  *
  */
 
@@ -349,13 +344,7 @@ HatenaStar4Android.Entry.prototype = {
                         next(function (data) {
                             var info = data.entries[0];
                             var stars = info.stars;
-
-                            var pos = Ten.Geometry.getElementPosition(inner_star);
-                            pos.x -= 10;
-                            pos.y += 25;
-                            var scroll = Ten.Geometry.getScroll();
-                            var scr = new HatenaStar4Android.StarScreen();
-                            scr.showStars(stars, pos);
+                            // TODO: 展開：いいUIが思いつかない
                         }).
                         error(function (e) {
                             log(e)
