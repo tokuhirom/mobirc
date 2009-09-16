@@ -295,6 +295,7 @@ HatenaStar4Android.Entry = function (selector, entryNode) {
     if (!this.container) return;
     this.uri       = (entryNode.querySelector(sel.uri) || {}).href;
     this.title     = "";
+    if (!this.uri) return;
 
     this.initStarContainer();
 };
