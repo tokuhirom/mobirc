@@ -131,7 +131,7 @@ div.message.public span.who {
 div.message.notice.new span.who,
 div.message.public.new span.who {
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#969696), to(#828282), color-stop(.6,#636363));
-	color: #000;
+	color: #fff;
 }
 
 div.message.notice img.avatar ,
