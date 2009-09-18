@@ -46,7 +46,7 @@
             <?    if (@{$channel->message_log}) { ?>
             <?       my $meth = $recent_mode ? 'recent_log' : 'message_log'; ?>
             <?       my $log  = [ reverse $channel->$meth  ] ?>
-            <?       my $i = 0; for my $message (splice @$log, ($page - 1) * 10, 10) { ?>
+            <?       my $i = 0; for my $message (splice @$log, ($page - 1) * 25, 25) { ?>
             <?          my $is_new = any { $message eq $_ } $channel->recent_log; ?>
             <div class="message <?= $message->class ?> <?=  $is_new ? 'new' : ''?>">
                 <span class="time">
