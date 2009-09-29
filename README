@@ -11,7 +11,7 @@ mobirc is HTTP2IRC gateway.
 This application supports following environments:
 
     - Japanese mobile phones(docomo, softbank, ezweb, willcom)
-    - iPhone
+    - iPhone, Android
     - PC(Ajax)
 
 based on
