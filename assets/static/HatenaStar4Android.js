@@ -340,7 +340,7 @@ HatenaStar4Android.Entry.prototype = {
                     star_container.appendChild(inner_star);
 
                     inner_star.addEventListener("mouseup", function (e) {
-                        http.jsonp(Hatena.Star.BaseURL + "/entry.json", { uri : info.uri }).
+                        jsonp(Hatena.Star.BaseURL + "/entry.json", { uri : info.uri }).
                         next(function (data) {
                             var info = data.entries[0];
                             var stars = info.stars;
