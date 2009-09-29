@@ -34,20 +34,21 @@
         <title><?= $page > 1 ? "$page " : "" ?><?= $channel->name ?></title>
     </head>
     <body>
-        <div id="content">
-            <form action='/android/channel?channel=<?= $channel->name_urlsafe_encoded?>' method='post' id="input">
-                <div class="input">
-                    <input value="<?= $msg ?>" type="text" name="msg" size="10" class="text" />
-                </div>
-            </form>
+        <form action='/android/channel?channel=<?= $channel->name_urlsafe_encoded?>' method='post' id="input">
+            <div class="input">
+                <input value="<?= $msg ?>" type="text" name="msg" size="10" class="text" />
+            </div>
+        </form>
 
-            <? my $recent_mode = param('recent_mode'); ?>
-            <? if ($channel) { ?>
-            <?    if (@{$channel->message_log}) { ?>
-            <?       my $meth = $recent_mode ? 'recent_log' : 'message_log'; ?>
-            <?       my $log  = [ reverse $channel->$meth  ] ?>
-            <?       my $i = 0; for my $message (splice @$log, ($page - 1) * 25, 25) { ?>
-            <?          my $is_new = any { $message eq $_ } $channel->recent_log; ?>
+        <? my $recent_mode = param('recent_mode'); ?>
+        <? if ($channel) { ?>
+        <?    if (@{$channel->message_log}) { ?>
+        <?       my $meth = $recent_mode ? 'recent_log' : 'message_log'; ?>
+        <?       my $log  = [ reverse $channel->$meth  ] ?>
+
+        <div id="content">
+            <?   my $i = 0; for my $message (splice @$log, ($page - 1) * 25, 25) { ?>
+            <?      my $is_new = any { $message eq $_ } $channel->recent_log; ?>
             <div class="message <?= $message->class ?> <?=  $is_new ? 'new' : ''?>">
                 <span class="time">
                     <? if (my ($id) = $message->body =~ m{\[([a-z]+)\]}) { ?>
@@ -75,34 +76,36 @@
                     <?= encoded_string($message->html_body) ?>
                 </div>
             </div>
-            <?       $i++ } ?>
-            <?       if ($recent_mode) { ?>
-            <div class="pager">
-                <div class="more">
-                    <a href="/android/channel?channel=<?= $channel->name_urlsafe_encoded ?>">
-                        More…
-                    </a>
-                </div>
-            </div>
-            <?       } else { ?>
-            <div class="pager">
-                <a class='channel' href="/android/channel?channel=<?= $channel->name_urlsafe_encoded ?>;page=<?= $page + 1 ?>">
+            <?   $i++ } ?>
+        </div>
+
+        <?       if ($recent_mode) { ?>
+        <div class="pager">
+            <div class="more">
+                <a href="/android/channel?channel=<?= $channel->name_urlsafe_encoded ?>">
                     More…
                 </a>
             </div>
-            <div class="pager">
-                <a class='back' href="/android/">
-                    ← Channel List
-                </a>
-            </div>
-            <?       } ?>
-            <?    } else { ?>
-            <p>No message here.</p>
-            <?    } ?>
-            <? } else { ?>
-            <p>No such channel.</p>
-            <? } ?>
         </div>
+        <?       } else { ?>
+        <div class="pager">
+            <a class='channel' href="/android/channel?channel=<?= $channel->name_urlsafe_encoded ?>;page=<?= $page + 1 ?>" rel="next"[>
+                More…
+            </a>
+        </div>
+        <div class="pager">
+            <a class='back' href="/android/">
+                ← Channel List
+            </a>
+        </div>
+        <?       } ?>
+        <?    } else { ?>
+        <p>No message here.</p>
+        <?    } ?>
+        <? } else { ?>
+        <p>No such channel.</p>
+        <? } ?>
+
         <script type="text/javascript">
             var docroot = '<?= docroot() ?>';
         </script>
