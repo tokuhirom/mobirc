@@ -33,6 +33,7 @@ sub load {
 
     # set default vars.
     $config->{global}->{assets_dir}    ||= File::Spec->catfile( $FindBin::Bin, 'assets' );
+    $config->{global}->{recent_log_per_page} ||= 40;
 
     return $config;
 }
