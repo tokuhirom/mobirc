@@ -20,3 +20,4 @@ incode=utf-8
 [Component::HTTPD]
 port=5678
 
+[MessageBodyFilter::Clickable]
