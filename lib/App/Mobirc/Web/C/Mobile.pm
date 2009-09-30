@@ -94,7 +94,9 @@ sub post_dispatch_channel {
     my $channel = server->get_channel($channel_name);
     $channel->post_command($message);
 
-    redirect(req->uri->path . "?channel=" . $channel->name_urlsafe_encoded);
+    # t=time() is hack for fucking au phone.
+    # au phone doesn't clear the body of <input /> when redirect to same url
+    redirect(req->uri->path . "?channel=" . $channel->name_urlsafe_encoded . '&t=' . time());
 }
 
 1;
