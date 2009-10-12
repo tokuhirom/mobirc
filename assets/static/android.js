@@ -80,6 +80,7 @@ new function inputOperation () {
                 input.value = select.value;
                 input.focus();
                 scrollTo(0, 0);
+                form.submit();
             });
         }
     }
