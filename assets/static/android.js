@@ -1,51 +1,51 @@
 function http (opts) {
-	var d = Deferred();
-	var req = new XMLHttpRequest();
-	req.open(opts.method, opts.url, true);
-	if (opts.headers) {
-		for (var k in opts.headers) if (opts.headers.hasOwnProperty(k)) {
-			req.setRequestHeader(k, opts.headers[k]);
-		}
-	}
-	req.onreadystatechange = function () {
-		if (req.readyState == 4) d.call(req);
-	};
-	req.send(opts.data || null);
-	d.xhr = req;
-	return d;
+    var d = Deferred();
+    var req = new XMLHttpRequest();
+    req.open(opts.method, opts.url, true);
+    if (opts.headers) {
+        for (var k in opts.headers) if (opts.headers.hasOwnProperty(k)) {
+            req.setRequestHeader(k, opts.headers[k]);
+        }
+    }
+    req.onreadystatechange = function () {
+        if (req.readyState == 4) d.call(req);
+    };
+    req.send(opts.data || null);
+    d.xhr = req;
+    return d;
 }
 http.get   = function (url)       { return http({method:"get",  url:url}) };
 http.post  = function (url, data) { return http({method:"post", url:url, data:data, headers:{"Content-Type":"application/x-www-form-urlencoded"}}) };
 http.jsonp = function (url, params) {
-	if (!params) params = {};
+    if (!params) params = {};
 
-	var Global = (function () { return this })();
-	var d = Deferred();
-	var cbname = params["callback"];
-	if (!cbname) do {
-		cbname = "callback" + String(Math.random()).slice(2);
-	} while (typeof(Global[cbname]) != "undefined");
+    var Global = (function () { return this })();
+    var d = Deferred();
+    var cbname = params["callback"];
+    if (!cbname) do {
+        cbname = "callback" + String(Math.random()).slice(2);
+    } while (typeof(Global[cbname]) != "undefined");
 
-	params["callback"] = cbname;
+    params["callback"] = cbname;
 
-	url += (url.indexOf("?") == -1) ? "?" : "&";
+    url += (url.indexOf("?") == -1) ? "?" : "&";
 
-	for (var name in params) if (params.hasOwnProperty(name)) {
-		url = url + encodeURIComponent(name) + "=" + encodeURIComponent(params[name]) + "&";
-	}
+    for (var name in params) if (params.hasOwnProperty(name)) {
+        url = url + encodeURIComponent(name) + "=" + encodeURIComponent(params[name]) + "&";
+    }
 
-	var script = document.createElement('script');
-	script.type    = "text/javascript";
-	script.charset = "utf-8";
-	script.src     = url;
-	document.body.appendChild(script);
+    var script = document.createElement('script');
+    script.type    = "text/javascript";
+    script.charset = "utf-8";
+    script.src     = url;
+    document.body.appendChild(script);
 
-	Global[cbname] = function callback (data) {
-		delete Global[cbname];
-		document.body.removeChild(script);
-		d.call(data);
-	};
-	return d;
+    Global[cbname] = function callback (data) {
+        delete Global[cbname];
+        document.body.removeChild(script);
+        d.call(data);
+    };
+    return d;
 };
 
 
