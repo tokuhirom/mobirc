@@ -49,7 +49,136 @@ http.jsonp = function (url, params) {
 };
 
 
-new function InputOperation () {
+
+function createElementFromString (str, opts) {
+    if (!opts) opts = { data: {} };
+    if (!opts.data) opts.data = { };
+
+    var t, cur = opts.parent || document.createDocumentFragment(), root, stack = [cur];
+    while (str.length) {
+        if (str.indexOf("<") == 0) {
+            if ((t = str.match(/^\s*<(\/?[^\s>\/]+)([^>]+?)?(\/)?>/))) {
+                var tag = t[1], attrs = t[2], isempty = !!t[3];
+                if (tag.indexOf("/") == -1) {
+                    child = document.createElement(tag);
+                    if (attrs) attrs.replace(/([a-z]+)=(?:'([^']+)'|"([^"]+)")/gi,
+                        function (m, name, v1, v2) {
+                            var v = text(v1 || v2);
+                            if (name == "class") root && (root[v] = child), child.className = v;
+                            child.setAttribute(name, v);
+                        }
+                    );
+                    cur.appendChild(root ? child : (root = child));
+                    if (!isempty) {
+                        stack.push(cur);
+                        cur = child;
+                    }
+                } else cur = stack.pop();
+            } else throw("Parse Error: " + str);
+        } else {
+            if ((t = str.match(/^([^<]+)/))) cur.appendChild(document.createTextNode(text(t[0])));
+        }
+        str = str.substring(t[0].length);
+    }
+
+    function text (str) {
+        return str
+            .replace(/&(#(x)?)?([^;]+);/g, function (_, isNumRef, isHex, ref) {
+                return isNumRef ? String.fromCharCode(parseInt(ref, isHex ? 16 : 10)):
+                                  {"lt":"<","gt":"<","amp":"&"}[ref];
+            })
+            .replace(/#\{([^}]+)\}/g, function (_, name) {
+                return (typeof(opts.data[name]) == "undefined") ? _ : opts.data[name];
+            });
+    }
+
+    return root;
+}
+
+
+function getCurrentLocation (callback) {
+    var geo = navigator.geolocation || google.gears.factory.create('beta.geolocation');
+    var dialog = createElementFromString(
+        ['<div class="overlay">',
+            '<div class="content">',
+                '<span class="message">GPS Fixing...</span><input type="button" value="Cancel" class="cancel"/>',
+             '</div>',
+         '</div>'].join(''), {
+            parent: document.body
+        }
+    );
+
+    dialog.setAttribute('style', 'color: #fff; background: #000; opacity: 0.9; position: absolute; top: 0; left: 0;');
+    dialog.style.height = (document.documentElement.scrollHeight) + 'px';
+    dialog.style.width  = (document.documentElement.scrollWidth)  + 'px';
+
+    dialog.content.setAttribute('style', 'position: absolute; text-align: center; vertical-align: 50%; width: 100%;');
+    dialog.content.style.lineHeight = (window.innerHeight) + 'px';
+    dialog.content.style.top        = (window.pageYOffset) + 'px';
+
+    document.body.style.overflow = 'hidden';
+
+    var id = geo.watchPosition(
+        function (pos) {
+            geo.clearWatch(id);
+            callback(pos);
+            dialog.parentNode.removeChild(dialog);
+        },
+        function (e) {
+        },
+        {
+            enableHighAccuracy: true,
+            maximumAge: 0,
+            gearsLocationProviderUrls: []
+        }
+    );
+
+    dialog.cancel.addEventListener('click', function (e) {
+        document.body.style.overflow = 'visible';
+        geo.clearWatch(id);
+        dialog.parentNode.removeChild(dialog);
+    }, false);
+
+    dialog.cancel.focus();
+}
+
+
+new function PostOperations () {
+    var define = {
+        Post : function (form) {
+            form.submit();
+        },
+        Location : function (form, input) {
+            getCurrentLocation(function (pos) {
+                var lat = pos.coords.latitude;
+                var lon = pos.coords.longitude;
+                var q   = lat + ',+' + lon + (
+                    input.value ?
+                    '+' + '(' + encodeURIComponent(input.value) + ')':
+                    ''
+                );
+                var uri = 'http://maps.google.co.jp/maps?q=' + q + '&iwloc=A&hl=ja';
+                input.value += " " + uri;
+                form.submit();
+            });
+        }
+    };
+
+    var form = document.getElementById("input");
+    if (form) {
+        var input = form.querySelector("input[name=msg]");
+        var select = document.querySelector("select.post");
+        select.addEventListener("change", function (e) {
+            var fun = define[select.value];
+            try {
+                if (fun) fun(form, input);
+            } catch (e) { alert(e) }
+            select.selectedIndex = 0;
+        }, false);
+    }
+};
+
+new function LineOperation () {
     var form = document.getElementById("input");
     if (form) {
         var input = form.querySelector("input[name=msg]");
@@ -81,7 +210,7 @@ new function InputOperation () {
                 input.focus();
                 scrollTo(0, 0);
                 form.submit();
-            });
+            }, false);
         }
     }
 };
@@ -130,6 +259,5 @@ new function HistoryControl () {
         more[i].href = 'javascript:location.replace("'+href+'")';
     }
 };
-
 
 

@@ -14,6 +14,7 @@
         <script type="text/javascript" src="http://s.hatena.ne.jp/js/HatenaStar.js"></script>
         -->
         <script type="text/javascript" src="http://cho45.stfuawsc.com/jsdeferred/jsdeferred.mini.js"></script>
+        <script type="text/javascript" src="http://code.google.com/intl/ja/apis/gears/gears_init.js"></script>
         <script type="text/javascript" src="/static/HatenaStar4Android.js"></script>
 
         <script type="text/javascript">
@@ -38,6 +39,11 @@
             <div class="input">
                 <input value="<?= $msg ?>" type="text" name="msg" size="10" class="text" />
             </div>
+            <select class="post">
+                <option selected="selected" value="">▼</option>
+                <option value="Post">Post</option>
+                <option value="Location">Location</option>
+            </select>
         </form>
 
         <? my $recent_mode = param('recent_mode'); ?>

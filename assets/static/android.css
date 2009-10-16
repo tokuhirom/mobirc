@@ -8,6 +8,7 @@ html {
 }
 
 body {
+	position: relative;
 	background: #000;
 	color: #fff;
 	width: 314px;
@@ -68,11 +69,29 @@ ol.channels li a span.unread {
 
 form div.input {
 	padding: 5px;
+	margin: 0 30px 0 0;
 }
 
 form div.input input.text {
 	width: 100%;
 }
+
+form select.post {
+	position: absolute;
+	top: 0;
+	right: 5px;
+	width: 25px;
+	height: 24px;
+	margin: 7px 0;;
+	padding: 0 5px;
+	outline: none;
+	border: 1px solid #000;
+	background: #999;
+	color: #fff;
+	text-align: center;
+	-webkit-appearance: none;
+}
+
 
 div.message {
 	position: relative;
@@ -154,12 +173,16 @@ div.message.notice div.body {
 }
 
 select {
-	background: transparent;
-	border: none;
-	outline: none;
+}
+
+select.operations {
 	margin: 0;
 	padding: 0;
+	border: none;
+	outline: none;
+	background: transparent;
 	color: #ccc;
+	-webkit-appearance: button;
 }
 
 img.loading {
