@@ -49,7 +49,7 @@ http.jsonp = function (url, params) {
 };
 
 
-new function inputOperation () {
+new function InputOperation () {
     var form = document.getElementById("input");
     if (form) {
         var input = form.querySelector("input[name=msg]");
@@ -86,7 +86,7 @@ new function inputOperation () {
     }
 };
 
-new function pager () {
+new function Pager () {
     var loading = false;
 
     var content  = document.getElementById('content');
@@ -123,10 +123,13 @@ new function pager () {
 };
 
 
-new function historyControl () {
+new function HistoryControl () {
     var more = document.querySelectorAll('div.more a');
     for (var i = 0, len = more.length; i < len; i++) {
         var href = more[i].href;
         more[i].href = 'javascript:location.replace("'+href+'")';
     }
 };
+
+
+
