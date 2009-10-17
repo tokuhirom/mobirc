@@ -4,6 +4,7 @@ use strict;
 use App::Mobirc::Plugin;
 use URI::Find;
 use URI::Escape;
+use URI::QueryParam;
 use HTML::Entities;
 use App::Mobirc::Util;
 @URI::tel::ISA = qw( URI );
@@ -49,6 +50,16 @@ has google_gwt => (
 has http_extract_image => (
     is  => 'ro',
     isa => 'Int',
+);
+
+has http_extract_map => (
+    is  => 'ro',
+    isa => 'Int',
+);
+
+has http_google_maps_api_key => (
+    is  => 'ro',
+    isa => 'Str',
 );
 
 hook message_body_filter => sub {
@@ -128,8 +139,17 @@ sub process_http {
             $encoded_uri,
             $self->http_extract_image,
             $link_string );
+    } elsif
+       ( $self->http_extract_map && $uri->host =~ /maps?\.google(?:\.co\.jp|\.com)/ && $uri->path eq '/maps') {
+        my ($lat, $lon) = $uri->query_param('q') =~ /([+-]?\d+\.\d+)\s*,\s*([+-]?\d+\.\d+)/;
+        $out = 
+        sprintf(
+            '<a href="%s"><img src="http://maps.google.com/staticmap?markers=%s&amp;key=%s&amp;zoom=13&amp;maptype=mobile&amp;size=140x140&amp;sensor=false"/></a>',
+            $encoded_uri,
+            "$lat,$lon",
+            $self->http_google_maps_api_key,
+        )
     }
-
 
     if ( $self->au_pcsv ) {
         $out .=

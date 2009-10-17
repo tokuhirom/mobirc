@@ -124,3 +124,14 @@ conf:
   pocket_hatena: 0
   http_link_target: _top
 --- expected: <a href="http://d.hatena.ne.jp/hatenachan/" rel="nofollow" class="url" target="_top">http://d.hatena.ne.jp/hatenachan/</a>
+
+
+=== extract map
+--- input
+text: http://maps.google.co.jp/maps?q=34.97715353965759,+135.7739943265915+(%E6%9D%B1%E7%A6%8F%E5%AF%BA)&iwloc=A&hl=ja
+conf:
+  pocket_hatena: 0
+  http_extract_map: 1
+  http_google_maps_api_key: XXXX
+--- expected: <a href="http://maps.google.co.jp/maps?q=34.97715353965759,+135.7739943265915+(%E6%9D%B1%E7%A6%8F%E5%AF%BA)&amp;iwloc=A&amp;hl=ja"><img src="http://maps.google.com/staticmap?markers=34.97715353965759,135.7739943265915&amp;key=XXXX&amp;zoom=13&amp;maptype=mobile&amp;size=140x140&amp;sensor=false"/></a>
+
