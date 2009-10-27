@@ -153,8 +153,8 @@ new function PostOperations () {
                 var lat = pos.coords.latitude;
                 var lon = pos.coords.longitude;
                 var q   = lat + ',+' + lon + (
-                    input.value ?
-                    '+' + '(' + encodeURIComponent(input.value) + ')':
+//                    input.value ?
+//                    '+' + '(' + encodeURIComponent(input.value) + ')':
                     ''
                 );
                 var uri = 'http://maps.google.co.jp/maps?q=' + q + '&iwloc=A&hl=ja';
