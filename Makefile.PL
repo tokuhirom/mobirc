@@ -54,6 +54,10 @@ features(
         recommends('Glib', '0.4'),
         recommends('POE::Loop::Glib', '0.0034'),
     ],
+    'Android' => [
+        -default => 0,
+        recommends('Text::VisualWidth::UTF8' => '0.02'),
+    ],
 );
 
 tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t';
