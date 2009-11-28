@@ -56,6 +56,15 @@
                     $('#RefreshMenu').live('click', function() {
                         Mobirc.updateChannelList();
                     });
+                    $('#ClearAllUnread').live('click', function() {
+                        $.post(
+                            '/iphone2/clear_all_unread',
+                            '',
+                            function () {
+                                Mobirc.updateChannelList();
+                            }
+                        );
+                    });
                     Mobirc.updateChannelList();
                 }
             };

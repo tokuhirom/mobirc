@@ -54,4 +54,16 @@ sub dispatch_keyword {
     return $res;
 }
 
+sub dispatch_clear_all_unread {
+    for my $channel (server->channels) {
+        $channel->clear_unread;
+    }
+
+    HTTP::Engine::Response->new(
+        status       => 200,
+        content_type => 'text/plain',
+        body         => 'ok',
+    );
+}
+
 1;
