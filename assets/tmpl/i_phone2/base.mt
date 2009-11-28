@@ -45,6 +45,13 @@
                             $('#input').ajaxForm(function () {
                                 Mobirc.loadContent(channel);
                             });
+                            var x = ['click', 'tap'];
+                            for (i in x) {
+                                $('#goMenuButton').bind(x[i], function() {
+                                    Mobirc.updateChannelList();
+                                    return false;
+                                });
+                            }
                         }
                     );
                 },
@@ -89,12 +96,22 @@
     </head>
     <body>
         <div id="menu">
+            <h1>menu</h1>
             loading menu...<br />
             wait a minute...
         </div>
+
         <div id="contents">
         </div>
-        <div><span>mobirc - </span><span class="version"><?= $App::Mobirc::VERSION ?></span></div>
+
+        <div id="about">
+            <div class="toolbar">
+                <h1>about mobirc</h1>
+                <a class="button slideup" id="goMenuButton" href="#menu">Menu</a>
+            </div>
+            <span>mobirc version </span><span class="version"><?= $App::Mobirc::VERSION ?></span><br />
+            Maintained by tokuhirom<br />
+        </div>
 
         <?# TODO: move this part to Plugin::DocRoot ?>
         <script type="text/javascript">

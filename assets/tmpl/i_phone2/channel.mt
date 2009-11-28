@@ -3,6 +3,11 @@
 ? my $msg     = param('msg') || '';
 ? my $page    = param('page') || 1;
 
+<div class="toolbar">
+    <h1><?= $channel->name ?></h1>
+    <a class="button slideup" id="goMenuButton" href="#menu">Menu</a>
+</div>
+
 <form action='/iphone2/channel' method='post' id="input">
     <div class="input">
         <input type="hidden" name="channel" value="<?= $channel->name ?>" />
