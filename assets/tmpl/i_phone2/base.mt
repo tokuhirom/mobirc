@@ -27,6 +27,7 @@
             function ts() { return (new Date()).getTime(); }
             Mobirc = {
                 "updateChannelList": function () {
+                    $('#contents').hide();
                     $('#menu').load(
                         docroot + 'iphone2/menu?t=' + ts(),
                         '',
@@ -48,23 +49,31 @@
                     );
                 },
                 "initialize": function () {
-                    $('#menu .channel a').live('click', function () {
-                        var elem = $(this);
-                        Mobirc.loadContent(elem.text());
-                        return false;
-                    });
-                    $('#RefreshMenu').live('click', function() {
-                        Mobirc.updateChannelList();
-                    });
-                    $('#ClearAllUnread').live('click', function() {
-                        $.post(
-                            '/iphone2/clear_all_unread',
-                            '',
-                            function () {
-                                Mobirc.updateChannelList();
-                            }
-                        );
-                    });
+                    var i = function (e) {
+                        $('#menu .channel a').live(e, function () {
+                            var elem = $(this);
+                            Mobirc.loadContent(elem.text());
+                            return false;
+                        });
+                        $('#RefreshMenu').live(e, function() {
+                            Mobirc.updateChannelList();
+                        });
+                        $('#ClearAllUnread').live(e, function() {
+                            $.post(
+                                '/iphone2/clear_all_unread',
+                                '',
+                                function () {
+                                    Mobirc.updateChannelList();
+                                }
+                            );
+                        });
+                        $('#showChannelList').live(e, function() {
+                            Mobirc.updateChannelList();
+                            return false;
+                        });
+                    };
+                    i('click');
+                    i('tap');
                     Mobirc.updateChannelList();
                 }
             };

@@ -48,7 +48,7 @@
 </div>
 
 <div class="pager">
-    <a href="/iphone2/">
+    <a href="#main" id="showChannelList">
         ← Channel List
     </a>
 </div>
