@@ -69,3 +69,11 @@ controller: MobileAjax
 action: channels
 args: {}
 
+===
+--- input: /static/jqtouch/jqtouch.min.css
+--- expected
+controller: Static
+action: deliver
+args:
+  filename: jqtouch/jqtouch.min.css
+

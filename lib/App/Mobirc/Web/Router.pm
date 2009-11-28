@@ -16,6 +16,8 @@ connect 'mobile-ajax/'             => { controller => 'MobileAjax',   action => 
 connect 'mobile-ajax/:action'      => { controller => 'MobileAjax', };
 connect 'iphone/'                  => { controller => 'IPhone', action => 'base' };
 connect 'iphone/:action'           => { controller => 'IPhone', };
+connect 'iphone2/'                  => { controller => 'IPhone2', action => 'base' };
+connect 'iphone2/:action'           => { controller => 'IPhone2', };
 connect 'ajax/:action'             => { controller => 'Ajax' };
 connect 'mobile/:action'           => { controller => 'Mobile' };
 
