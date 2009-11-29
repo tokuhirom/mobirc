@@ -1,16 +1,13 @@
-# $Id: SocketFactory.pm 2352 2008-06-16 02:48:57Z rcaputo $
-
 package POE::Wheel::SocketFactory;
 
 use strict;
 
 use vars qw($VERSION);
-$VERSION = do {my($r)=(q$Revision: 2352 $=~/(\d+)/);sprintf"1.%04d",$r};
+$VERSION = '1.269'; # NOTE - Should be #.### (three decimal places)
 
 use Carp qw( carp croak );
 use Symbol qw( gensym );
 
-use POSIX qw(:fcntl_h);
 use Fcntl qw(F_GETFL F_SETFL O_NONBLOCK);
 use Errno qw(EWOULDBLOCK EADDRNOTAVAIL EINPROGRESS EADDRINUSE);
 use Socket qw(
@@ -22,6 +19,7 @@ use Socket qw(
 use IO::Handle ();
 use FileHandle ();
 use POE qw( Wheel );
+use base qw(POE::Wheel);
 
 sub CRIMSON_SCOPE_HACK ($) { 0 }
 sub DEBUG () { 0 }
@@ -1156,7 +1154,7 @@ __END__
 
 =head1 NAME
 
-POE::Wheel::SocketFactory - non-blocking socket creation and management
+POE::Wheel::SocketFactory - non-blocking socket creation
 
 =head1 SYNOPSIS
 
@@ -1187,7 +1185,7 @@ of this program.
         my $io_wheel = POE::Wheel::ReadWrite->new(
           Handle => $client_socket,
           InputEvent => "on_client_input",
-          FailureEvent => "on_client_error",
+          ErrorEvent => "on_client_error",
         );
         $_[HEAP]{client}{ $io_wheel->ID() } = $io_wheel;
       },
@@ -1601,3 +1599,4 @@ Please see L<POE> for more information about authors and contributors.
 =cut
 
 # rocco // vim: ts=2 sw=2 expandtab
+# TODO - Edit.

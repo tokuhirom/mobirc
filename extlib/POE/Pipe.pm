@@ -1,5 +1,3 @@
-# $Id: Pipe.pm 2332 2008-05-26 02:53:21Z rcaputo $
-
 # Common routines for POE::Pipe::OneWay and ::TwoWay.  This is meant
 # to be inherited.  This is ugly, messy code right now.  It fails
 # terribly upon the slightest error, which is generally bad.
@@ -9,7 +7,7 @@ package POE::Pipe;
 use strict;
 
 use vars qw($VERSION);
-$VERSION = do {my($r)=(q$Revision: 2332 $=~/(\d+)/);sprintf"1.%04d",$r};
+$VERSION = '1.269'; # NOTE - Should be #.### (three decimal places)
 
 use Symbol qw(gensym);
 use IO::Socket qw(
@@ -59,13 +57,21 @@ sub _shift_preference {
   shift @preference;
 }
 
-# Provide dummy constants for MSWin32, so things at least compile.
+# Provide dummy constants so things at least compile.  These constants
+# aren't used if we're RUNNING_IN_HELL, but Perl needs to see them.
 
 BEGIN {
-  eval 'F_GETFL';
-  if ($@) {
-    *F_GETFL = sub () { 0 };
-    *F_SETFL = sub () { 0 };
+  # older perls than 5.10 needs a kick in the arse to AUTOLOAD the constant...
+  eval "F_GETFL" if $] < 5.010;
+
+  if ( ! defined &Fcntl::F_GETFL ) {
+    if ( ! defined prototype "F_GETFL" ) {
+      *F_GETFL = sub { 0 };
+      *F_SETFL = sub { 0 };
+    } else {
+      *F_GETFL = sub () { 0 };
+      *F_SETFL = sub () { 0 };
+    }
   }
 }
 
@@ -281,3 +287,4 @@ modify it under the same terms as Perl itself.
 =cut
 
 # rocco // vim: ts=2 sw=2 expandtab
+# TODO - Edit.

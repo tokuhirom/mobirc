@@ -1,5 +1,3 @@
-# $Id: Reference.pm 2387 2008-07-05 18:01:55Z rcaputo $
-
 # Filter::Reference partial copyright 1998 Artur Bergman
 # <artur@vogon-solutions.com>.  Partial copyright 1999 Philip Gwyn.
 
@@ -9,7 +7,7 @@ use strict;
 use POE::Filter;
 
 use vars qw($VERSION @ISA);
-$VERSION = do {my($r)=(q$Revision: 2387 $=~/(\d+)/);sprintf"1.%04d",$r};
+$VERSION = '1.269'; # NOTE - Should be #.### (three decimal places)
 @ISA = qw(POE::Filter);
 
 use Carp qw(carp croak);
@@ -397,3 +395,4 @@ Please see L<POE> for more information about authors and contributors.
 =cut
 
 # rocco // vim: ts=2 sw=2 expandtab
+# TODO - Edit.

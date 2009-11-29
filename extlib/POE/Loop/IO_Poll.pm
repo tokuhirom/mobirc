@@ -1,5 +1,3 @@
-# $Id: IO_Poll.pm 2355 2008-06-20 02:31:51Z rcaputo $
-
 # IO::Poll event loop bridge for POE::Kernel.  The theory is that this
 # will be faster for large scale applications.  This file is
 # contributed by Matt Sergeant (baud).
@@ -8,7 +6,7 @@
 package POE::Loop::IO_Poll;
 
 use vars qw($VERSION);
-$VERSION = do {my($r)=(q$Revision: 2355 $=~/(\d+)/);sprintf"1.%04d",$r};
+$VERSION = '1.269'; # NOTE - Should be #.### (three decimal places)
 
 # Include common signal handling.
 use POE::Loop::PerlSignals;
@@ -293,7 +291,8 @@ sub loop_do_timeslice {
           POE::Kernel::_trap("<fh> poll returned $hits (error): $!")
             unless ( ($! == EINPROGRESS) or
                      ($! == EWOULDBLOCK) or
-                     ($! == EINTR)
+                     ($! == EINTR) or
+                     ($! == 0)      # SIGNAL_PIPE strangeness
                    );
         }
       }
@@ -423,3 +422,4 @@ and POE's licensing.
 =cut
 
 # rocco // vim: ts=2 sw=2 expandtab
+# TODO - Edit.

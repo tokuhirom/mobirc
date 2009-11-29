@@ -1,11 +1,9 @@
-# $Id: Events.pm 2335 2008-05-26 18:39:15Z rcaputo $
-
 # Data and accessors to manage POE's events.
 
 package POE::Resource::Events;
 
 use vars qw($VERSION);
-$VERSION = do {my($r)=(q$Revision: 2335 $=~/(\d+)/);sprintf"1.%04d",$r};
+$VERSION = '1.269'; # NOTE - Should be #.### (three decimal places)
 
 # These methods are folded into POE::Kernel;
 package POE::Kernel;
@@ -232,9 +230,10 @@ sub _data_ev_dispatch_due {
 
   if (TRACE_EVENTS) {
     foreach ($kr_queue->peek_items(sub { 1 })) {
+      my @event = map { defined() ? $_ : "(undef)" } @{$_->[ITEM_PAYLOAD]};
       _warn(
         "<ev> time($_->[ITEM_PRIORITY]) id($_->[ITEM_ID]) ",
-        "event(@{$_->[ITEM_PAYLOAD]})\n"
+        "event(@event)\n"
       );
     }
   }
@@ -263,20 +262,9 @@ sub _data_ev_dispatch_due {
     $self->_data_ev_refcount_dec($event->[EV_SOURCE], $event->[EV_SESSION]);
     $self->_dispatch_event(@$event, $due_time, $id);
 
-    # An exception occurred.
-    if ($POE::Kernel::kr_exception) {
-
-      # Save the exception lexically, then clear it so it doesn't
-      # linger if run() is called again.
-      my $exception = $POE::Kernel::kr_exception;
-      $POE::Kernel::kr_exception = undef;
-
-      # Stop the kernel.  Cleans out all sessions.
-      POE::Kernel->stop();
-
-      # Throw the exception from way out here.
-      die $exception;
-    }
+    # Stop the system if an unhandled exception occurred.
+    # This wipes out all sessions and associated resources.
+    POE::Kernel->stop() if $POE::Kernel::kr_exception;
   }
 
   # Tell the event loop to wait for the next event, if there is one.
@@ -329,3 +317,4 @@ Please see L<POE> for more information about authors and contributors.
 =cut
 
 # rocco // vim: ts=2 sw=2 expandtab
+# TODO - Edit.

@@ -1,11 +1,9 @@
-# $Id: TCP.pm 2357 2008-06-20 17:41:54Z rcaputo $
-
 package POE::Component::Client::TCP;
 
 use strict;
 
 use vars qw($VERSION);
-$VERSION = do {my($r)=(q$Revision: 2357 $=~/(\d+)/);sprintf"1.%04d",$r};
+$VERSION = '1.269'; # NOTE - Should be #.### (three decimal places)
 
 use Carp qw(carp croak);
 use Errno qw(ETIMEDOUT ECONNRESET);
@@ -55,7 +53,8 @@ sub new {
   croak "Args must be an array reference" unless ref($args) eq "ARRAY";
 
   foreach (
-    qw( Connected ConnectError Disconnected ServerInput
+    qw(
+      PreConnect Connected ConnectError Disconnected ServerInput
       ServerError ServerFlushed Started
       ServerHigh ServerLow
     )
@@ -80,6 +79,7 @@ sub new {
   $high_event = sub { } unless defined $high_event;
   $low_event  = sub { } unless defined $low_event;
 
+  my $pre_conn_callback   = delete $param{PreConnect};
   my $conn_callback       = delete $param{Connected};
   my $conn_error_callback = delete $param{ConnectError};
   my $disc_callback       = delete $param{Disconnected};
@@ -133,11 +133,6 @@ sub new {
   $conn_error_callback = \&_default_error unless defined $conn_error_callback;
   $error_callback      = \&_default_io_error unless defined $error_callback;
 
-  $disc_callback  = sub {} unless defined $disc_callback;
-  $conn_callback  = sub {} unless defined $conn_callback;
-  $flush_callback = sub {} unless defined $flush_callback;
-  $start_callback = sub {} unless defined $start_callback;
-
   # Spawn the session that makes the connection and then interacts
   # with what was connected to.
 
@@ -149,7 +144,7 @@ sub new {
           $heap->{shutdown_on_error} = 1;
           $kernel->alias_set( $alias ) if defined $alias;
           $kernel->yield( 'reconnect' );
-          $start_callback->(@_);
+          $start_callback and $start_callback->(@_);
         },
 
         # To quiet ASSERT_STATES.
@@ -197,6 +192,15 @@ sub new {
           $kernel->alarm_remove( delete $heap->{ctimeout_id} )
             if exists $heap->{ctimeout_id};
 
+          # Pre-connected callback.
+          if ($pre_conn_callback) {
+            unless ($socket = $pre_conn_callback->(@_)) {
+              $heap->{connected} = 0;
+              # TODO - Error callback?  Disconnected callback?
+              return;
+            }
+          }
+
           # Ok to overwrite like this as of 0.13.
           $_[HEAP]->{server} = POE::Wheel::ReadWrite->new
             ( Handle       => $socket,
@@ -216,7 +220,7 @@ sub new {
             );
 
           $heap->{connected} = 1;
-          $conn_callback->(@_);
+          $conn_callback and $conn_callback->(@_);
         },
         got_high => $high_event,
         got_low => $low_event,
@@ -257,10 +261,10 @@ sub new {
 
         got_server_flush => sub {
           my $heap = $_[HEAP];
-          $flush_callback->(@_);
+          $flush_callback and $flush_callback->(@_);
           if ($heap->{shutdown}) {
             delete $heap->{server};
-            $disc_callback->(@_);
+            $disc_callback and $disc_callback->(@_);
           }
         },
 
@@ -279,7 +283,7 @@ sub new {
                 not $heap->{server}->get_driver_out_octets()
               ) {
                 delete $heap->{server};
-                $disc_callback->(@_);
+                $disc_callback and $disc_callback->(@_);
               }
             }
           }
@@ -346,380 +350,475 @@ POE::Component::Client::TCP - a simplified TCP client
 
 =head1 SYNOPSIS
 
-See L<POE::Wheel::SocketFactory/SYNOPSIS> for a lengthier version that
-allows the application more control over how the server works.
-
   #!perl
+
+  use warnings;
+  use strict;
 
   use POE qw(Component::Client::TCP);
 
-  # Basic usage.
+  POE::Component::Client::TCP->new(
+    RemoteAddress => "yahoo.com",
+    RemotePort    => 80,
+    Connected     => sub {
+      $_[HEAP]{server}->put("HEAD /");
+    },
+    ServerInput   => sub {
+      my $input = $_[ARG0];
+      print "from server: $input\n";
+    },
+  );
 
-  POE::Component::Client::TCP->new
-    ( RemoteAddress => "127.0.0.1",
-      RemotePort    => "chargen",
-      Domain        => AF_INET,        # Optional.
-      Alias         => $session_alias  # Optional.
-      ServerInput   => sub {
-        my $input = $_[ARG0];
-        print "from server: $input\n";
-      }
-    );
-
-  # Complete usage.
-
-  my $session_id = POE::Component::Client::TCP->new
-    ( RemoteAddress  => "127.0.0.1",
-      RemotePort     => "chargen",
-      BindAddress    => "127.0.0.1",
-      BindPort       => 8192,
-      Domain         => AF_INET,        # Optional.
-      Alias          => $session_alias  # Optional.
-      ConnectTimeout => 5,              # Seconds; optional.
-
-      SessionType   => "POE::Session::Abc",           # Optional.
-      SessionParams => [ options => { debug => 1 } ], # Optional.
-
-      Started        => \&handle_starting,   # Optional.
-      Args           => [ "arg0", "arg1" ],  # Optional.  Start args.
-
-      Connected      => \&handle_connect,
-      ConnectError   => \&handle_connect_error,
-      Disconnected   => \&handle_disconnect,
-
-      ServerInput    => \&handle_server_input,
-      ServerError    => \&handle_server_error,
-      ServerFlushed  => \&handle_server_flush,
-
-      Filter         => "POE::Filter::Something",
-
-      InlineStates   => { ... },
-      PackageStates  => [ ... ],
-      ObjectStates   => [ ... ],
-    );
-
-  # Sample callbacks.
-
-  sub handle_start {
-    my @args = @_[ARG0..$#_];
-  }
-
-  sub handle_connect {
-    my ($socket, $peer_address, $peer_port) = @_[ARG0, ARG1, ARG2];
-  }
-
-  sub handle_connect_error {
-    my ($syscall_name, $error_number, $error_string) = @_[ARG0, ARG1, ARG2];
-  }
-
-  sub handle_disconnect {
-    # no special parameters
-  }
-
-  sub handle_server_input {
-    my $input_record = $_[ARG0];
-  }
-
-  sub handle_server_error {
-    my ($syscall_name, $error_number, $error_string) = @_[ARG0, ARG1, ARG2];
-  }
-
-  sub handle_server_flush {
-    # no special parameters
-  }
-
-  # Reserved HEAP variables:
-
-  $heap->{server}    = ReadWrite wheel representing the server.
-  $heap->{shutdown}  = Shutdown flag (check to see if shutting down).
-  $heap->{connected} = Connected flag (check to see if session is connected).
-  $heap->{shutdown_on_error} = Automatically disconnect on error.
-
-  # Accepted public events.
-
-  $kernel->yield( "connect", $host, $port )  # connect to a new host/port
-  $kernel->yield( "reconnect" )  # reconnect to the previous host/port
-  $kernel->yield( "shutdown" )   # shut down a connection gracefully
-
-  # Responding to a server.
-
-  $heap->{server}->put(@things_to_send);
+  POE::Kernel->run();
+  exit;
 
 =head1 DESCRIPTION
 
-The TCP client component hides the steps needed to create a client
-using Wheel::SocketFactory and Wheel::ReadWrite.  The steps aren't
-many, but they're still tiresome after a while.
+POE::Component::Client::TCP implements a generic single-Session
+client.  Internally it uses POE::Wheel::SocketFactory to establish the
+connection and POE::Wheel::ReadWrite to interact with the server.
 
-POE::Component::Client::TCP supplies common defaults for most
-callbacks and handlers.  The authors hope that clients can be created
-with as little work as possible.
+POE::Component::Cilent::TCP is customized by providing callbacks for
+common operations.  Most operations have sensible default callbacks,
+so clients may be created with as little work as possible.
 
-=head1 Constructor Parameters
+=head2 Performance Considerations
 
-=over
+POE::Component::Client::TCP's ease of use comes at a price.  The
+component is generic, so it's not tuned to perform well for any
+particular application.
 
-=item new
+If performance is your primary goal, POE::Kernel's select_read() and
+select_write() perform about the same as IO::Select, but your code
+will be portable across every event loop POE supports.
 
-The new() method can accept quite a lot of parameters.  It will return
-the session ID of the acceptor session.  One must use callbacks to 
-check for errors rather than the return value of new().
+=head1 PUBLIC METHODS
 
-=back
+=head2 new
 
-=over 2
+new() starts a client based on POE::Component::Client::TCP and returns
+the ID of the session that will handle server interaction.
 
-=item Alias
+new() returns immediately, which may be before the client has
+established its connection.  It is always reliable to wait for the
+C<Connected> callback to fire before transmitting data to the server.
 
-Alias is an optional component alias.  It's used to post events to the
-TCP client component from other sessions.  The most common use of
-Alias is to allow a client component to receive "shutdown" and
-"reconnect" events from a user interface session.
+The client's constructor may seem to take a daunting number of
+parameters.  As with most POE modules, POE::Component::Client::TCP
+tries to do as much work in its constructor so that the runtime code
+path is relatively light.
 
-=item SessionType
+=head3 Constructor Parameters Affecting the Session
 
-SessionType specifies what type of sessions will be created within
-the TCP server.  It must be a scalar value.
+The parameters in this section affect how the client's POE::Session
+object will be created.
 
-  SessionType => "POE::Session::MultiDispatch"
+=head4 Alias
 
-SessionType is optional.  The component will supply a "POE::Session"
-type if none is specified.
+C<Alias> is an optional symbolic name for the client's Session.  It
+allows other sessions to post events to the client, such as "shutdown"
+and "reconnect".  The client itself may yield() these events, so an
+alias isn't usually needed.
 
-=item SessionParams
+  Alias => "client",
 
-Initialize parameters to be passed to the SessionType when it is created.
-This must be an array reference.
+=head4 Args
+
+C<Args> is optional.  When specified, it holds an ARRAYREF that will
+be passed to the C<Started> callback via @_[ARG0..$#_].  This allows a
+program to pass extra information into the client session.
+
+=head4 InlineStates
+
+C<InlineStates> is optional.  If specified, it must hold a hashref of
+named callbacks.  Its syntax is that of POE:Session->create()'s
+inline_states parameter.
+
+=head4 ObjectStates
+
+If C<ObjectStates> is specified, it must holde an arrayref of objects
+and the events they will handle.  The arrayref must follow the syntax
+for POE::Session->create()'s object_states parameter.
+
+=head4 PackageStates
+
+When the optional C<PackageStates> is set, it must hold an arrayref of
+package names and the events they will handle  The arrayref must
+follow the syntax for POE::Session->create()'s package_states
+parameter.
+
+=head4 PreConnect
+
+C<PreConnect> is called before C<Connected>, and it has different
+parameters: $_[ARG0] contains a copy of the socket before it's given
+to POE::Wheel::ReadWrite for management.  Most HEAP members are set,
+except of course $_[HEAP]{server}, because the POE::Wheel::ReadWrite
+object has not been created yet.  C<PreConnect> may enable SSL on the
+socket using POE::Component::SSLify.  C<PreConnect> must return a
+valid socket to complete the connection; the client will disconnect if
+anything else is returned.
+
+  PreConnect => {
+    # Convert the socket into an SSL socket.
+    my $socket = eval { Client_SSLify($_[ARG0]) };
+
+    # Disconnect if SSL failed.
+    return if $@;
+
+    # Return the SSL-ified socket.
+    return $socket;
+  }
+
+=head4 SessionType
+
+Each client is created within its own Session.  C<SessionType> names
+the class that will be used to create the session.
+
+  SessionType => "POE::Session::MultiDispatch",
+
+C<SessionType> is optional.  The component will use "POE::Session" by
+default.
+
+=head4 SessionParams
+
+C<SessionParams> specifies additional parameters that will be passed
+to the C<SessionType> constructor at creation time.  It must be an
+array reference.
 
   SessionParams => [ options => { debug => 1, trace => 1 } ],
 
-It is important to realize that some of the arguments to SessionHandler
-may get clobbered when defining them for your SessionHandler.  It is
-advised that you stick to defining arguments in the "options" hash such
-as trace and debug. See L<POE::Session> for an example list of options.
+Note: POE::Component::Client::TCP supplies its own POE::Session
+constructor parameters.  Conflicts between them and C<SessionParams>
+may cause the component to behave erratically.  To avoid such
+problems, please limit SessionParams to the C<options> hash.  See
+L<POE::Session> for an known options.
 
-=item Args ARRAYREF
+We may enable other options later.  Please let us know if you need
+something.
 
-Args passes the contents of a ARRAYREF to the Started callback via
-@_[ARG0..$#_].  It allows a program to pass extra information to the
-session created to handle the client connection.
+=head4 Started
 
-=item BindAddress
+C<Started> sets an optional callback that will be invoked within the
+client session has been started.  The callback's parameters are the
+usual for the session's _start handler.
 
-=item BindPort
+C<Args> may be used to pass additional parameters to C<Started>.  This
+can be used to bypass issues introduced by closures.  The values from
+C<Args> will be included in the @_[ARG0..$#_] parameters.
 
-Specifies the local interface address and/or port to bind to before
-connecting.  This allows the client's connection to come from specific
-addresses on a multi-host system.
+  sub handle_started {
+    my @args = @_[ARG0..$#_];
+    # ...
+  }
 
-=item ConnectError
+=head3 POE::Wheel::SocketFactory Constructor Parameters
 
-ConnectError is an optional callback to handle SocketFactory errors.
-These errors happen when a socket can't be created or connected to a
-remote host.
+The constructor parameters in this section affect how the client's
+POE::Wheel::SocketFactory object will be created.
 
-ConnectError must contain a subroutine reference.  The subroutine will
-be called as a SocketFactory error handler.  In addition to the usual
-POE event parameters, ARG0 will contain the name of the syscall that
-failed.  ARG1 will contain the numeric version of $! after the
-failure, and ARG2 will contain $!'s string version.
+=head4 BindAddress
+
+C<BindAddress> specifies the local interface address to bind to before
+starting to connect.  This allows the client to connect from a
+specific address when multiple interfaces are available.
+
+C<BindAddress> is optional.  If specified, its value will be passed
+directly to POE::Wheel::SocketFactory's BindAddress constructor
+parameter.
+
+=head4 BindPort
+
+C<BindPort> sets the local socket port that the client will be bound
+to before starting to connect.  This allows the client to connect from
+a specific port.
+
+It's not usually necessary to bind to a particular port, so
+C<BindPort> is optional and disabled by default.
+
+If specified, the value in C<BindPort> is passed directly to
+POE::Wheel::SocketFactory's own BindPort constructor parameter.
+
+=head4 ConnectError
+
+C<ConnectError> is an optional callback to handle errors from
+POE::Wheel::SocketFactory.  These errors happen when a socket can't be
+created or has trouble connecting to the remote host.
+
+The following parameters will be passed to the callback along with the
+usual POE event parameters:  $_[ARG0] will describe what was happening
+at the time of failure.  $_[ARG1] and $_[ARG2] will contain the
+numeric and string versions of $!, respectively.
 
 Depending on the nature of the error and the type of client, it may be
-useful to post a reconnect event from ConnectError's callback.
+useful to reconnect from the ConnectError callback.
 
-  sub handle_connect_error {
-    $_[KERNEL]->delay( reconnect => 60 );
+  ConnectError => sub {
+    my ($operation, $error_number, $error_string) = @_[ARG0..ARG2];
+    warn "$operation error $error_number occurred: $error_string";
+    if (error_is_recoverable($error_number)) {
+      $_[KERNEL]->delay( reconnect => 60 );
+    }
+    else {
+      $_[KERNEL]->yield("shutdown");
+    }
+  },
+
+POE::Component::Client::TCP will shut down after ConnectError if a
+reconnect isn't requested.
+
+=head4 Connected
+
+Connections are asynchronously set up and may take some time to
+complete.  C<Connected> is an optional callback that notifies a
+program when the connection has finally been made.
+
+This is an advisory callback that occurs after a POE::Wheel::ReadWrite
+object has already been created.  Programs should not need to create
+their own.
+
+C<Connected> is called in response to POE::Wheel::SocketFactory's
+SuccessEvent.  In addition to the usual POE event parameters, it
+includes a copy of the established socket handle in  $_[ARG0].
+POE::Component::Client::TCP will manage the socket, so an application
+should rarely need to save a copy of it.  $_[ARG1] and $_[ARG2]
+contain the remote address and port as returned from getpeername().
+
+  Connected => {
+    my ($socket, $peer_addr, $peer_port) = @_[ARG0, ARG1, ARG2];
+    # ...
   }
 
-The component will shut down after ConnectError if a reconnect isn't
-requested.
+See L</PreConnect> to modify the socket before it's given to
+POE::Wheel::ReadWrite.
 
-=item Connected
+=head4 ConnectTimeout
 
-Connected is an optional callback to notify a program that
-SocketFactory succeeded.  This is an advisory callback, and it should
-not create a ReadWrite wheel itself.  The component will handle
-setting up ReadWrite.
+C<ConnectTimeout> is the maximum number of seconds to wait for a
+connection to be established.  If it is omitted, Client::TCP relies on
+the operating system to abort stalled connect() calls.
 
-ARG0 contains a socket handle.  It's not necessary to save this under
-most circumstances.  ARG1 and ARG2 contain the peer address and port
-as returned from getpeername().
+The application will be notified of a timeout via the ConnectError
+callback.  In the case of a timeout, $_[ARG0] will contain "connect",
+and $_[ARG1] and $_[ARG2] will contain the numeric and string
+representations of the ETIMEDOUT error.
 
-=item ConnectTimeout
+=head4 Domain
 
-ConnectTimeout is the maximum time in seconds to wait for a connection
-to be established.  If it is omitted, Client::TCP relies on the
-operating system to abort stalled connect() calls.
+C<Domain> sets the address or protocol family within which to operate.
+The C<Domain> may be any value that POE::Wheel::SocketFactory
+supports.  AF_INET (Internet address space) is used by default.
 
-Upon a connection timeout, Client::TCP will send a ConnectError event.
-Its ARG0 will be 'connect' and ARG1 will be the POSIX/Errno ETIMEDOUT
-value.
+Use AF_INET6 for IPv6 support.  This constant is exported by Socket6,
+which must be loaded B<before> POE::Component::Client::TCP.
 
-=item Disconnected
+=head4 RemoteAddress
 
-Disconnected is an optional callback to notify a program that an
-established server connection has shut down.  It has no special
+C<RemoteAddress> contains the address of the server to connect to.  It
+is required and may contain a host name ("poe.perl.org"), a dot- or
+colon-separated numeric address (depending on the Domain), or a packed
+socket address.  Pretty much anything POE::Wheel::SocketFactory's
+RemoteAddress parameter does.
+
+=head4 RemotePort
+
+C<RemotePort> contains the port of the server to connect to.  It is
+required and may be a service name ("echo") or number (7).
+
+
+=head3 POE::Wheel::ReadWrite Constructor Parameters
+
+Parameters in this section control configuration of the client's
+POE::Wheel::ReadWrite object.
+
+=head4 Disconnected
+
+C<Disconnected> is an optional callback to notify a program that an
+established socket has been disconnected.  It includes no special
 parameters.
 
-For persistent connections, such as MUD bots or long-running services,
-a useful thing to do from a Disconnected handler is reconnect.  For
-example, this reconnects after waiting a minute:
+It may be useful to reconnect from the Disconnected callback, in the
+case of MUD bots or long-running services.  For example:
 
-  sub handle_disconnect {
+  Disconnected => sub {
     $_[KERNEL]->delay( reconnect => 60 );
-  }
+  },
 
-The component will shut down after disconnecting if a reconnect isn't
-requested.
+The component will shut down if the connection ceases without being
+reconnected.
 
-=item Domain
+=head4 Filter
 
-Specifies the domain within which communication will take place.  It
-selects the protocol family which should be used.  Currently supported
-values are AF_INET, AF_INET6, PF_INET or PF_INET6.  This parameter is
-optional and will default to AF_INET if omitted.
+C<Filter> specifies the type of POE::Filter object that will parse
+input from and serialize output to a server.  It may either be a
+scalar, an array reference, or a POE::Filter object.
 
-Note: AF_INET6 and PF_INET6 are supplied by the Socket6 module, which
-is available on the CPAN.  You must have Socket6 loaded before
-POE::Component::Server::TCP will create IPv6 sockets.
-
-=item Filter
-
-Filter specifies the type of filter that will parse input from a
-server.  It may either be a scalar, a list reference or a POE::Filter
-reference.
-If it is a scalar, it will contain a POE::Filter class name.
+If C<Filter> is a scalar, it will be expected to contain a POE::Filter
+class name:
 
   Filter => "POE::Filter::Line",
 
-If it is a list reference, the first item in the list will be a 
-POE::Filter class name, and the remaining items will be constructor
-parameters for the filter.  For example, this changes the line separator
-to a vertical pipe:
+C<Filter> is optional.  In most cases, the default "POE::Filter::Line"
+is fine.
+
+If C<Filter> is an array reference, the first item in the array will
+be treated as a POE::Filter class name.  The remaining items will be
+passed to the filter's constructor.  In this example, the vertical bar
+will be used as POE::Filter::Line's record terminator:
 
   Filter => [ "POE::Filter::Line", Literal => "|" ],
 
-If it is an object, it will be clone()'d.
+If it is an object, it will be cloned every time the client connects:
 
-  Filter => POE::Filter::Line->new()
+  Filter => POE::Filter::Line->new(Literal => "|"),
 
-Filter is optional.  The component will supply a "POE::Filter::Line"
-instance none is specified.  If you supply a different value for
-Filter, then you must also C<use> that filter class.
+Be sure to C<use> the appropriate POE::Filter subclass when specifying
+a C<Filter> other than the default.
 
-=item InlineStates
+=head4 ServerError
 
-InlineStates holds a hashref of inline coderefs to handle events.  The
-hashref is keyed on event name.  For more information, see
-POE::Session's create() method.
+C<ServerError> is an optional callback that will be invoked when an
+established server connection has encountered some kind of error.  It
+is triggered by POE::Wheel::ReadWrite's ErrorEvent.  By default, the
+component will log any errors to STDERR.  This may be suppressed by
+defining a quieter ServerError callback.
 
-=item ObjectStates
+As with C<ConnectError>, it is invoked with the customary error
+parameters:  $_[ARG0] will contain the name of the operation that
+failed.  $_[ARG1] and $_[ARG2] will hold the numeric and string forms
+of $!, respectively.
 
-ObjectStates holds a list reference of objects and the events they
-handle.  For more information, see POE::Session's create() method.
+Components usually disconnect on error.  POE::Component::Client::TCP
+will shut down if the socket disconnects without being reconnected.
 
-=item PackageStates
+=head4 ServerFlushed
 
-PackageStates holds a list reference of Perl package names and the
-events they handle.  For more information, see POE::Session's create()
-method.
-
-=item RemoteAddress
-
-RemoteAddress contains the address to connect to.  It is required and
-may be a host name ("poe.perl.org") a dotted quad ("127.0.0.1") or a
-packed socket address.
-
-=item RemotePort
-
-RemotePort contains the port to connect to.  It is required and may be
-a service name ("echo") or number (7).
-
-=item ServerError
-
-ServerError is an optional callback to notify a program that an
-established server connection has encountered some kind of error.
-Like with ConnectError, it accepts the traditional error parameters:
-
-ARG0 contains the name of the syscall that failed.  ARG1 contains the
-numeric failure code from $!.  ARG2 contains the string version of $!.
-
-The component will shut down after a server error if a reconnect isn't
-requested.
-
-=item ServerFlushed
-
-ServerFlushed is an optional callback to notify a program that
+C<ServerFlushed> is an optional callback to notify a program that
 ReadWrite's output buffers have completely flushed.  It has no special
 parameters.
 
 The component will shut down after a server flush if $heap->{shutdown}
 is set.
 
-=item ServerInput
+=head4 ServerInput
 
-ServerInput is a required callback.  It is called for each input
-record received from a server.  ARG0 contains the input record, the
-format of which is determined by POE::Component::Client::TCP's Filter
-parameter.
+C<ServerInput> is a requried callback.  It is called for each fully
+parsed input record received by POE::Wheel::ReadWrite.  $_[ARG0]
+contains the input record, the format of which is determined by the
+C<Filter> constructor parameter.
 
-The ServerInput function will stop being called when $heap->{shutdown}
-is true.
-
-=item Started
-
-Started is an optional callback.  It is called after Client::TCP is
-initialized but before a connection has been established.
-
-The Args parameter can be used to pass initialization values to the
-Started callback, eliminating the need for closures to get values into
-the component.  These values are included in the @_[ARG0..$#_]
-parameters.
-
-=back
+C<SeverInput> will stop being called when $_[HEAP]{shutdown} is true.
+The most reliable way to set the "shutdown" member is to call
+$_[KERNEL]->yield("shutdown").
 
 =head1 Public Events
 
-=over 2
+POE::Component::Client::TCP handles a small number of public "command"
+messages.  These may be posted into the client from an external
+session, or yielded from within the client.
 
-=item connect
+=head2 connect
 
-Cause the TCP client to connect, optionally providing a new RemoteHost
-and RemotePort (which will also be used for subsequent "reconnect"s.
-If the client is already connected, it will disconnect harshly, as
-with reconnect, discarding any pending input or output.
+The C<connect> event causes POE::Component::Client::TCP to begin
+connecting to a server.  It optionally includes a new RemoteHost and
+RemotePort, both of which will be used for subsequent reconnections.
 
-=item reconnect
+  $_[KERNEL]->post(alias => connect => "127.0.0.1", 80);
 
-Instruct the TCP client component to reconnect to the server.  If it's
-already connected, it will disconnect harshly, discarding any pending
-input or output data.
+If the client is already connected to a server, it will disconnect
+immediately before beginning the new connection procedure.  Buffered
+input and output will be lost.
 
-=item shutdown
+=head2 reconnect
 
-When a Client::TCP component receives a shutdown event, it initiates a
-graceful shutdown.  Any subsequent server input will be ignored, and
-any pending output data will be flushed.  Once the connection is dealt
-with, the component will self-destruct.
+The C<reconnect> command causes POE::Component::Client::TCP to
+immediately disconnect its current connection and begin reconnecting
+to its most recently set RemoteHost and RemotePort.  Any buffered
+input and output will be lost.
 
-=back
+=head2 shutdown
+
+The C<shutdown> command tells POE::Component::Client::TCP to flush its
+buffers, disconnect, and begin DESTROY procedures.
+
+All input will be discarded after receipt of "shutdown".  All pending
+output will be written to the server socket before disconnecting and
+destructing.
+
+=head1 Reserved Heap Members
+
+POE::Component::Client::TCP requires some heap space for its own
+bookkeeping.  The following members are used and should be used as
+directed, or with care.
+
+This sampe input handler is an example of most reserved heap members:
+
+  sub handle_input {
+    # Pending input from when we were connected.
+    return unless $_[HEAP]{connected};
+
+    # We've been shut down.
+    return if $_[HEAP]{shutdown};
+
+    my $input = $_[ARG0];
+    $_[HEAP]{server}->put("you sent: $input");
+  }
+
+=head2 server
+
+The read-only C<server> heap member contains the POE::Wheel object
+used to connect to or talk with the server.  While the component is
+connecting, C<server> will be a POE::Wheel::ReadWrite object.  After
+the connection has been made, it becomes a POE::Wheel::SocketFactory
+object.
+
+The most reliable way to avoid prematurely using C<server> is to first
+check the C<connected> reserved heap member.  See the example above.
+
+=head2 shutdown
+
+C<shutdown> is a read-only flag that tells the component it's shutting
+down.  It should only be by the C<shutdown> event, which does other
+cleanup.
+
+C<shutdown> may be checked to avoid starting new work during a
+client's shutting-down procedure.  See the example above.
+
+=head2 connected
+
+C<connected> is a read-only flag that indicates whether the component
+is currently connected.
+
+=head2 shutdown_on_error
+
+C<shutdown_on_error> is a read-only flag that governs the component's
+shutdown-on-error behavior.  When true, POE::Component::Client::TCP
+will automatically shutdown when it encounters an error.
 
 =head1 SEE ALSO
 
-POE::Component::Server::TCP, POE::Wheel::SocketFactory,
-POE::Wheel::ReadWrite, POE::Filter
+The SEE ALSO section in L<POE> contains a table of contents covering
+the entire POE distribution.
+
+L<POE::Component::Server::TCP> is the server-side counterpart to this
+module.
+
+This component uses and exposes features from L<POE::Filter>,
+L<POE::Wheel::SocketFactory>, and L<POE::Wheel::ReadWrite>.
+
+See L<POE::Wheel::SocketFactory/SYNOPSIS> for a more efficient but
+lower-level way to create clients and servers.
 
 =head1 CAVEATS
 
-This may not be suitable for complex client tasks.  After a point, it
-becomes easier to roll a custom client using POE::Wheel::SocketFactory
-and POE::Wheel::ReadWrite.
-
 This looks nothing like what Ann envisioned.
+
+POE::Component::Client::TCP is a generic client.  As such, it's not
+tuned for any particular task.  While it handles the common cases well
+and with a minimum of code, it may not be suitable for everything.
 
 =head1 AUTHORS & COPYRIGHTS
 
-POE::Component::Client::TCP is Copyright 2001-2006 by Rocco Caputo.
+POE::Component::Client::TCP is Copyright 2001-2009 by Rocco Caputo.
 All rights are reserved.  POE::Component::Client::TCP is free
 software, and it may be redistributed and/or modified under the same
 terms as Perl itself.
@@ -733,4 +832,4 @@ from Jos Boumans E<lt>kane@cpan.orgE<gt>.
 =cut
 
 # rocco // vim: ts=2 sw=2 expandtab
-# TODO - Redocument.
+# TODO - Edit.

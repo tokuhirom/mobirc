@@ -1,12 +1,10 @@
-# $Id: Stream.pm 2337 2008-05-27 07:09:15Z rcaputo $
-
 package POE::Filter::Stream;
 
 use strict;
 use POE::Filter;
 
 use vars qw($VERSION @ISA);
-$VERSION = do {my($r)=(q$Revision: 2337 $=~/(\d+)/);sprintf"1.%04d",$r};
+$VERSION = '1.269'; # NOTE - Should be #.### (three decimal places)
 @ISA = qw(POE::Filter);
 
 #------------------------------------------------------------------------------
@@ -128,3 +126,4 @@ Please see L<POE> for more information about authors and contributors.
 =cut
 
 # rocco // vim: ts=2 sw=2 expandtab
+# TODO - Edit.

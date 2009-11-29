@@ -1,11 +1,9 @@
-# $Id: Sessions.pm 2335 2008-05-26 18:39:15Z rcaputo $
-
 # Manage session data structures on behalf of POE::Kernel.
 
 package POE::Resource::Sessions;
 
 use vars qw($VERSION);
-$VERSION = do {my($r)=(q$Revision: 2335 $=~/(\d+)/);sprintf"1.%04d",$r};
+$VERSION = '1.269'; # NOTE - Should be #.### (three decimal places)
 
 # These methods are folded into POE::Kernel;
 package POE::Kernel;
@@ -175,6 +173,10 @@ sub _data_ses_free {
   $self->_data_extref_clear_session($session); # Remove all leftover extrefs.
   $self->_data_handle_clear_session($session); # Remove all leftover handles.
   $self->_data_ev_clear_session($session);     # Remove all leftover events.
+
+  if (TRACE_PROFILE) {
+    $self->_data_stat_clear_session($session);
+  }
 
   # Remove the session itself.
 
@@ -472,13 +474,13 @@ sub _data_ses_stop {
     $self->_dispatch_event(
       $parent, $self,
       EN_CHILD, ET_CHILD, [ CHILD_GAIN, $child ],
-      __FILE__, __LINE__, time(), -__LINE__
+      __FILE__, __LINE__, undef, time(), -__LINE__
     );
     $self->_dispatch_event(
       $child, $self,
       EN_PARENT, ET_PARENT,
       [ $self->_data_ses_get_parent($child), $parent, ],
-      __FILE__, __LINE__, time(), -__LINE__
+      __FILE__, __LINE__, undef, time(), -__LINE__
     );
   }
 
@@ -487,7 +489,7 @@ sub _data_ses_stop {
   my $stop_return = $self->_dispatch_event(
     $session, $self->get_active_session(),
     EN_STOP, ET_STOP, [],
-    __FILE__, __LINE__, time(), -__LINE__
+    __FILE__, __LINE__, undef, time(), -__LINE__
   );
 
   # If the departing session has a parent, notify it that the session
@@ -497,7 +499,7 @@ sub _data_ses_stop {
     $self->_dispatch_event(
       $parent, $self,
       EN_CHILD, ET_CHILD, [ CHILD_LOSE, $session, $stop_return ],
-      __FILE__, __LINE__, time(), -__LINE__
+      __FILE__, __LINE__, undef, time(), -__LINE__
     );
   }
 
@@ -572,3 +574,4 @@ Please see L<POE> for more information about authors and contributors.
 =cut
 
 # rocco // vim: ts=2 sw=2 expandtab
+# TODO - Edit.

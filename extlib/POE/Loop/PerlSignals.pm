@@ -1,5 +1,3 @@
-# $Id: PerlSignals.pm 2329 2008-05-25 23:01:58Z rcaputo $
-
 # Plain Perl signal handling is something shared by several event
 # loops.  The invariant code has moved out here so that each loop may
 # use it without reinventing it.  This will save maintenance and
@@ -10,7 +8,7 @@ package POE::Loop::PerlSignals;
 use strict;
 
 use vars qw($VERSION);
-$VERSION = do {my($r)=(q$Revision: 2329 $=~/(\d+)/);sprintf"1.%04d",$r};
+$VERSION = '1.269'; # NOTE - Should be #.### (three decimal places)
 
 # Everything plugs into POE::Kernel.
 package POE::Kernel;
@@ -26,6 +24,15 @@ my %signal_watched;
 # Signal handlers/callbacks.
 
 sub _loop_signal_handler_generic {
+  if( USE_SIGNAL_PIPE ) {
+    POE::Kernel->_data_sig_pipe_send( $_[0] );
+  }
+  else {
+    _loop_signal_handler_generic_bottom( $_[0] );
+  }
+}
+
+sub _loop_signal_handler_generic_bottom {
   if (TRACE_SIGNALS) {
     POE::Kernel::_warn "<sg> Enqueuing generic SIG$_[0] event";
   }
@@ -37,7 +44,17 @@ sub _loop_signal_handler_generic {
   $SIG{$_[0]} = \&_loop_signal_handler_generic;
 }
 
+##
 sub _loop_signal_handler_pipe {
+  if( USE_SIGNAL_PIPE ) {
+    POE::Kernel->_data_sig_pipe_send( $_[0] );
+  }
+  else {
+    _loop_signal_handler_pipe_bottom( $_[0] );
+  }
+}
+
+sub _loop_signal_handler_pipe_bottom {
   if (TRACE_SIGNALS) {
     POE::Kernel::_warn "<sg> Enqueuing PIPE-like SIG$_[0] event";
   }
@@ -49,14 +66,22 @@ sub _loop_signal_handler_pipe {
   $SIG{$_[0]} = \&_loop_signal_handler_pipe;
 }
 
-# only used under USE_SIGCHLD
+## only used under USE_SIGCHLD
 sub _loop_signal_handler_chld {
+  if( USE_SIGNAL_PIPE ) {
+    POE::Kernel->_data_sig_pipe_send( 'CHLD' );
+  }
+  else {
+    _loop_signal_handler_chld_bottom( $_[0] );
+  }
+}
+
+sub _loop_signal_handler_chld_bottom {
   if (TRACE_SIGNALS) {
     POE::Kernel::_warn "<sg> Enqueuing CHLD-like SIG$_[0] event";
   }
 
-  $poe_kernel->_data_sig_enqueue_poll_event();
-  $SIG{$_[0]} = \&_loop_signal_handler_chld;
+  $poe_kernel->_data_sig_enqueue_poll_event($_[0]);
 }
 
 #------------------------------------------------------------------------------
@@ -70,18 +95,13 @@ sub loop_watch_signal {
   # Child process has stopped.
   if ($signal eq 'CHLD' or $signal eq 'CLD') {
     if ( USE_SIGCHLD ) {
-      # install, but also trigger once
-      # there may be a race condition between forking, and $kernel->sig_chld in
-      # which the signal is already delivered
-      # and the interval polling mechanism will still generate a SIGCHLD
-      # signal, this preserves that behavior
-      $SIG{$signal} = \&_loop_signal_handler_chld;
-      $self->_data_sig_enqueue_poll_event();
+      # Poll once for signals.  Will set the signal handler when done.
+      $self->_data_sig_enqueue_poll_event($signal);
     } else {
       # We should never twiddle $SIG{CH?LD} under POE, unless we want to
       # override system() and friends. --hachi
       # $SIG{$signal} = "DEFAULT";
-      $self->_data_sig_begin_polling();
+      $self->_data_sig_begin_polling($signal);
     }
     return;
   }
@@ -101,8 +121,17 @@ sub loop_ignore_signal {
 
   delete $signal_watched{$signal};
 
-  unless ( USE_SIGCHLD ) {
     if ($signal eq 'CHLD' or $signal eq 'CLD') {
+    if ( USE_SIGCHLD ) {
+      if( $self->_data_sig_child_procs) {
+        # We need SIGCHLD to stay around after shutdown, so that
+        # child processes may be reaped and kr_child_procs=0
+        if (TRACE_SIGNALS) {
+          POE::Kernel::_warn "<sg> Keeping SIG$signal anyway!";
+        }
+        return;
+      }
+    } else {
       $self->_data_sig_cease_polling();
       # We should never twiddle $SIG{CH?LD} under poe, unless we want to
       # override system() and friends. --hachi
@@ -111,12 +140,17 @@ sub loop_ignore_signal {
     }
   }
 
+  delete $signal_watched{$signal};
+
+  my $state = 'DEFAULT';
   if ($signal eq 'PIPE') {
-    $SIG{$signal} = "IGNORE";
-    return;
+    $state = "IGNORE";
   }
 
-  $SIG{$signal} = "DEFAULT";
+  if (TRACE_SIGNALS) {
+    POE::Kernel::_warn "<sg> $state SIG$signal";
+  }
+  $SIG{$signal} = $state;
 }
 
 sub loop_ignore_all_signals {
@@ -159,3 +193,4 @@ and POE's licensing.
 =cut
 
 # rocco // vim: ts=2 sw=2 expandtab
+# TODO - Edit.

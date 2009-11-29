@@ -1,13 +1,11 @@
-# $Id: Kernel.pm 2357 2008-06-20 17:41:54Z rcaputo $
-
 package POE::Kernel;
 
 use strict;
 
 use vars qw($VERSION);
-$VERSION = do {my($r)=(q$Revision: 2357 $=~/(\d+)/);sprintf"1.%04d",$r};
+$VERSION = '1.269'; # NOTE - Should be #.### (three decimal places)
 
-use POSIX qw(:fcntl_h :sys_wait_h);
+use POSIX qw(uname);
 use Errno qw(ESRCH EINTR ECHILD EPERM EINVAL EEXIST EAGAIN EWOULDBLOCK);
 use Carp qw(carp croak confess cluck);
 use Sys::Hostname qw(hostname);
@@ -137,6 +135,33 @@ BEGIN {
       #}
     }
   }
+  { no strict 'refs';
+    unless (defined &USE_SIGNAL_PIPE) {
+      my $use_signal_pipe;
+      if ( exists $ENV{POE_USE_SIGNAL_PIPE} ) {
+        $use_signal_pipe = $ENV{POE_USE_SIGNAL_PIPE};
+      }
+
+      if (RUNNING_IN_HELL) {
+        if ($use_signal_pipe) {
+          _warn(
+            "Sorry, disabling USE_SIGNAL_PIPE on $^O.\n",
+            "Programs are reported to hang when it's enabled.\n",
+          );
+        }
+
+        # Must be defined to supersede the default.
+        $use_signal_pipe = 0;
+      }
+
+      if ($use_signal_pipe or not defined $use_signal_pipe) {
+        *USE_SIGNAL_PIPE = sub () { 1 };
+      }
+      else {
+        *USE_SIGNAL_PIPE = sub () { 0 };
+      }
+    }
+  }
 }
 
 #==============================================================================
@@ -155,6 +180,9 @@ use vars qw($kr_exception);
 
 # The Kernel's master queue.
 my $kr_queue;
+
+# The current PID, to detect when it changes
+my $kr_pid;
 
 # Filehandle activity modes.  They are often used as list indexes.
 sub MODE_RD () { 0 }  # read
@@ -365,16 +393,18 @@ BEGIN {
 }
 
 # An "idle" POE::Kernel may still have events enqueued.  These events
-# regulate polling for signals, profiling, and perhaps other aspecs of
+# regulate polling for signals, profiling, and perhaps other aspects of
 # POE::Kernel's internal workings.
 #
 # XXX - There must be a better mechanism.
 #
-my $idle_queue_size = TRACE_PROFILE ? 1 : 0;
+my $idle_queue_size;
 
 sub _idle_queue_grow   { $idle_queue_size++; }
 sub _idle_queue_shrink { $idle_queue_size--; }
 sub _idle_queue_size   { $idle_queue_size;   }
+sub _idle_queue_reset  { $idle_queue_size = TRACE_STATISTICS ? 1 : 0; }
+
 
 #------------------------------------------------------------------------------
 # Helpers to carp, croak, confess, cluck, warn and die with whatever
@@ -420,7 +450,11 @@ sub _trap {
 
   _trap_death();
   confess(
-    "Please mail the following information to bug-POE\@rt.cpan.org:\n@_"
+    "-----\n",
+    "Please address any warnings or errors above this message, and try\n",
+    "again.  If there are none, or those messages are from within POE,\n",
+    "then please mail them along with the following information\n",
+    "to bug-POE\@rt.cpan.org:\n---\n@_\n-----\n"
   );
   _release_death();
 }
@@ -467,6 +501,7 @@ sub _warn {
   $message .= " at $file line $line\n" unless $message =~ /\n$/;
 
   _trap_death();
+  $message =~ s/^/$$: /mg;
   warn $message;
   _release_death();
 }
@@ -478,6 +513,7 @@ sub _die {
   local *STDERR = *TRACE_FILE;
 
   _trap_death();
+  $message =~ s/^/$$: /mg;
   die $message;
   _release_death();
 }
@@ -625,6 +661,12 @@ sub _test_if_kernel_is_idle {
       "<rc> `---------------------------\n",
       "<rc> ..."
      );
+  }
+
+  if( ASSERT_DATA ) {
+    if( $kr_pid != $$ ) {
+      _trap "New process detected. You must call ->has_forked() in the child process."
+    }
   }
 
   unless (
@@ -798,6 +840,9 @@ sub new {
     # Create our master queue.
     $kr_queue = $queue_class->new();
 
+    # Remember the PID
+    $kr_pid = $$;
+
     # TODO - Should KR_ACTIVE_SESSIONS and KR_ACTIVE_EVENT be handled
     # by POE::Resource::Sessions?
     # TODO - Should the subsystems be split off into separate real
@@ -836,6 +881,8 @@ sub new {
 
     # These other subsystems don't have strange interactions.
     $self->_data_handle_initialize($kr_queue);
+
+    _idle_queue_reset();
   }
 
   # Return the global instance.
@@ -863,8 +910,9 @@ sub _dispatch_event {
 
   if (TRACE_EVENTS) {
     my $log_session = $session;
-    $log_session =  $self->_data_alias_loggable($session)
-      unless $type & ET_START;
+    $log_session =  $self->_data_alias_loggable($session) unless (
+      $type & ET_START
+    );
     my $string_etc = join(" ", map { defined() ? $_ : "(undef)" } @$etc);
     _warn(
       "<ev> Dispatching event $seq ``$event'' ($string_etc) from ",
@@ -874,7 +922,7 @@ sub _dispatch_event {
 
   my $local_event = $event;
 
-  $self->_stat_profile($event) if TRACE_PROFILE;
+  $self->_stat_profile($event, $session) if TRACE_PROFILE;
 
   # Pre-dispatch processing.
 
@@ -1188,10 +1236,12 @@ sub _dispatch_event {
            $self->_data_ses_exists($source_session)
          );
   }
-  elsif ($type & ET_CALL and $source_session != $session) {
-    $self->_data_ses_collect_garbage($session)
-      if $self->_data_ses_exists($session);
-  }
+
+  # XXX - Apparently we don't need this.
+  #elsif ($type & ET_CALL and $source_session != $session) {
+  #  $self->_data_ses_collect_garbage($session)
+  #    if $self->_data_ses_exists($session);
+  #}
 
   # These types of events require garbage collection afterwards, but
   # they don't need any other processing.
@@ -1235,10 +1285,11 @@ sub _finalize_kernel {
   $self->_data_sig_remove($self, "IDLE");
 
   # The main loop is done, no matter which event library ran it.
+  # sig before loop so that it clears the signal_pipe file handler
+  $self->_data_sig_finalize();
   $self->loop_finalize();
   $self->_data_extref_finalize();
   $self->_data_sid_finalize();
-  $self->_data_sig_finalize();
   $self->_data_alias_finalize();
   $self->_data_handle_finalize();
   $self->_data_ev_finalize();
@@ -1246,14 +1297,25 @@ sub _finalize_kernel {
   $self->_data_stat_finalize() if TRACE_PROFILE or TRACE_STATISTICS;
 }
 
+sub run_while {
+  my ($self, $scalar_ref) = @_;
+  1 while $$scalar_ref and $self->run_one_timeslice();
+}
+
 sub run_one_timeslice {
   my $self = shift;
-  return undef unless $self->_data_ses_count();
-  $self->loop_do_timeslice();
+
   unless ($self->_data_ses_count()) {
     $self->_finalize_kernel();
     $kr_run_warning |= KR_RUN_DONE;
+    $kr_exception and $self->_rethrow_kr_exception();
+    return;
   }
+
+  $self->loop_do_timeslice();
+  $kr_exception and $self->_rethrow_kr_exception();
+
+  return 1;
 }
 
 sub run {
@@ -1285,30 +1347,50 @@ sub run {
 
   # Clean up afterwards.
   $kr_run_warning |= KR_RUN_DONE;
+
+  $kr_exception and $self->_rethrow_kr_exception();
+}
+
+sub _rethrow_kr_exception {
+  my $self = shift;
+
+  # Save the exception lexically.
+  # Clear it so it doesn't linger if run() is called again.
+  my $exception = $kr_exception;
+  $kr_exception = undef;
+
+  # Rethrow it.
+  die $exception if $exception;
 }
 
 # Stops the kernel cold.  XXX Experimental!
 # No events happen as a result of this, all structures are cleaned up
-# except the kernel's.  Even the current session is cleaned up, which
-# may introduce inconsistencies in the current session... as
-# _dispatch_event() attempts to clean up for a defunct session.
+# except the kernel's.  Even the current session and POE::Kernel are
+# cleaned up, which may introduce inconsistencies in the current
+# session... as _dispatch_event() attempts to clean up for a defunct
+# session.
 
 sub stop {
   # So stop() can be called as a class method.
   my $self = $poe_kernel;
+
+  # Running stop() is recommended in a POE::Wheel::Run coderef
+  # Program, before setting up for the next POE::Kernel->run().  When
+  # the PID has changed, imply _data_sig_has_forked() during stop().
+  $poe_kernel->_data_sig_has_forked unless $kr_pid == $$;
 
   my @children = ($self);
   foreach my $session (@children) {
     push @children, $self->_data_ses_get_children($session);
   }
 
-  # Remove the kernel itself.
-  shift @children;
-
   # Walk backwards to avoid inconsistency errors.
   foreach my $session (reverse @children) {
     $self->_data_ses_free($session);
   }
+
+  # Roll back whether sessions were started.
+  $kr_run_warning &= ~KR_RUN_SESSION;
 
   # So new sessions will not be child of the current defunct session.
   $kr_active_session = $self;
@@ -1317,7 +1399,26 @@ sub stop {
   # ID() call.
   $self->[KR_ID] = undef;
 
+  _idle_queue_reset();
   return;
+}
+
+# Less invasive form of ->stop() + ->run()
+sub has_forked {
+  if( $kr_pid == $$ ) {
+    _croak "You should only call ->has_forked() from the child process.";
+  }
+
+  # So has_forked() can be called as a class method.
+  my $self = $poe_kernel;
+
+  # Undefine the kernel ID so it will be recalculated on the next
+  # ID() call.
+  $self->[KR_ID] = undef;
+  $kr_pid = $$;
+
+  # reset some stuff for the signals
+  $poe_kernel->_data_sig_has_forked;
 }
 
 #------------------------------------------------------------------------------
@@ -1335,7 +1436,8 @@ sub DESTROY {
         "called to execute them.  This usually happens because an error\n",
         "occurred before POE::Kernel->run() could be called.  Please fix\n",
         "any errors above this notice, and be sure that POE::Kernel->run()\n",
-        "is called.\n",
+        "is called.  See documentation for POE::Kernel's run() method for\n",
+        "another way to disable this warning.\n",
       );
     }
   }
@@ -1354,7 +1456,7 @@ sub _invoke_state {
   # to catch SIGCHLD.
 
   if ($event eq EN_SCPOLL) {
-    $self->_data_sig_handle_poll_event();
+    $self->_data_sig_handle_poll_event($etc->[0]);
   }
 
   # A signal was posted.  Because signals propagate depth-first, this
@@ -1686,6 +1788,8 @@ sub call {
   # mixing the two types makes it harder than necessary to write
   # deterministic programs, but the difficulty can be ameliorated if
   # programmers set some base rules and stick to them.
+
+  $self->_stat_profile($event_name, $session) if TRACE_PROFILE;
 
   if (wantarray) {
     my @return_value = (
@@ -2379,7 +2483,7 @@ sub ID {
 
   # Recalculate the kernel ID if necessary.  stop() undefines it.
   unless (defined $self->[KR_ID]) {
-    my $hostname = eval { (POSIX::uname)[1] };
+    my $hostname = eval { (uname)[1] };
     $hostname = hostname() unless defined $hostname;
     $self->[KR_ID] = $hostname . '-' .  unpack('H*', pack('N*', time(), $$));
   }
@@ -2620,7 +2724,7 @@ perform some setup, run some code, and eventually exit.  Halting
 Problem notwithstanding.
 
 A POE-based application loads some modules, sets up one or more
-sessions, runs the code in those sessions, and eventually exists.
+sessions, runs the code in those sessions, and eventually exits.
 
   use POE;
   POE::Session->create( ... map events to code here ... );
@@ -2834,10 +2938,12 @@ POE's public interfaces remain the same regardless of the event loop
 being used.  Since most graphical toolkits include some form of event
 loop, back-end code should be portable to all of them.
 
-Cooperation with other event loops also lets you embed POE code into
-other software.  For example, one can embed networking code into Vim,
-so non-blocking HTTP clients into irssi because they all cooperatively
-share L<Glib>.
+POE's cooperation with other event loops lets POE be embedded into
+other software.  The common underlying event loop drives both the
+application and POE.  For example, by using POE::Loop::Glib, one can
+embed POE into Vim, irssi, and so on.  Application scripts can then
+take advantage of POE::Component::Client::HTTP (and everything else)
+to do large-scale work without blocking the rest of the program.
 
 Because this is Perl, there are multiple ways to load an alternate
 event loop.  The simplest way is to load the event loop before loading
@@ -2968,15 +3074,27 @@ run() will not return until every session has ended.  This includes
 sessions that were created while run() was running.
 
 POE::Kernel will print a strong message if a program creates sessions
-but fails to call run().  If the lack of a run() call is deliberate,
-you can avoid the message by calling it before creating a session.
-run() at that point will return immediately, and POE::Kernel will be
-satisfied.
+but fails to call run().  Prior to this warning, we received tons of
+bug reports along the lines of "my POE program isn't doing anything".
+It turned out that people forgot to start an event dispatcher, so
+events were never dispatched.
+
+If the lack of a run() call is deliberate, perhaps because some other
+event loop already has control, you can avoid the message by calling
+it before creating a session.  run() at that point will initialize POE
+and return immediately.  POE::Kernel will be satisfied that run() was
+called, although POE will not have actually taken control of the event
+loop.
 
   use POE;
   POE::Kernel->run(); # silence the warning
   POE::Session->create( ... );
   exit;
+
+Note, however, that this varies from one event loop to another.  If a
+particular POE::Loop implementation doesn't support it, that's
+probably a bug.  Please file a bug report with the owner of the
+relevant POE::Loop module.
 
 =head3 run_one_timeslice
 
@@ -3008,6 +3126,39 @@ example:
 Do be careful.  The above example will spin if POE::Kernel is done but
 $done is never set.  The loop will never be done, even though there's
 nothing left that will set $done.
+
+=head3 run_while SCALAR_REF
+
+run_while() is an B<experimental> version of run_one_timeslice() that
+will only return when there are no more active sessions, or the value
+of the referenced scalar becomes false.
+
+Here's a version of the run_one_timeslice() example using run_while()
+instead:
+
+  my $job_count = 3;
+
+  sub handle_some_event {
+    $job_count--;
+  }
+
+  $kernel->run_while(\$job_count);
+
+=head3 has_forked
+
+    my $pid = fork();
+    die "Unable to fork" unless defined $pid;
+    unless( $pid ) { 
+        $poe_kernel->has_forked;
+    }
+ 
+Inform the kernel that it is now running in a new process.  This allows the
+kernel to reset some internal data to adjust to the new situation.
+
+has_forked() must be called in the child process if you wish to run the same
+kernel.  However, if you want the child process to have new kernel, you must
+call L</stop> instead.
+
 
 =head3 stop
 
@@ -3143,7 +3294,7 @@ The L<POE::Wheel|POE::Wheel> classes uses call() to synchronously deliver I/O
 notifications.  This avoids a host of race conditions.
 
 call() may fail in the same way and for the same reasons as post().
-On failure, $! is set to some nonzero value indicating way.  Since
+On failure, $! is set to some nonzero value indicating why.  Since
 call() may return undef as a matter of course, it's recommended that
 $! be checked for the error condition as well as the explanation.
 
@@ -4540,10 +4691,9 @@ sig() does not return a meaningful value.
 
 =head3 sig_child PROCESS_ID [, EVENT_NAME]
 
-sig_child() is a convenient way to deliver an EVENT_NAME event with an
-optional ARGS_LIST when a particular PROCESS_ID has exited.  The
-watcher can be cleared prematurely by calling sig_child() with just
-the PROCESS_ID.
+sig_child() is a convenient way to deliver an EVENT_NAME event when a
+particular PROCESS_ID has exited.  The watcher can be cleared
+prematurely by calling sig_child() with just the PROCESS_ID.
 
 A session may register as many sig_child() handlers as necessary, but
 a session may only have one per PROCESS_ID.
@@ -4786,7 +4936,7 @@ refcount_increment() for more context.
     # Among other things, release the reference count for the
     # requester.
     my $requester_id = delete $_[HEAP]{requesters}{$request_id};
-    $_[KERNEL]->refcount_increment( $requester_id, "pending request");
+    $_[KERNEL]->refcount_decrement( $requester_id, "pending request");
   }
 
 The requester's $_[SENDER]->ID is remembered and removed from the heap
@@ -5116,6 +5266,21 @@ When TRACE_PROFILE is enabled, a program may call
 C<< $_[KERNEL]->stat_show_profile() >> to display a current dispatch
 profile snapshot.
 
+=head3 stat_getprofile [ SESSION ]
+
+stat_getprofile() returns a hash of events and the number of times
+they were dispatched.  It only returns meaningful data if
+TRACE_PROFILE is enabled.
+
+Without the optional SESSION parameter, stat_getprofile() returns
+cumulative statistics for the entire program.
+
+When given a valid SESSION, stat_getprofile() will return profile
+statistics for that session.
+
+stat_getprofile() returns nothing if TRACE_PROFILE isn't enabled, or
+if the given SESSION doesn't exist.
+
 =head2 TRACE_REFCNT
 
 TRACE_REFCNT governs whether POE::Kernel will trace sessions'
@@ -5212,7 +5377,20 @@ processes need to be reaped and the C<CHLD> signal emulated.
 
 Defaults to 1 second.
 
-=head2 CATCH_EXCEPTIONS
+=head2 USE_SIGNAL_PIPE
+
+The only safe way to handle signals is to implement a shared-nothing
+model.  POE builds a I<signal pipe> that communicates between the
+signal handlers and the POE kernel loop in a safe and atomic manner.
+The signal pipe is implemented with L<POE::Pipe::OneWay>, using a
+C<pipe> conduit on Unix.  Unfortunately, the signal pipe is not compatible
+with Windows and is not used on that platform.
+
+If you wish to revert to the previous unsafe signal behaviour, you
+must set C<USE_SIGNAL_PIPE> to 0, or the environment vairable
+C<POE_USE_SIGNAL_PIPE>.
+
+=head1 CATCH_EXCEPTIONS
 
 Whether or not POE should run event handler code in an eval { } and
 deliver the C<DIE> signal on errors.
@@ -5252,3 +5430,4 @@ Please see L<POE> for more information about authors and contributors.
 # rocco // vim: ts=2 sw=2 expandtab
 # TODO - More practical examples.
 # TODO - Test the examples.
+# TODO - Edit.

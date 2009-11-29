@@ -1,4 +1,3 @@
-# $Id: POE.pm 2392 2008-07-06 00:19:32Z rcaputo $
 # Copyrights and documentation are after __END__.
 
 package POE;
@@ -6,9 +5,8 @@ package POE;
 use strict;
 use Carp qw( croak );
 
-use vars qw($VERSION $REVISION);
-$VERSION = '1.003'; # NOTE - Should be #.### (three decimal places)
-$REVISION = do {my($r)=(q$Revision: 2392 $=~/(\d+)/);sprintf"1.%04d",$r};
+use vars qw($VERSION);
+$VERSION = '1.269'; # NOTE - Should be #.### (three decimal places)
 
 sub import {
   my $self = shift;
@@ -72,7 +70,7 @@ __END__
 
 =head1 NAME
 
-POE - portable multitasking and networking framework for Perl
+POE - portable multitasking and networking framework for any event loop
 
 =head1 SYNOPSIS
 
@@ -117,27 +115,31 @@ POE is a framework for cooperative, event driven multitasking and
 networking in Perl.  Other languages have similar frameworks.  Python
 has Twisted.  TCL has "the event loop".
 
-POE originally was developed as the core of a persistent object server
-and runtime environment.  It has since evolved into something much
-more generic and widely useful.
-
 POE provides a unified interface for several other event loops,
-including select(), L<IO::Poll|IO::Poll>, L<Glib>, L<Gtk>, L<Tk>, L<Wx>, 
-L<Gtk2>, and so on.
-Check the CPAN for the full list of L<POE::Loop|POE::Loop> modules.
+including select(), L<IO::Poll|IO::Poll>, L<Glib>, L<Gtk>, L<Tk>,
+L<Wx>, and L<Gtk2>.  Many of these event loop interfaces were written
+by others, with the help of POE::Test::Loops.  They may be found on
+the CPAN.
 
-POE is designed in layers, each building atop the lower level ones.
-Programs are free to use POE at any level of abstraction, and
+POE achieves its its high degree of portability to different operating
+systems and Perl versions by being written entirely in Perl.  CPAN
+hosts optional XS modules for POE if speed is more desirable than
+portability.
+
+POE is designed in layers.  Each layer builds atop the lower level
+ones.  Programs are free to use POE at any level of abstraction, and
 different levels can be mixed and matched seamlessly within a single
-program.
+program.  Remember, though, that higher-level abstractions often
+require more resources than lower-level ones.  The conveniences they
+provide are not free.
 
 POE's bundled abstraction layers are the tip of a growing iceberg.
-L<Sprocket>, L<POE::Stage|POE::Stage>, and other CPAN distributions build upon this
-work.  You're encouraged to look around.
+L<Sprocket>, L<POE::Stage|POE::Stage>, and other CPAN distributions
+build upon this work.  You're encouraged to look around.
 
 No matter how high you go, though, it all boils down to calls to
-L<POE::Kernel|POE::Kernel>.  So your down-to-earth code can easily cooperate
-with stratospheric systems.
+L<POE::Kernel|POE::Kernel>.  So your down-to-earth code can easily
+cooperate with stratospheric systems.
 
 =head2 Layer 1: Kernel and Sessions
 
@@ -462,10 +464,6 @@ an e-mail via his CPAN address.
 
 Broken down by abstraction layer.
 
-TODO - Link to web resources.
-
-TODO - Verify this is complete.
-
 =head2 Layer 1
 
 L<POE::Kernel>, L<POE::Session>, L<POE::NFA>
@@ -504,18 +502,21 @@ L<POE::Resource::Sessions>, L<POE::Resource::Signals>
 
 L<POE::Pipe>, L<POE::Pipe::OneWay>, L<POE::Pipe::TwoWay>
 
-=head1 BUGS
+=head2 Home Page
 
-The tests only cover about 70% of POE.  Getting higher coverage is
-really hard.
+http://poe.perl.org/
 
-Bug reports, suggestions, and feedback of all kinds should be e-mailed
-to <bug-POE@rt.cpan.org>.  They will be entered into our request queue
-and remain there until addressed.  If your return address is valid,
-you'll be notified when the status of your request changes.
+=head2 Bug Tracker
 
-Outstanding issues, including wish list items, are browsable in POE's
-RT queue at L<http://rt.cpan.org/>.
+https://rt.cpan.org/Dist/Display.html?Status=Active&Queue=POE
+
+=head2 Repository
+
+https://poe.svn.sourceforge.net/svnroot/poe/trunk/poe
+
+=head2 Other Resources
+
+http://search.cpan.org/dist/POE/
 
 =head1 AUTHORS & COPYRIGHT
 
@@ -672,7 +673,7 @@ to thank you for your interest, and he has more thanks than he can
 count for all the people who have contributed.  POE would not be
 nearly as cool without you.
 
-Except where otherwise noted, POE is Copyright 1998-2007 Rocco Caputo.
+Except where otherwise noted, POE is Copyright 1998-2009 Rocco Caputo.
 All rights reserved.  POE is free software; you may redistribute it
 and/or modify it under the same terms as Perl itself.
 
@@ -683,3 +684,4 @@ Thank you for reading!
 =cut
 
 # rocco // vim: ts=2 sw=2 expandtab
+# TODO - Edit.

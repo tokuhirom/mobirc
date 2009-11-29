@@ -1,17 +1,19 @@
-# $Id: FileHandles.pm 2335 2008-05-26 18:39:15Z rcaputo $
-
 # Manage file handles, associated descriptors, and read/write modes
 # thereon.
 
 package POE::Resource::FileHandles;
 
 use vars qw($VERSION);
-$VERSION = do {my($r)=(q$Revision: 2335 $=~/(\d+)/);sprintf"1.%04d",$r};
+$VERSION = '1.269'; # NOTE - Should be #.### (three decimal places)
 
 # These methods are folded into POE::Kernel;
 package POE::Kernel;
 
 use strict;
+
+use Fcntl qw(F_GETFL F_SETFL O_NONBLOCK);
+use IO::Handle ();
+use FileHandle ();
 
 ### Some portability things.
 
@@ -19,10 +21,17 @@ use strict;
 # aren't used if we're RUNNING_IN_HELL, but Perl needs to see them.
 
 BEGIN {
-  eval 'F_GETFL';
-  if ($@) {
-    *F_GETFL = sub () { 0 };
-    *F_SETFL = sub () { 0 };
+  # older perls than 5.10 needs a kick in the arse to AUTOLOAD the constant...
+  eval "F_GETFL" if $] < 5.010;
+
+  if ( ! defined &Fcntl::F_GETFL ) {
+    if ( ! defined prototype "F_GETFL" ) {
+      *F_GETFL = sub { 0 };
+      *F_SETFL = sub { 0 };
+    } else {
+      *F_GETFL = sub () { 0 };
+      *F_SETFL = sub () { 0 };
+    }
   }
 }
 
@@ -192,7 +201,7 @@ sub _data_handle_resume_requested_state {
   if (TRACE_FILES) {
     _warn(
       "<fh> decrementing event count in mode ($mode) ",
-      "for fileno (", $fileno, ") from count (",
+      "for $handle fileno (", $fileno, ") from count (",
       $kr_fno_rec->[FMO_EV_COUNT], ")"
     );
   }
@@ -232,6 +241,16 @@ sub _data_handle_enqueue_ready {
       _trap "internal inconsistency: undefined fileno" unless defined $fileno;
     }
 
+    # By-pass the event queue for things that come over the pipe:
+    # this reduces signal latency
+    if( USE_SIGNAL_PIPE ) {
+      # _warn "fileno=$fileno signal_pipe_read=$POE::Kernel::signal_pipe_read_fd";
+      if( $fileno == $POE::Kernel::signal_pipe_read_fd ) {
+        $self->_data_sig_pipe_read( $fileno, $mode );
+        return;
+      }
+    }
+
     my $kr_fno_rec = $kr_filenos{$fileno}->[$mode];
 
     # Gather all the events to emit for this fileno/mode pair.
@@ -261,9 +280,10 @@ sub _data_handle_enqueue_ready {
       }
 
       if (TRACE_FILES) {
+        my $handle = $select->[HSS_HANDLE];
         _warn(
           "<fh> incremented event count in mode ($mode) ",
-          "for fileno ($fileno) to count ($kr_fno_rec->[FMO_EV_COUNT])"
+          "for $handle fileno ($fileno) to count ($kr_fno_rec->[FMO_EV_COUNT])"
         );
       }
     }
@@ -319,47 +339,10 @@ sub _data_handle_add {
       ];
 
     if (TRACE_FILES) {
-      _warn "<fh> adding fd ($fd) in mode ($mode)";
+      _warn "<fh> adding $handle fd ($fd) in mode ($mode)";
     }
 
-    # For DOSISH systems like OS/2.  Wrapped in eval{} in case it's a
-    # tied handle that doesn't support binmode.
-    eval { binmode *$handle };
-
-    # Turn off blocking unless it's tied or a plain file.
-    unless (tied *$handle or -f $handle) {
-
-      unless (RUNNING_IN_HELL) {
-        if ($] >= 5.008) {
-          $handle->blocking(0);
-        }
-        else {
-          # Long, drawn out, POSIX way.
-          my $flags = fcntl($handle, F_GETFL, 0)
-            or _trap "fcntl($handle, F_GETFL, etc.) fails: $!\n";
-          until (fcntl($handle, F_SETFL, $flags | O_NONBLOCK)) {
-            _trap "fcntl($handle, FSETFL, etc) fails: $!"
-              unless $! == EAGAIN or $! == EWOULDBLOCK;
-          }
-        }
-      }
-      else {
-        # Do it the Win32 way.
-        my $set_it = "1";
-
-        # 126 is FIONBIO (some docs say 0x7F << 16)
-        ioctl(
-          $handle,
-          0x80000000 | (4 << 16) | (ord('f') << 8) | 126,
-          \$set_it
-        ) or _trap(
-          "ioctl($handle, FIONBIO, $set_it) fails: errno " . ($!+0) . " = $!\n"
-        );
-      }
-    }
-
-    # Turn off buffering.
-    CORE::select((CORE::select($handle), $| = 1)[0]);
+    $self->_data_handle_condition( $handle );
   }
 
   # Cache some high-level lookups.
@@ -376,7 +359,7 @@ sub _data_handle_add {
     if (exists $kr_fno_rec->[FMO_SESSIONS]->{$session}->{$handle}) {
       if (TRACE_FILES) {
         _warn(
-          "<fh> running fileno($fd) mode($mode) " .
+          "<fh> running $handle fileno($fd) mode($mode) " .
           "count($kr_fno_rec->[FMO_EV_COUNT])"
         );
       }
@@ -502,6 +485,55 @@ sub _data_handle_add {
   }
 }
 
+### Condition a file handle so that it is ready for select et al
+sub _data_handle_condition {
+    my( $self, $handle ) = @_;
+
+    # For DOSISH systems like OS/2.  Wrapped in eval{} in case it's a
+    # tied handle that doesn't support binmode.
+    eval { binmode *$handle };
+
+    # Turn off blocking unless it's tied or a plain file.
+    unless (tied *$handle or -f $handle) {
+
+      unless (RUNNING_IN_HELL) {
+        if ($] >= 5.008) {
+          $handle->blocking(0);
+        }
+        else {
+          # Long, drawn out, POSIX way.
+          my $flags = fcntl($handle, F_GETFL, 0)
+            or _trap "fcntl($handle, F_GETFL, 0) fails: $!\n";
+          until (fcntl($handle, F_SETFL, $flags | O_NONBLOCK)) {
+            _trap(
+              "fcntl($handle [" . fileno($handle) . "], F_SETFL [" .
+              F_SETFL . "], $flags | O_NONBLOCK [" . O_NONBLOCK .
+              "]) fails: $!"
+            ) unless $! == EAGAIN or $! == EWOULDBLOCK;
+          }
+        }
+      }
+      else {
+        # Do it the Win32 way.
+        my $set_it = "1";
+
+        # 126 is FIONBIO (some docs say 0x7F << 16)
+        ioctl(
+          $handle,
+          0x80000000 | (4 << 16) | (ord('f') << 8) | 126,
+          \$set_it
+        ) or _trap(
+          "ioctl($handle, FIONBIO, $set_it) fails: errno " . ($!+0) . " = $!\n"
+        );
+      }
+    }
+
+    # Turn off buffering.
+    CORE::select((CORE::select($handle), $| = 1)[0]);
+}
+
+
+
 ### Remove a select from the kernel, and possibly trigger the
 ### session's destruction.
 
@@ -511,7 +543,7 @@ sub _data_handle_remove {
 
   # Make sure the handle is deregistered with the kernel.
 
-  if (exists $kr_filenos{$fd}) {
+  if (defined($fd) and exists($kr_filenos{$fd})) {
     my $kr_fileno  = $kr_filenos{$fd};
     my $kr_fno_rec = $kr_fileno->[$mode];
 
@@ -523,7 +555,10 @@ sub _data_handle_remove {
     ) {
 
       TRACE_FILES and
-        _warn "<fh> removing handle ($handle) fileno ($fd) mode ($mode) from " . Carp::shortmess;
+        _warn(
+          "<fh> removing handle ($handle) fileno ($fd) mode ($mode) from " .
+          Carp::shortmess
+        );
 
       # Remove the handle from the kernel's session record.
 
@@ -556,7 +591,7 @@ sub _data_handle_remove {
 
         if (TRACE_FILES) {
           _warn(
-            "<fh> fileno $fd mode $mode event count went to ",
+            "<fh> $handle fileno $fd mode $mode event count went to ",
             $kr_fno_rec->[FMO_EV_COUNT]
           );
         }
@@ -675,7 +710,7 @@ sub _data_handle_resume {
 
   if (TRACE_FILES) {
     _warn(
-      "<fh> resume test: fileno(" . fileno($handle) . ") mode($mode) " .
+      "<fh> resume test: $handle fileno(" . fileno($handle) . ") mode($mode) " .
       "count($kr_fno_rec->[FMO_EV_COUNT])"
     );
   }
@@ -702,7 +737,7 @@ sub _data_handle_pause {
 
   if (TRACE_FILES) {
     _warn(
-      "<fh> pause test: fileno(" . fileno($handle) . ") mode($mode) " .
+      "<fh> pause test: $handle fileno(" . fileno($handle) . ") mode($mode) " .
       "count($kr_fno_rec->[FMO_EV_COUNT])"
     );
   }
@@ -842,3 +877,4 @@ Please see L<POE> for more information about authors and contributors.
 =cut
 
 # rocco // vim: ts=2 sw=2 expandtab
+# TODO - Edit.

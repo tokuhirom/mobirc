@@ -1,5 +1,3 @@
-# $Id: Select.pm 2355 2008-06-20 02:31:51Z rcaputo $
-
 # Select loop bridge for POE::Kernel.
 
 # Empty package to appease perl.
@@ -11,7 +9,7 @@ use strict;
 use POE::Loop::PerlSignals;
 
 use vars qw($VERSION);
-$VERSION = do {my($r)=(q$Revision: 2355 $=~/(\d+)/);sprintf"1.%04d",$r};
+$VERSION = '1.269'; # NOTE - Should be #.### (three decimal places)
 
 =for poe_tests
 
@@ -216,9 +214,10 @@ sub loop_do_timeslice {
           $hits < 0 and
           $! != EINPROGRESS and
           $! != EWOULDBLOCK and
-          $! != EINTR
+          $! != EINTR and
+          $! != 0                   # this is caused by SIGNAL_PIPE
         ) {
-          POE::Kernel::_trap("<fh> select error: $!");
+          POE::Kernel::_trap("<fh> select error: $! (hits=$hits)");
         }
       }
 
@@ -370,3 +369,4 @@ and POE's licensing.
 =cut
 
 # rocco // vim: ts=2 sw=2 expandtab
+# TODO - Edit.

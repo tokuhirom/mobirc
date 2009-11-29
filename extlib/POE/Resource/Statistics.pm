@@ -1,5 +1,3 @@
-# $Id: Statistics.pm 2335 2008-05-26 18:39:15Z rcaputo $
-
 # Data and methods to collect runtime statistics about POE, allowing
 # clients to look at how much work their POE server is performing.
 # None of this stuff will activate unless TRACE_STATISTICS or
@@ -8,7 +6,7 @@
 package POE::Resource::Statistics;
 
 use vars qw($VERSION);
-$VERSION = do {my($r)=(q$Revision: 2335 $=~/(\d+)/);sprintf"1.%04d",$r};
+$VERSION = '1.269'; # NOTE - Should be #.### (three decimal places)
 
 # We fold all this stuff back into POE::Kernel
 package POE::Kernel;
@@ -31,129 +29,166 @@ my %average;
 # enabled.
 my %profile;
 
+# Per-session profiling data.
+my %profile_session;
+
 sub _data_stat_initialize {
-    my ($self) = @_;
-    $self->_data_stat_reset;
-    $self->_data_ev_enqueue(
-      $self, $self, EN_STAT, ET_STAT, [ ],
-      __FILE__, __LINE__, undef, time() + $_stat_interval
-    );
+  my ($self) = @_;
+  $self->_data_stat_reset;
+  $self->_data_ev_enqueue(
+    $self, $self, EN_STAT, ET_STAT, [ ],
+    __FILE__, __LINE__, undef, time() + $_stat_interval
+  );
 }
 
 sub _data_stat_finalize {
-    my ($self) = @_;
-    $self->_data_stat_tick();
+  my ($self) = @_;
+  $self->_data_stat_tick();
 
-    if (TRACE_STATISTICS) {
+  if (TRACE_STATISTICS) {
+    POE::Kernel::_warn(
+      '<pr> ,----- Observed Statistics ' , ('-' x 47), ",\n"
+    );
+
+    # we make a local copy so we can munge with the data
+    my %avg = %average;
+
+    unless (keys %avg) {
+      POE::Kernel::_warn '<pr> `', ('-' x 73), "'\n";
+      return;
+    }
+
+    # Division by zero sucks. Warnings sucks too.
+    $avg{interval}    ||= 1;
+    $avg{user_events} ||= 1;
+    $avg{avg_blocked} ||= 0;
+    foreach my $k (keys %avg) {
+      $avg{$k} ||= 0;
+    }
+
+    foreach (sort keys %avg) {
+      next if /epoch/;
       POE::Kernel::_warn(
-        '<pr> ,----- Observed Statistics ' , ('-' x 47), ",\n"
-      );
-      foreach (sort keys %average) {
-          next if /epoch/;
-          POE::Kernel::_warn(
-            sprintf "<pr> | %60.60s %9.1f  |\n", $_, $average{$_}
-          );
-      }
-
-      unless (keys %average) {
-          POE::Kernel::_warn '<pr> `', ('-' x 73), "'\n";
-          return;
-      }
-
-      # Division by zero sucks.
-      $average{interval}    ||= 1;
-      $average{user_events} ||= 1;
-
-      POE::Kernel::_warn(
-        '<pr> +----- Derived Statistics ', ('-' x 48), "+\n",
-        sprintf(
-          "<pr> | %60.60s %9.1f%% |\n",
-          'idle', 100 * $average{avg_idle_seconds} / $average{interval}
-        ),
-        sprintf(
-          "<pr> | %60.60s %9.1f%% |\n",
-          'user', 100 * $average{avg_user_seconds} / $average{interval}
-        ),
-        sprintf(
-          "<pr> | %60.60s %9.1f%% |\n",
-          'blocked', 100 * $average{avg_blocked} / $average{user_events}
-        ),
-        sprintf(
-          "<pr> | %60.60s %9.1f  |\n",
-          'user load', $average{avg_user_events} / $average{interval}
-        ),
-        '<pr> `', ('-' x 73), "'\n"
+        sprintf "<pr> | %60.60s %9.1f  |\n", $_, $avg{$_}
       );
     }
 
-    if (TRACE_PROFILE) {
-      stat_show_profile();
-    }
+    POE::Kernel::_warn(
+      '<pr> +----- Derived Statistics ', ('-' x 48), "+\n",
+      sprintf(
+        "<pr> | %60.60s %9.1f%% |\n",
+        'idle', 100 * $avg{avg_idle_seconds} / $avg{interval}
+      ),
+      sprintf(
+        "<pr> | %60.60s %9.1f%% |\n",
+        'user', 100 * $avg{avg_user_seconds} / $avg{interval}
+      ),
+      sprintf(
+        "<pr> | %60.60s %9.1f%% |\n",
+        'blocked', 100 * $avg{avg_blocked} / $avg{user_events}
+      ),
+      sprintf(
+        "<pr> | %60.60s %9.1f  |\n",
+        'user load', $avg{avg_user_events} / $avg{interval}
+      ),
+      '<pr> `', ('-' x 73), "'\n"
+    );
+  }
+
+  if (TRACE_PROFILE) {
+    stat_show_profile();
+  }
 }
 
 sub _data_stat_add {
-    my ($self, $key, $count) = @_;
-    $_stat_metrics->[$_stat_wpos] ||= {};
-    $_stat_metrics->[$_stat_wpos]->{$key} += $count;
+  my ($self, $key, $count) = @_;
+  $_stat_metrics->[$_stat_wpos] ||= {};
+  $_stat_metrics->[$_stat_wpos]->{$key} += $count;
 }
 
 sub _data_stat_tick {
-    my ($self) = @_;
+  my ($self) = @_;
 
-    my $pos = $_stat_rpos;
-    $_stat_wpos = ($_stat_wpos+1) % $_stat_window_size;
-    if ($_stat_wpos == $_stat_rpos) {
-  $_stat_rpos = ($_stat_rpos+1) % $_stat_window_size;
-    }
+  my $pos = $_stat_rpos;
+  $_stat_wpos = ($_stat_wpos+1) % $_stat_window_size;
+  if ($_stat_wpos == $_stat_rpos) {
+    $_stat_rpos = ($_stat_rpos+1) % $_stat_window_size;
+  }
 
-    my $count = 0;
-    %average = ();
-    my $epoch = 0;
-    while ($count < $_stat_window_size && $_stat_metrics->[$pos]->{epoch}) {
-   $epoch = $_stat_metrics->[$pos]->{epoch} unless $epoch;
-  while (my ($k,$v) = each %{$_stat_metrics->[$pos]}) {
+  my $count = 0;
+  %average = ();
+  my $epoch = 0;
+  while ($count < $_stat_window_size && $_stat_metrics->[$pos]->{epoch}) {
+    $epoch = $_stat_metrics->[$pos]->{epoch} unless $epoch;
+    while (my ($k,$v) = each %{$_stat_metrics->[$pos]}) {
       next if $k eq 'epoch';
       $average{$k} += $v;
+    }
+    $count++;
+    $pos = ($pos+1) % $_stat_window_size;
   }
-  $count++;
-  $pos = ($pos+1) % $_stat_window_size;
-    }
 
-    if ($count) {
-        my $now = time();
-   map { $average{"avg_$_"} = $average{$_} / $count } keys %average;
-   $average{total_duration} = $now - $epoch;
-   $average{interval}       = ($now - $epoch) / $count;
-    }
+  if ($count) {
+    my $now = time();
+    map { $average{"avg_$_"} = $average{$_} / $count } keys %average;
+    $average{total_duration} = $now - $epoch;
+    $average{interval}       = ($now - $epoch) / $count;
+  }
 
-    $self->_data_stat_reset;
-    $self->_data_ev_enqueue(
-      $self, $self, EN_STAT, ET_STAT, [ ],
-      __FILE__, __LINE__, undef, time() + $_stat_interval
-    ) if $self->_data_ses_count() > 1;
+  $self->_data_stat_reset;
+  $self->_data_ev_enqueue(
+    $self, $self, EN_STAT, ET_STAT, [ ],
+    __FILE__, __LINE__, undef, time() + $_stat_interval
+  ) if $self->_data_ses_count() > 1;
 }
 
 sub _data_stat_reset {
-    $_stat_metrics->[$_stat_wpos] = {
-      epoch => time,
-      idle_seconds => 0,
-      user_seconds => 0,
-      kern_seconds => 0,
-      blocked_seconds => 0,
-    };
+  $_stat_metrics->[$_stat_wpos] = {
+    epoch => time,
+    idle_seconds => 0,
+    user_seconds => 0,
+    kern_seconds => 0,
+    blocked_seconds => 0,
+  };
+}
+
+sub _data_stat_clear_session {
+  my ($self, $session) = @_;
+  delete $profile_session{$session};
+  return;
 }
 
 # Profile this event.
 
 sub _stat_profile {
-  my ($self, $event) = @_;
+  my ($self, $event, $session) = @_;
   $profile{$event}++;
+  $profile_session{$session}{$event}++;
+  return;
 }
 
 # Public routines...
 
 sub stat_getdata {
-    return %average;
+  return %average;
+}
+
+sub stat_getprofile {
+  my ($self, $session) = @_;
+
+  # Nothing to do if tracing is off.  But someone may call this anyway.
+  return unless TRACE_PROFILE;
+
+  # Return global profile if session isn't specified.
+  return %profile unless defined $session;
+
+  # Return a session profile, if the session resolves.
+  my $resolved_session = $poe_kernel->_resolve_session( $session );
+  return unless $resolved_session;
+
+  # No need to avoid autovivification.  The session is guaranteed to
+  # exist, so session cleanup will remove it anyway.
+  return %{$profile_session{$resolved_session}};
 }
 
 sub stat_show_profile {
@@ -294,3 +329,4 @@ Please see L<POE> for more information about authors and contributors.
 =cut
 
 # rocco // vim: ts=2 sw=2 expandtab
+# TODO - Edit.

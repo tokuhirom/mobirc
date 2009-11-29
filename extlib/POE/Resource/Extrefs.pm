@@ -1,5 +1,3 @@
-# $Id: Extrefs.pm 2335 2008-05-26 18:39:15Z rcaputo $
-
 # The data necessary to manage tagged extra/external reference counts
 # on sessions, and the accessors to get at them sanely from other
 # files.
@@ -7,7 +5,7 @@
 package POE::Resource::Extrefs;
 
 use vars qw($VERSION);
-$VERSION = do {my($r)=(q$Revision: 2335 $=~/(\d+)/);sprintf"1.%04d",$r};
+$VERSION = '1.269'; # NOTE - Should be #.### (three decimal places)
 
 # These methods are folded into POE::Kernel;
 package POE::Kernel;
@@ -44,6 +42,13 @@ sub _data_extref_finalize {
 #
 # TODO Allows incrementing reference counts on sessions that don't
 # exist, but the public interface catches that.
+#
+# TODO Need to track extref ownership for signal-based session
+# termination.  One problem seen is that signals terminate sessions
+# out of order.  Owners think extra refcounts exist for sessions that
+# are no longer around.  Ownership trees give us a few benefits: We
+# can make sure sessions destruct in a cleaner order.  We can detect
+# refcount loops and possibly prevent that.
 
 sub _data_extref_inc {
   my ($self, $session, $tag) = @_;
@@ -204,3 +209,4 @@ Please see L<POE> for more information about authors and contributors.
 =cut
 
 # rocco // vim: ts=2 sw=2 expandtab
+# TODO - Edit.

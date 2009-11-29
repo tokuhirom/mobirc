@@ -1,11 +1,9 @@
-# $Id: Wheel.pm 2357 2008-06-20 17:41:54Z rcaputo $
-
 package POE::Wheel;
 
 use strict;
 
 use vars qw($VERSION);
-$VERSION = do {my($r)=(q$Revision: 2357 $=~/(\d+)/);sprintf"1.%04d",$r};
+$VERSION = '1.269'; # NOTE - Should be #.### (three decimal places)
 
 use Carp qw(croak);
 
@@ -35,7 +33,6 @@ sub _test_set_wheel_id {
   $current_id = shift;
 }
 
-#------------------------------------------------------------------------------
 1;
 
 __END__
@@ -59,13 +56,22 @@ Object lifetime is very important for POE wheels.  At creation time,
 most wheels will add anonymous event handlers to the currently active
 session.  In other words, the session that created the wheel is
 modified to handle new events.  Event watchers may also be initialized
-as necessary to trigger the new handlers.
+as necessary to trigger the new handlers.  These event watchers are
+also owned by the session that created the wheel.
 
-Destroying a wheel will unregister the encapsulated anonymous event
-handlers and stop any active event watchers associated with the
-wheel's task.  It's therefore imperative that the object be saved
-somewhere for as long as it's needed.  The heap of the session that
-created the wheel is a good place.
+Sessions must not expose their wheels to other sessions.  Doing so
+will likely cause problems because wheels are tightly integrated with
+the sessions that created them.  For example, calling put() on a
+POE::Wheel::ReadWrite instance may enable a write-okay watcher.  The
+handler for this watcher is already defined in the wheel's owner.
+Calling put() outside that session will enable the write-okay watcher
+in the wrong session, and the event will never be handled.
+
+Likewise, wheels must be destroyed from within their creator sessions.
+Otherwise breakage will occur when the wheels' DESTROY methods try to
+unregister event handlers and watchers from the wrong sessions.  To
+simplify things, it's recommended to store POE::Wheel instances in
+heaps of the sessions that created them.
 
 For example, creating a POE::Wheel::FollowTail object will register an
 event handler that periodically polls a file for new information.  It
@@ -280,6 +286,16 @@ destructor.
 Wheel IDs may be reused, although it has never been reported.  Two
 active wheels will never share the same ID, however.
 
+=head3 ID
+
+B<This is usually implemented in the subclass!>
+
+The ID() method returns a wheel's unique ID. It is commonly used to
+match events with the wheels which generated them.
+
+Again, this method is not implemented in this class! If it's missing
+from the subclass, please go pester that module author---thanks!
+
 =head1 SEE ALSO
 
 The SEE ALSO section in L<POE> contains a table of contents covering
@@ -322,3 +338,4 @@ and POE;s licensing.
 =cut
 
 # rocco // vim: ts=2 sw=2 expandtab
+# TODO - Edit.

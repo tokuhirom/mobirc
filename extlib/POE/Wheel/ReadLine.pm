@@ -1,16 +1,16 @@
-# $Id: ReadLine.pm 2387 2008-07-05 18:01:55Z rcaputo $
-
 package POE::Wheel::ReadLine;
 
+use warnings;
 use strict;
 BEGIN { eval { require bytes } and bytes->import; }
 
 use vars qw($VERSION);
-$VERSION = do {my($r)=(q$Revision: 2387 $=~/(\d+)/);sprintf"1.%04d",$r};
+$VERSION = '1.269'; # NOTE - Should be #.### (three decimal places)
 
 use Carp qw( croak carp );
 use Symbol qw(gensym);
 use POE qw( Wheel );
+use base qw(POE::Wheel);
 use POSIX ();
 
 if ($^O eq "MSWin32") {
@@ -26,9 +26,6 @@ my $termcap;         # Termcap entry.
 my $tc_bell;         # How to ring the terminal.
 my $tc_visual_bell;  # How to ring the terminal.
 my $tc_has_ce;       # Termcap can clear to end of line.
-
-# Screen extent.
-my ($trk_rows, $trk_cols);
 
 # Private STDIN and STDOUT.
 my $stdin  = gensym();
@@ -95,7 +92,6 @@ my (%normalized_character, @normalized_extra_width);
 my $ospeed = undef;
 my $termios = undef;
 my $term = undef;
-my $termios = undef;
 my $tc_left = undef;
 my $trk_cols = undef;
 my $trk_rows = undef;
@@ -702,7 +698,7 @@ sub _global_init {
 
   # Get the current terminal's capabilities.
   $term = $ENV{TERM} || 'vt100';
-  $termcap = Term::Cap->Tgetent( { TERM => $term, OSPEED => $ospeed } );
+  $termcap = eval { Term::Cap->Tgetent( { TERM => $term, OSPEED => $ospeed } ) };
   die "could not find termcap entry for ``$term'': $!" unless defined $termcap;
 
   # Require certain capabilities.
@@ -883,6 +879,8 @@ sub new {
 
 sub DESTROY {
   my $self = shift;
+
+  return unless $initialised;
 
   # Stop selecting on the handle.
   $poe_kernel->select($stdin);
@@ -2136,7 +2134,6 @@ sub rl_downcase_word {
   } else {
     $self->rl_ding;
   }
-  next;
 }
 
 sub rl_quoted_insert {
@@ -2985,10 +2982,11 @@ sub decode  {
   my ($self, $seq) = @_;
   if (exists $english_to_termcap{lc($seq)}) {
     my $key = $self->{termcap}->Tputs($english_to_termcap{lc($seq)}, 1);
-    $seq = $key;
+    $seq = defined($key) ? $key : "";
   } elsif (exists $english_to_key{lc($seq)}) {
     $seq = $english_to_key{lc($seq)};
   }
+
   return $seq;
 }
 
@@ -3556,3 +3554,4 @@ contributors.
 =cut
 
 # rocco // vim: ts=2 sw=2 expandtab
+# TODO - Edit.

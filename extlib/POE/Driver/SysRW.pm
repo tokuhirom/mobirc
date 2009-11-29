@@ -1,5 +1,3 @@
-# $Id: SysRW.pm 2335 2008-05-26 18:39:15Z rcaputo $
-
 # Copyright 1998 Rocco Caputo <rcaputo@cpan.org>.  All rights
 # reserved.  This program is free software; you can redistribute it
 # and/or modify it under the same terms as Perl itself.
@@ -9,7 +7,7 @@ package POE::Driver::SysRW;
 use strict;
 
 use vars qw($VERSION);
-$VERSION = do {my($r)=(q$Revision: 2335 $=~/(\d+)/);sprintf"1.%04d",$r};
+$VERSION = '1.269'; # NOTE - Should be #.### (three decimal places)
 
 use Errno qw(EAGAIN EWOULDBLOCK);
 use Carp qw(croak);
@@ -252,3 +250,4 @@ Please see L<POE> for more information about authors and contributors.
 =cut
 
 # rocco // vim: ts=2 sw=2 expandtab
+# TODO - Edit.

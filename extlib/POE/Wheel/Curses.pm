@@ -5,7 +5,7 @@ package POE::Wheel::Curses;
 use strict;
 
 use vars qw($VERSION);
-$VERSION = do {my($r)=(q$Revision: 2342 $=~/(\d+)/);sprintf"1.%04d",$r};
+$VERSION = '1.269'; # NOTE - Should be #.### (three decimal places)
 
 use Carp qw(croak);
 use Curses qw(
@@ -13,9 +13,9 @@ use Curses qw(
   intrflush meta typeahead mousemask ALL_MOUSE_EVENTS clear refresh
   endwin COLS
 );
-use POSIX qw(:fcntl_h);
+use Fcntl qw(F_GETFL F_SETFL O_NONBLOCK);
 use POE qw( Wheel );
-
+use base qw(POE::Wheel);
 
 sub SELF_STATE_READ  () { 0 }
 sub SELF_STATE_WRITE () { 1 }
@@ -248,3 +248,4 @@ Please see L<POE> for more information about authors and contributors.
 =cut
 
 # rocco // vim: ts=2 sw=2 expandtab
+# TODO - Edit.

@@ -1,14 +1,13 @@
-# $Id: ReadWrite.pm 2232 2007-09-27 17:36:26Z bingosnet $
-
 package POE::Wheel::ReadWrite;
 
 use strict;
 
 use vars qw($VERSION);
-$VERSION = do {my($r)=(q$Revision: 2232 $=~/(\d+)/);sprintf"1.%04d",$r};
+$VERSION = '1.269'; # NOTE - Should be #.### (three decimal places)
 
 use Carp qw( croak carp );
 use POE qw(Wheel Driver::SysRW Filter::Line);
+use base qw(POE::Wheel);
 
 # Offsets into $self.
 sub HANDLE_INPUT               () {  0 }
@@ -652,332 +651,523 @@ sub flush {
         $self->[STATE_WRITE], $self->[HANDLE_OUTPUT]);
 }
 
-###############################################################################
 1;
 
 __END__
 
 =head1 NAME
 
-POE::Wheel::ReadWrite - buffered non-blocking I/O
+POE::Wheel::ReadWrite - non-blocking buffered I/O mix-in for POE::Session
 
 =head1 SYNOPSIS
 
-  $wheel = POE::Wheel::ReadWrite->new(
+  #!perl
 
-    # To read and write from the same handle, such as a socket, use
-    # the Handle parameter:
-    Handle       => $file_or_socket_handle,  # Handle to read/write
+  use warnings;
+  use strict;
 
-    # To read and write from different handles, such as a dual pipe to
-    # a child process, or a console, use InputHandle and OutputHandle:
-    InputHandle  => $readable_filehandle,    # Handle to read
-    OutputHandle => $writable_filehandle,    # Handle to write
+  use IO::Socket::INET;
+  use POE qw(Wheel::ReadWrite);
 
-    Driver       => POE::Driver::Something->new(), # How to read/write it
+  POE::Session->create(
+    inline_states => {
+      _start => sub {
+        # Note: IO::Socket::INET will block.  We recommend
+        # POE::Wheel::SocketFactory or POE::Component::Client::TCP if
+        # blocking is contraindicated.
+        $_[HEAP]{client} = POE::Wheel::ReadWrite->new(
+          Handle => IO::Socket::INET->new(
+            PeerHost => 'www.yahoo.com',
+            PeerPort => 80,
+          ),
+          InputEvent => 'on_remote_data',
+          ErrorEvent => 'on_remote_fail',
+        );
 
-    # To read and write using the same line discipline, such as
-    # Filter::Line, use the Filter parameter:
-    Filter       => POE::Filter::Something->new(), # How to parse in and out
-
-    # To read and write using different line disciplines, such as
-    # stream out and line in:
-    InputFilter  => POE::Filter::Something->new(),     # Read data one way
-    OutputFilter => POE::Filter::SomethingElse->new(), # Write data another
-
-    InputEvent   => $input_event_name,  # Input received event
-    FlushedEvent => $flush_event_name,  # Output flushed event
-    ErrorEvent   => $error_event_name,  # Error occurred event
-
-    # To enable callbacks for high and low water events (using any one
-    # of these options requires the rest):
-    HighMark  => $high_mark_octets, # Outgoing high-water mark
-    HighEvent => $high_mark_event,  # Event to emit when high-water reached
-    LowMark   => $low_mark_octets,  # Outgoing low-water mark
-    LowEvent  => $low_mark_event,   # Event to emit when low-water reached
-
-    # Experimental: If true, flush output synchronously during put()
-    AutoFlush => $boolean,
+        print "Connected.  Sending request...\n";
+        $_[HEAP]{client}->put(
+          "GET / HTTP/0.9",
+          "Host: www.yahoo.com",
+          "",
+        );
+      },
+      on_remote_data => sub {
+        print "Received: $_[ARG0]\n";
+      },
+      on_remote_fail => sub {
+        print "Connection failed or ended.  Shutting down...\n";
+        delete $_[HEAP]{client};
+      },
+    },
   );
 
-  $wheel->put( $something );
-  $wheel->event( ... );
-
-  # To set both the input and output filters at once:
-  $wheel->set_filter( POE::Filter::Something->new() );
-
-  # To set an input filter or an output filter:
-  $wheel->set_input_filter( POE::Filter::Something->new() );
-  $wheel->set_output_filter( POE::Filter::Something->new() );
-
-  # To alter the high or low water marks:
-  $wheel->set_high_mark( $new_high_mark_octets );
-  $wheel->set_low_mark( $new_low_mark_octets );
-
-  # To fetch driver statistics:
-  $pending_octets   = $wheel->get_driver_out_octets();
-  $pending_messages = $wheel->get_driver_out_messages();
-
-  # To retrieve the wheel's ID:
-  print $wheel->ID;
-
-  # To pause and resume a wheel's input events.
-  $wheel->pause_input();
-  $wheel->resume_input();
-
-  # To shutdown a wheel's socket(s).
-  $wheel->shutdown_input();
-  $wheel->shutdown_output();
-
-  # Experimental: Flush a wheel's output on command.
-  $wheel->flush();
+  POE::Kernel->run();
+  exit;
 
 =head1 DESCRIPTION
 
-ReadWrite performs buffered, select-based I/O on filehandles.  It
-generates events for common file conditions, such as when data has
-been read or flushed.
+POE::Wheel::ReadWrite encapsulates a common design pattern: dealing
+with buffered I/O in a non-blocking, event driven fashion.
 
-=head1 CONSTRUCTOR
+The pattern goes something like this:
 
-=over
+Given a filehandle, watch it for incoming data.  When notified of
+incoming data, read it, buffer it, and parse it according to some
+low-level protocol (such as line-by-line).  Generate higher-level
+"here be lines" events, one per parsed line.
 
-=item new
-
-new() creates a new wheel, returning the wheels reference.
-
-=back
+In the other direction, accept whole chunks of data (such as lines)
+for output.  Reformat them according to some low-level protocol (such
+as by adding newlines), and buffer them for output.  Flush the
+buffered data when the filehandle is ready to transmit it.
 
 =head1 PUBLIC METHODS
 
-=over 2
+=head2 Constructor
 
-=item put RECORDS
+POE::Wheel subclasses tend to perform a lot of setup so that they run
+lighter and faster.  POE::Wheel::ReadWrite's constructor is no
+exception.
 
-put() queues one or more RECORDS for transmission.  Each record is of
-a form dictated by POE::Wheel::ReadWrite's current output filter.
-ReadWrite uses its output filter to translate the records into a form
-suitable for writing to a stream.  It uses the currently configured
-driver to buffer and send them.
+=head3 new
 
-put() accepts a list of records.  If a high water mark has been set,
-it returns a Boolean value indicating whether the driver's output
-buffer has reached that level.  It always returns false if a high
-water mark has not been set.
+new() creates and returns a new POE:Wheel::ReadWrite instance.  Under
+most circumstances, the wheel will continue to read/write to one or
+more filehandles until it's destroyed.
 
-This example will quickly fill a wheel's output queue if it has a
-high water mark set.  Otherwise it will loop infinitely, eventually
-exhausting memory and crashing.
+=head4 Handle
 
-  1 while $wheel->put( get_next_thing_to_send() );
+Handle defines the filehandle that a POE::Wheel::ReadWrite object will
+read from and write to.  The L</SYNOPSIS> includes an example using
+Handle.
 
-=item event EVENT_TYPE => EVENT_NAME, ...
+A single POE::Wheel::ReadWrite object can read from and write to different
+filehandles.  See L</InputHandle> for more information and an example.
 
-event() is covered in the POE::Wheel manpage.
+=head4 InputHandle
 
-=item set_filter POE_FILTER
+InputHandle and OutputHandle may be used to specify different handles
+for input and output.  For example, input may be from STDIN and output
+may go to STDOUT:
 
-=item set_input_filter POE_FILTER
+  $_[HEAP]{console} = POE::Wheel::ReadWrite->new(
+    InputHandle => \*STDIN,
+    OutputHandle => \*STDOUT,
+    InputEvent => "console_input",
+  );
 
-=item set_output_filter POE_FILTER
+InputHandle and OutputHandle may not be used with Handle.
 
-set_input_filter() changes the filter a wheel uses for reading.
-set_output_filter() changes a wheel's output filter.  set_filter()
-changes them both at once.
+=head4 OutputHandle
 
-These methods let programs change a wheel's underlying protocol while
-it runs.  It retrieves the existing filter's unprocessed input using
-its get_pending() method and passes that to the new filter.
+InputHandle and OutputHandle may be used to specify different handles
+for input and output.  Please see L</InputHandle> for more information
+and an example.
 
-Switching filters can be tricky.  Please see the discussion of
-get_pending() in L<POE::Filter>.
+=head4 Driver
 
-The HTTPD filter does not support get_pending(), and it will complain
-if a program tries to switch away from one.
+Driver specifies how POE::Wheel::ReadWrite will actually read from and
+write to its filehandle or filehandles.  Driver must be an object that
+inherits from L<POE::Driver>.
 
-=item get_input_filter
+L<POE::Driver::SysRW>, which implements sysread() and syswrite(), is the
+default.  It's used in nearly all cases, so there's no point in
+specifying it.
 
-=item get_output_filter
+TODO - Example.
 
-Return the wheel's input or output filter.  In many cases, they both
-may be the same.  This is used to access custom methods on the filter
-itself; for example, Filter::Stackable has methods to push and pop
-filters on its stack.
+=head4 Filter
 
-  $wheel->get_input_filter()->pop();
+Filter is the parser that POE::Wheel::ReadWrite will used to recognize
+input data and the serializer it uses to prepare data for writing.  It
+defaults to a new L<POE::Filter::Line> instance since many network
+protocols are line based.
 
-=item set_high_mark HIGH_MARK_OCTETS
+TODO - Example.
 
-=item set_low_mark LOW_MARK_OCTETS
+=head4 InputFilter
 
-These methods set a wheel's high- and low-water marks.  New values
-will not take effect until the next put() call or internal buffer
-flush.  The event() method can change the events emitted by high- and
-low-water marks.
+InputFilter and OutputFilter may be used to specify different filters
+for input and output.
 
-=item ID
+TODO - Example.
 
-The ID method returns a ReadWrite wheel's unique ID.  This ID will be
-included in every event the wheel generates, and it can be used to
-match events with the wheels which generated them.
+=head4 OutputFilter
 
-=item pause_input
+InputFilter and OutputFilter may be used to specify different filters
+for input and output.  Please see L</InputFilter> for more informatin
+and an example.
 
-=item resume_input
+=head4 InputEvent
 
-ReadWrite wheels will continually generate input events for as long as
-they have data to read.  Sometimes it's necessary to control the flow
-of data coming from a wheel or the input filehandle it manages.
+InputEvent specifies the name of the event that will be sent for every
+complete input unit (as parsed by InputFilter or Filter).
 
-pause_input() instructs the wheel to temporarily stop checking its
-input filehandle for data.  This can keep a session (or a
-corresponding output buffer) from being overwhelmed.
+Every input event includes two parameters:
 
-resume_input() instructs the wheel to resume checking its input
-filehandle for data.
+C<ARG0> contains the parsed input unit, and C<ARG1> contains the
+unique ID for the POE::Wheel::ReadWrite object that generated the
+event.
 
-=item get_input_handle
-
-=item get_output_handle
-
-These methods return the input and output handles (usually the same
-thing, but sometimes not).  Please use sparingly.  Remember odd 
-references will screw with POE's internals.
-
-=item shutdown_input
-
-=item shutdown_output
-
-Some applications require the remote end to shut down a socket before
-they will continue.  These methods map directly to shutdown() for the
-wheel's input and output sockets.
-
-=item get_driver_out_octets
-
-=item get_driver_out_messages
-
-Return driver statistics.
-
-=item flush
-
-Though the watermarks affect how often a wheel is flushed, in some
-cases you might want to manually flush a smaller output, such as
-before shutdown_output.
-
-This method is experimental.  Its behavior may change or it may
-disappear outright.  Please let us know whether it's useful.
-
-=back
-
-=head1 EVENTS AND PARAMETERS
-
-=over 2
-
-=item Driver
-
-Driver is a POE::Driver subclass that is used to read from and write
-to ReadWrite's filehandle(s).  It encapsulates the low-level I/O
-operations so in theory ReadWrite never needs to know about them.
-
-Driver defaults to C<<POE::Driver::SysRW->new()>>.
-
-=item Filter
-
-Filter is a POE::Filter subclass that's used to parse incoming data
-and create streamable outgoing data.  It encapsulates the lowest level
-of a protocol so in theory ReadWrite never needs to know about them.
-
-Filter defaults to C<<POE::Filter::Line->new()>>.
-
-=item InputEvent
-
-InputEvent contains the event that the wheel emits for every complete
-record read.  Every InputEvent is accompanied by two parameters.
-C<ARG0> contains the record which was read.  C<ARG1> contains the
-wheel's unique ID.
-
-The wheel will not attempt to read from its Handle or InputHandle if
-InputEvent is omitted.
+InputEvent is optional.  If omitted, the POE::Wheel::ReadWrite object
+will not watch its Handle or InputHandle for input, and no input
+events will be generated.
 
 A sample InputEvent handler:
 
-  sub input_state {
+  sub handle_input {
     my ($heap, $input, $wheel_id) = @_[HEAP, ARG0, ARG1];
     print "Echoing input from wheel $wheel_id: $input\n";
-    $heap->{wheel}->put($input);     # Echo it back.
+    $heap->{wheel}->put($input); # Put... the input... beck!
   }
 
-=item FlushedEvent
+=head4 FlushedEvent
 
-FlushedEvent contains the event that ReadWrite emits whenever its
-output queue becomes empty.  This signals that all pending data has
-been written, and it's often used to wait for "goodbye" messages to be
-sent before a session shuts down.
+FlushedEvent specifies the event that a POE::Wheel::ReadWrite object
+will emit whenever its output buffer transitions from containing data
+to becoming empty.
 
-FlushedEvent comes with a single parameter, C<ARG0>, that indicates
-which wheel flushed its buffer.
+FlushedEvent comes with a single parameter: C<ARG0> contains the
+unique ID for the POE::Wheel::ReadWrite object that generated the
+event.  This may be used to match the event to a particular wheel.
 
-A sample FlushedEvent handler:
+"Flushed" events are often used to shut down I/O after a "goodbye"
+message has been sent.  For example, the following input_handler()
+responds to "quit" by instructing the wheel to say "Goodbye." and then
+to send a "shutdown" event when that has been flushed to the socket.
 
-  sub flushed_state {
-    # Stop a wheel after all outgoing data is flushed.
-    # This frees the wheel's resources, including the
-    # filehandle, and closes the connection.
-    delete $_[HEAP]->{wheel}->{$_[ARG0]};
+  sub handle_input {
+    my ($input, $wheel_id) = @_[ARG0, ARG1];
+    my $wheel = $_[HEAP]{wheel}{$wheel_id};
+
+    if ($input eq "quit") {
+      $wheel->event( FlushedEvent => "shutdown" );
+      $wheel->put("Goodbye.");
+    }
+    else {
+      $wheel->put("Echo: $input");
+    }
   }
 
-=item ErrorEvent
+Here's the shutdown handler.  It just destroys the wheel to end the
+connection:
 
-ErrorEvent contains the event that ReadWrite emits whenever an error
-occurs.  Every ErrorEvent comes with four parameters:
+  sub handle_flushed {
+    my $wheel_id = $_[ARG0];
+    delete $_[HEAP]{wheel}{$wheel_id};
+  }
 
-C<ARG0> contains the name of the operation that failed.  This usually
-is 'read'.  Note: This is not necessarily a function name.  The wheel
-doesn't know which function its Driver is using.
+=head4 ErrorEvent
 
-C<ARG1> and C<ARG2> hold numeric and string values for C<$!>,
-respectively.
+ErrorEvent names the event that a POE::Wheel::ReadWrite object will
+emit whenever an error occurs.  Every ErrorEvent includes four
+parameters:
 
-C<ARG3> contains the wheel's unique ID.
+C<ARG0> describes what failed, either "read" or "write".  It doesn't
+name a particular function since POE::Wheel::ReadWrite delegates
+actual reading and writing to a L<POE::Driver> object.
+
+C<ARG1> and C<ARG2> hold numeric and string values for C<$!> at the
+time of failure.  Applicatin code cannot test C<$!> directly since its
+value may have changed between the time of the error and the time the
+error event is dispatched.
+
+C<ARG3> contains the wheel's unique ID.  The wheel's ID is used to
+differentiate between many wheels managed by a single session.
 
 A sample ErrorEvent handler:
 
   sub error_state {
-    my ($operation, $errnum, $errstr, $wheel_id) = @_[ARG0..ARG3];
-    warn "Wheel $wheel_id generated $operation error $errnum: $errstr\n";
-    delete $_[HEAP]->{wheels}->{$wheel_id}; # shut down that wheel
+    my ($operation, $errnum, $errstr, $id) = @_[ARG0..ARG3];
+    warn "Wheel $id encountered $operation error $errnum: $errstr\n";
+    delete $_[HEAP]{wheels}{$id}; # shut down that wheel
   }
 
-=item HighEvent
+=head4 HighEvent
 
-=item LowEvent
+HighEvent and LowEvent are used along with HighMark and LowMark to
+control the flow of streamed output.
 
-ReadWrite emits a HighEvent when a wheel's pending output queue has
-grown to be at least HighMark octets.  A LowEvent is emitted when a
-wheel's pending octet count drops below the value of LowMark.
+A HighEvent is sent when the output buffer of a POE::Wheel::ReadWrite
+object exceeds a certain size (the "high water" mark, or HighMark).
+This advises an application to stop streaming output.  POE and Perl
+really don't care if the application continues, but it's possible that
+the process may run out of memory if a buffer grows without bounds.
 
-HighEvent and LowEvent flip-flop.  Once a HighEvent has been emitted,
-it won't be emitted again until a LowEvent is emitted.  Likewise,
-LowEvent will not be emitted again until HighEvent is.  ReadWrite
-always starts in a low-water state.
+A POE::Wheel::ReadWrite object will continue to flush its buffer even
+after an application stops streaming data, until the buffer is empty.
+Some streaming applications may require the buffer to always be primed
+with data, however.  For example, a media server would encounter
+stutters if it waited for a FlushedEvent before sending more data.
 
-Sessions which stream output are encouraged to use these events for
-flow control.  Sessions can reduce their transmission rates or stop
-transmitting altogether upon receipt of a HighEvent, and they can
-resume full-speed transmission once LowEvent arrives.
+LowEvent solves the stutter problem.  A POE::Wheel::ReadWrite object
+will send a LowEvent when its output buffer drains below a certain
+level (the "low water" mark, or LowMark).  This notifies an
+application that the buffer is small enough that it may resume
+streaming.
 
-=back
+The stutter problem is solved because the output buffer never quite
+reaches empty.
+
+HighEvent and LowEvent are edge-triggered, not level-triggered.  This
+means they are emitted once whenever a POE::Wheel::ReadWrite object's
+output buffer crosses the HighMark or LowMark.  If an application
+continues to put() data after the HighMark is reached, it will not
+cause another HighEvent to be sent.
+
+HighEvent is generally not needed.  The put() method will return the
+high watermark state: true if the buffer is at or above the high
+watermark, or false if the buffer has room for more data.  Here's a
+quick way to prime a POE::Wheel::ReadWrite object's output buffer:
+
+  1 while not $_[HEAP]{readwrite}->put(get_next_data());
+
+POE::Wheel::ReadWrite objects always start in a low-water state.
+
+HighEvent and LowEvent are optional.  Omit them if flow control is not
+needed.
+
+=head4 LowEvent
+
+HighEvent and LowEvent are used along with HighMark and LowMark to
+control the flow of streamed output.  Please see L</HighEvent> for
+more information and examples.
+
+TODO - Example here.
+
+=head2 put RECORDS
+
+put() accepts a list of RECORDS, which will be serialized by the
+wheel's Filter and buffered and written by its Driver.
+
+put() returns true if a HighMark has been set and the Driver's output
+buffer has reached or exceded the limit.  False is returned if
+HighMark has not been set, or if the Driver's buffer is smaller than
+that limit.
+
+put()'s return value is purely advisory; an application may continue
+buffering data beyond the HighMark---at the risk of exceeding the
+process' memory limits.  Do not use C<<1 while not $wheel->put()>>
+syntax if HighMark isn't set: the application will fail spectacularly!
+
+=head2 event EVENT_TYPE => EVENT_NAME, ...
+
+event() allows an application to modify the events emitted by a
+POE::Wheel::ReadWrite object.  All constructor parameters ending in
+"Event" may be changed at runtime: L</InputEvent>, L</FlushedEvent>,
+L</ErrorEvent>, L</HighEvent>, and L</LowEvent>.
+
+Setting an event to undef will disable the code within the wheel that
+generates the event.  So for example, stopping InputEvent will also
+stop reading from the filehandle.  L</pause_input> and
+L</resume_input> may be a better way to manage input events, however.
+
+TODO - Example.
+
+=head2 set_filter POE_FILTER
+
+set_filter() changes the way a POE::Wheel::ReadWrite object parses
+input and serializes output.  Any pending data that has not been
+dispatched to the application will be parsed with the new POE_FILTER.
+Information that has been put() but not flushed will not be
+reserialized.
+
+set_filter() performs the same act as calling set_input_filter()
+and set_output_filter() with the same POE::Filter object.
+
+Switching filters can be tricky.  Please see the discussion of
+get_pending() in L<POE::Filter>.  Some filters may not support being
+dynamically loaded or unloaded.
+
+TODO - Example.
+
+=head2 set_input_filter POE_FILTER
+
+set_input_filter() changes a POE::Wheel::ReadWrite object's input
+filter while leaving the output filter unchanged.  This alters the way
+data is parsed without affecting how it's serialized for output.
+
+TODO - Example.
+
+=head2 set_output_filter POE_FILTER
+
+set_output_filter() changes how a POE::Wheel::ReadWrite object
+serializes its output but does not affect the way data is parsed.
+
+TODO - Example.
+
+=head2 get_input_filter
+
+get_input_filter() returns the POE::Filter object currently used by a
+POE::Wheel::ReadWrite object to parse incoming data.  The returned
+object may be introspected or altered via its own methods.
+
+There is no get_filter() method because there is no sane return value
+when input and output filters differ.
+
+TODO - Example.
+
+=head2 get_output_filter
+
+get_output_filter() returns the L<POE::Filter> object currently used by a
+POE::Wheel::ReadWrite object to serialize outgoing data.  The returned
+object may be introspected or altered via its own methods.
+
+There is no get_filter() method because there is no sane return value
+when input and output filters differ.
+
+TODO - Example.
+
+=head2 set_high_mark HIGH_MARK_OCTETS
+
+Sets the high water mark---the number of octets that designates a
+"full enough" output buffer.  A POE::Wheel::ReadWrite object will emit
+a HighEvent when its output buffer expands to reach this point.  All
+put() calls will reutrn true when the output buffer is equal or
+greater than HIGH_MARK_OCTETS.
+
+Both HighEvent and put() indicate that it's unsafe to continue writing
+when the output buffer expands to at least HIGH_MARK_OCTETS.
+
+TODO - Example.
+
+=head2 set_low_mark LOW_MARK_OCTETS
+
+Sets the low water mark---the number of octets that designates an
+"empty enough" output buffer.  This event lets an application know
+that it's safe to resume writing again.
+
+POE::Wheel::ReadWrite objects will emit a LowEvent when their output
+buffers shrink to LOW_MARK_OCTETS after having reached
+HIGH_MARK_OCTETS.
+
+TODO - Example.
+
+=head2 ID
+
+ID() returns a POE::Wheel::ReadWrite object's unique ID.  ID() is
+usually called after the object is created so that the object may be
+stashed by its ID.  Events generated by the POE::Wheel::ReadWrite
+object will include the ID of the object, so that they may be matched
+back to their sources.
+
+TODO - Example.
+
+=head2 pause_input
+
+pause_input() instructs a POE::Wheel::ReadWrite object to stop
+watching for input, and thus stop emitting InputEvent events.  It's
+much more efficient than destroying the object outright, especially if
+an application intends to resume_input() later.
+
+TODO - Example.
+
+=head2 resume_input
+
+resume_input() turns a POE::Wheel::ReadWrite object's input watcher
+back on.  It's used to resume watching for input, and thus resume
+sending InputEvent events.  pause_input() and resume_input() implement
+a form of input flow control, driven by the application itself.
+
+TODO - Example.
+
+=head2 get_input_handle
+
+get_input_handle() returns the filehandle being watched for input.
+
+Manipulating filehandles that are managed by POE may cause nasty side
+effects, which may change from one POE release to the next.  Please
+use caution.
+
+TODO - Example.
+
+=head2 get_output_handle
+
+get_input_handle() returns the filehandle being watched for input.
+
+Manipulating filehandles that are managed by POE may cause nasty side
+effects, which may change from one POE release to the next.  Please
+use caution.
+
+TODO - Example.
+
+=head2 shutdown_input
+
+Call shutdown($fh,0) on a POE::Wheel::ReadWrite object's input
+filehandle.  This only works for sockets; nothing will happen for
+other types of filehandle.
+
+tionally, the POE::Wheel::ReadWrite object will stop monitoring
+its input filehandle for new data.  This occurs regardless of the
+filehandle type.
+
+TODO - Example.
+
+=head2 shutdown_output
+
+Call shutdown($fh,1) on a POE::Wheel::ReadWrite object's output
+filehandle.  This only works for sockets; nothing will happen for
+other types of filehandle.
+
+tionally, the POE::Wheel::ReadWrite object will stop monitoring its
+output filehandle for new data.  This occurs regardless of the
+filehandle type.
+
+TODO - Example.
+
+=head2 get_driver_out_octets
+
+L<POE::Driver> objects contain output buffers that are flushed
+asynchronously.  get_driver_out_octets() returns the number of octets
+remaining in the wheel's driver's output buffer.
+
+TODO - Example.
+
+=head2 get_driver_out_messages
+
+L<POE::Driver> objects' output buffers may be message based.  Every put()
+call may be buffered individualy.  get_driver_out_messages() will
+return the number of pending put() messages that remain to be sent.
+
+Stream-based drivers will simply return 1 if any data remains to be
+flushed.  This is because they operate with one potentially large
+message.
+
+TODO - Example.
+
+=head2 flush
+
+flush() manually attempts to flush a wheel's output in a synchronous
+fashion.  This can be used to flush small messages.  Note, however,
+that complete flushing is not guaranteed---to do so would mean
+potentially blocking indefinitely, which is undesirable in most POE
+applications.
+
+If an application must guarantee a full buffer flush, it may loop
+flush() calls:
+
+  $wheel->flush() while $wheel->get_driver_out_octets();
+
+However it would be prudent to check for errors as well.  A flush()
+failure may be permanent, and an infinite loop is probably not what
+most developers have in mind here.
+
+It should be obvious by now that B<this method is experimental>.  Its
+behavior may change or it may disappear outright.  Please let us know
+whether it's useful.
+
+# TODO - Example?
 
 =head1 SEE ALSO
 
-POE::Wheel.
+L<POE::Wheel> describes wheels in general.
 
 The SEE ALSO section in L<POE> contains a table of contents covering
 the entire POE distribution.
 
 =head1 BUGS
 
-Oh, probably some.
+None known.
 
 =head1 AUTHORS & COPYRIGHTS
 
@@ -986,4 +1176,4 @@ Please see L<POE> for more information about authors and contributors.
 =cut
 
 # rocco // vim: ts=2 sw=2 expandtab
-# TODO - Redocument.
+# TODO - Edit.

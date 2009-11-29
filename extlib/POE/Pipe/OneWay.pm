@@ -1,5 +1,3 @@
-# $Id: OneWay.pm 2332 2008-05-26 02:53:21Z rcaputo $
-
 # Portable one-way pipe creation, trying as many different methods as
 # we can.
 
@@ -8,7 +6,7 @@ package POE::Pipe::OneWay;
 use strict;
 
 use vars qw($VERSION);
-$VERSION = do {my($r)=(q$Revision: 2332 $=~/(\d+)/);sprintf"1.%04d",$r};
+$VERSION = '1.269'; # NOTE - Should be #.### (three decimal places)
 
 use Symbol qw(gensym);
 use IO::Socket qw( AF_UNIX SOCK_STREAM PF_UNSPEC );
@@ -202,3 +200,4 @@ and/or modify it under the same terms as Perl itself.
 =cut
 
 # rocco // vim: ts=2 sw=2 expandtab
+# TODO - Edit.

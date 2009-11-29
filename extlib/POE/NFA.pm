@@ -1,16 +1,17 @@
-# $Id: NFA.pm 2387 2008-07-05 18:01:55Z rcaputo $
-
 package POE::NFA;
 
 use strict;
 
 use vars qw($VERSION);
-$VERSION = do {my($r)=(q$Revision: 2387 $=~/(\d+)/);sprintf"1.%04d",$r};
+$VERSION = '1.269'; # NOTE - Should be #.### (three decimal places)
 
 use Carp qw(carp croak);
 
 sub SPAWN_INLINES       () { 'inline_states' }
+sub SPAWN_OBJECTS       () { 'object_states' }
+sub SPAWN_PACKAGES      () { 'package_states' }
 sub SPAWN_OPTIONS       () { 'options' }
+sub SPAWN_RUNSTATE      () { 'runstate' }
 
 sub OPT_TRACE           () { 'trace' }
 sub OPT_DEBUG           () { 'debug' }
@@ -44,6 +45,9 @@ sub STACK_EVENT         () { 1 }
 
 sub _define_trace {
   no strict 'refs';
+
+  local $^W = 0;
+
   foreach my $name (@_) {
     next if defined *{"TRACE_$name"}{CODE};
     if (defined *{"POE::Kernel::TRACE_$name"}{CODE}) {
@@ -145,6 +149,36 @@ sub import {
 #------------------------------------------------------------------------------
 # Spawn a new state machine.
 
+sub _add_ref_states {
+  my ($states, $refs) = @_;
+    foreach my $state (keys %$refs) {
+      $states->{$state} = {};
+      my $data = $refs->{$state};
+      croak "the data for state '$state' should be an array"
+        unless (ref $data eq 'ARRAY');
+      croak "the array for state '$state' has an odd number of elements"
+        if (@$data & 1);
+
+      while (my ($ref, $events) = splice(@$data, 0, 2)) {
+        if (ref $events eq 'ARRAY') {
+          foreach my $event (@$events) {
+            $states->{$state}->{$event} = [ $ref, $event ];
+          }
+        }
+        elsif (ref $events eq 'HASH') {
+          foreach my $event (keys %$events) {
+            my $method = $events->{$event};
+            $states->{$state}->{$event} = [ $ref, $method ];
+          }
+        }
+        else {
+          croak "events with '$ref' for state '$state' " .
+                "need to be a hash or array ref";
+        }
+      }
+    }
+}
+
 sub spawn {
   my ($type, @params) = @_;
   my @args;
@@ -164,9 +198,32 @@ sub spawn {
   $options = { } unless defined $options;
 
   # States are required.
-  croak "$type constructor requires a " . SPAWN_INLINES . " parameter"
-    unless exists $params{+SPAWN_INLINES};
-  my $states = delete $params{+SPAWN_INLINES};
+  croak(
+    "$type constructor requires at least one of the following parameters: " .
+    join (", ", SPAWN_INLINES, SPAWN_OBJECTS, SPAWN_PACKAGES)
+  ) unless (
+    exists $params{+SPAWN_INLINES} or
+    exists $params{+SPAWN_OBJECTS} or
+    exists $params{+SPAWN_PACKAGES}
+  );
+
+  my $states = delete $params{+SPAWN_INLINES} if (
+    exists $params{+SPAWN_INLINES}
+  );
+  $states ||= {};
+
+  if (exists $params{+SPAWN_OBJECTS}) {
+    my $objects = delete $params{+SPAWN_OBJECTS};
+    _add_ref_states($states, $objects);
+  }
+
+  if (exists $params{+SPAWN_PACKAGES}) {
+    my $packages = delete $params{+SPAWN_PACKAGES};
+    _add_ref_states($states, $packages);
+  }
+
+  my $runstate = delete $params{+SPAWN_RUNSTATE};
+  $runstate ||= {};
 
   # These are unknown.
   croak(
@@ -176,7 +233,7 @@ sub spawn {
 
   # Build me.
   my $self = bless [
-    { },        # SELF_RUNSTATE
+    $runstate,  # SELF_RUNSTATE
     $options,   # SELF_OPTIONS
     $states,    # SELF_STATES
     undef,      # SELF_CURRENT
@@ -863,8 +920,32 @@ handler map looks like this:
 
   $machine{state_2}{event_1} = \&handler_3;
 
-The spawn() method currently only accepts C<inline_states> and
-C<options>.  Others may be added as necessary.
+Instead of C<inline_states>, C<object_states> or C<package_states> may
+be used. These map the events of a state to an object or package method
+respectively.
+
+  object_states => {
+    state_1 => [
+      $object_1 => [qw(event_1 event_2)],
+    ],
+    state_2 => [
+      $object_2 => {
+        event_1 => method_1,
+        event_2 => method_2,
+      }
+    ]
+  }
+
+In the example above, in the case of C<event_1> coming in while the machine
+is in C<state_1>, method C<event_1> will be called on $object_1. If the
+machine is in C<state_2>, method C<method_1> will be called on $object_2.
+
+C<package_states> is very similar, but instead of using an $object, you
+pass in a C<Package::Name>
+
+The C<runstate> parameter allows C<RUNSTATE> to be initialized differently 
+at instantiation time. C<RUNSTATE>, like heaps, are usually anonymous hashrefs, 
+but C<runstate> may set them to be array references or even objects.
 
 =head2 goto_state NEW_STATE[, ENTRY_EVENT[, EVENT_ARGS]]
 
@@ -944,8 +1025,8 @@ the following three exceptions.
 
 =head2 MACHINE
 
-C<MACHINE> is equivalent to Session's C<SESSION> field.  It hold a
-reference to the current state machine, and it's useful for calling
+C<MACHINE> is equivalent to Session's C<SESSION> field.  It holds a
+reference to the current state machine, and is useful for calling
 its methods.
 
 See POE::Session's C<SESSION> field for more information.
@@ -1006,3 +1087,4 @@ Please see L<POE> for more information about authors and contributors.
 =cut
 
 # rocco // vim: ts=2 sw=2 expandtab
+# TODO - Edit.

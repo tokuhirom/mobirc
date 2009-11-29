@@ -1,11 +1,9 @@
-# $Id: Session.pm 2356 2008-06-20 07:43:46Z nothingmuch $
-
 package POE::Session;
 
 use strict;
 
 use vars qw($VERSION);
-$VERSION = do {my($r)=(q$Revision: 2356 $=~/(\d+)/);sprintf"1.%04d",$r};
+$VERSION = '1.269'; # NOTE - Should be #.### (three decimal places)
 
 use Carp qw(carp croak);
 use Errno;
@@ -41,7 +39,7 @@ sub _define_assert {
   no strict 'refs';
   foreach my $name (@_) {
 
-    BEGIN { $^W = 0 };
+    local $^W = 0;
 
     next if defined *{"ASSERT_$name"}{CODE};
     if (defined *{"POE::Kernel::ASSERT_$name"}{CODE}) {
@@ -63,7 +61,7 @@ sub _define_assert {
 sub _define_trace {
   no strict 'refs';
 
-  BEGIN { $^W = 0 };
+  local $^W = 0;
 
   foreach my $name (@_) {
     next if defined *{"TRACE_$name"}{CODE};
@@ -671,6 +669,7 @@ sub get_heap {
 # steering me right on this one.
 
 my %anonevent_parent_id;
+my %anonevent_weakened;
 
 # I assume that when the postback owner loses all reference to it,
 # they are done posting things back to us.  That's when the postback's
@@ -679,7 +678,19 @@ my %anonevent_parent_id;
 sub POE::Session::AnonEvent::DESTROY {
   my $self = shift;
   my $parent_id = delete $anonevent_parent_id{$self};
-  $POE::Kernel::poe_kernel->refcount_decrement( $parent_id, 'anon_event' );
+  unless (delete $anonevent_weakened{$self}) {
+    $POE::Kernel::poe_kernel->refcount_decrement( $parent_id, 'anon_event' );
+  }
+}
+
+sub POE::Session::AnonEvent::weaken {
+  my $self = shift;
+  unless ($anonevent_weakened{$self}) {
+    my $parent_id = $anonevent_parent_id{$self};
+    $POE::Kernel::poe_kernel->refcount_decrement( $parent_id, 'anon_event' );
+    $anonevent_weakened{$self} = 1;
+  }
+  return $self;
 }
 
 # Tune postbacks depending on variations in toolkit behavior.
@@ -1202,7 +1213,7 @@ Be very careful with closures, however.  L</Beware circular references>.
 
 C<object_states> associates one or more objects to a session and maps
 event names to the object methods that will handle them.  It's value
-is an CB<ARRAYREF>; C<HASHREFs> would stringify the objects, ruining them
+is an C<ARRAYREF>; C<HASHREFs> would stringify the objects, ruining them
 for method invocation.
 
 Here _start is handled by C<< $object->_session_start() >> and _stop triggers
@@ -1419,9 +1430,17 @@ handle_ok_button():
   Postback created with (8 6 7).
   Postback called with (5 3 0 9).
 
-
 Postbacks hold references to their target sessions.  Therefore
-sessions with outstanding postbacks will remain active.
+sessions with outstanding postbacks will remain active.  Under every
+event loop except Tk, postbacks are blessed so that DESTROY may be
+called when their users are done.  This triggers a decrement on their
+reference counts, allowing sessions to stop.
+
+Postbacks have one method, weaken(), which may be used to reduce their
+reference counts upon demand.  weaken() returns the postback, so you
+can do:
+
+  my $postback = $session->postback("foo")->weaken();
 
 Postbacks were created as a thin adapter between callback libraries
 and POE.  The problem at hand was how to turn callbacks from the Tk
@@ -1540,7 +1559,7 @@ that are passed to the session's _start handler.
     return $self->SUPER::try_alloc(@args);
   }
 
-=head1 POE::Session'S EVENTS
+=head1 POE::Session's EVENTS
 
 Please do not define new events that begin with a leading underscore.
 POE claims /^_/ events as its own.
@@ -1623,9 +1642,18 @@ value wraps.  This can occur after as I<few> as 4.29 billion sessions.
 
 =head2 Beware circular references
 
-The following creates a circular reference:
+As you're probably aware, a circular reference is when a variable is
+part of a reference chain that eventually refers back to itself.  Perl
+will not reclaim the memory involved in such a reference chain until
+the chain is manually broken.
 
-  my $session = POE::Session->create(
+Here a POE::Session is created that refers to itself via an external
+scalar.  The event handlers import $session via closures which are in
+turn stored within $session.  Even if this session stops, the circular
+references will remain.
+
+  my $session;
+  $session = POE::Session->create(
     inline_states => {
       _start => sub {
         $_[HEAP]->{todo} = [ qw( step1 step2 step2a ) ],
@@ -1640,33 +1668,81 @@ The following creates a circular reference:
     }
   );
 
-Note also that a anonymous sub creates a closure on all lexical variables in 
-the scope it was defined in, even if it doesn't reference them:
+Reduced to its essence:
+
+  my %event_handlers;
+  $event_handler{_start} = sub { \%event_handlers };
+
+Note also that a anonymous sub creates a closure on all lexical
+variables in the scope it was defined in, even if it doesn't reference
+them.  $session is still being held in a circular reference here:
 
   my $self = $package->new;
-  my $session = POE::Session->create(
+  my $session;
+  $session = POE::Session->create(
     inline_state => {
       _start => sub { $self->_start( @_[ARG0..$#_] ) }
     }
   );
 
-To avoid this, must hold onto a session's ID, rather then the session's
-object.  You may convert a session ID back into the session's object with
-L<POE::Kernel->session_id_to_session()|POE::Kernel/session_id_to_session>.
+To avoid this, a session may set an alias for itself.  Other parts of
+the program may then refer to it by alias.  In this case, one needn't
+keep track of the session themselves (POE::Kernel will do it anyway).
 
-  my $session = POE::Session->create(
+  POE::Session->create(
     inline_states => {
       _start => sub {
-        $session = $session->ID;
         $_[HEAP]->{todo} = [ qw( step1 step2 step2a ) ],
-        $_[KERNEL]->post( $session, 'next' );
+        $_[KERNEL]->alias_set('step_doer');
+        $_[KERNEL]->post( 'step_doer', 'next' );
       },
+      next => sub {
+        my $next = shift @{ $_[HEAP]->{todo} };
+        return unless $next;
+        $_[KERNEL]->post( 'step_doer', $next );
+      }
       # ....
     }
   );
 
+Aliases aren't even needed in the previous example because the session
+refers to itself.  One could instead use POE::Kernel's yield() method
+to post the event back to the current session:
 
+  next => sub {
+    my $next = shift @{ $_[HEAP]->{todo} };
+    return unless $next;
+    $_[KERNEL]->yield( $next );
+  }
 
+Or the L<$_[SESSION]> parameter passed to every event handler, but
+yield() is more efficient.
+
+  next => sub {
+    my $next = shift @{ $_[HEAP]->{todo} };
+    return unless $next;
+    $_[KERNEL]->post( $_[SESSION], $next );
+  }
+
+Along the same lines as L<$_[SESSION]>, a session can respond back to
+the sender of an event by posting to L<$_[SENDER]>.  This is great for
+responding to requests.
+
+If a program must hold onto some kind of dynamic session reference,
+it's recommended to use the session's numeric ID rather than the
+object itself.  A session ID may be converted back into its object,
+but post() accepts session IDs as well as objects and aliases:
+
+  my $session_id;
+  $session_id = POE::Session->create(
+    inline_states => {
+      _start => sub {
+        $_[HEAP]->{todo} = [ qw( step1 step2 step2a ) ],
+        $_[KERNEL]->post( $session_id, 'next' );
+      },
+      # ....
+    }
+  )->ID;
 
 =head1 AUTHORS & COPYRIGHTS
 
@@ -1675,3 +1751,4 @@ Please see L<POE> for more information about authors and contributors.
 =cut
 
 # rocco // vim: ts=2 sw=2 expandtab
+# TODO - Edit.

@@ -1,12 +1,10 @@
-# $Id: Block.pm 2336 2008-05-26 22:01:01Z rcaputo $
-
 package POE::Filter::Block;
 
 use strict;
 use POE::Filter;
 
 use vars qw($VERSION @ISA);
-$VERSION = do {my($r)=(q$Revision: 2336 $=~/(\d+)/);sprintf"1.%04d",$r};
+$VERSION = '1.269'; # NOTE - Should be #.### (three decimal places)
 @ISA = qw(POE::Filter);
 
 use Carp qw(croak);
@@ -279,3 +277,4 @@ Please see L<POE> for more information about authors and contributors.
 =cut
 
 # rocco // vim: ts=2 sw=2 expandtab
+# TODO - Edit.
