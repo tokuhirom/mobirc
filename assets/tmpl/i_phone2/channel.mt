@@ -52,11 +52,6 @@
     <?   $i++ } ?>
 </div>
 
-<div class="pager">
-    <a href="#main" id="showChannelList">
-        ← Channel List
-    </a>
-</div>
 <?    } else { ?>
 <p>No message here.</p>
 <?    } ?>
