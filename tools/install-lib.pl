@@ -18,6 +18,7 @@ my %optional_args = (
     'Params::Validate' => '--pm',
     'Params::Util'     => '-pm',
     'DateTime'         => '--pm',
+    'Mouse'            => '--pp',
 );
 my %skip_packages = map { $_ => 1 } (
     'Module::Build',  # only for building
