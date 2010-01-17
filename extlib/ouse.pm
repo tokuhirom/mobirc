@@ -1,7 +1,6 @@
 package ouse;
 
-use strict;
-use warnings;
+use Mouse::Util; # enables strict and warnings
 
 BEGIN {
     my $package;
@@ -9,17 +8,14 @@ BEGIN {
         $package = $_[1] || 'Class';
         if ($package =~ /^\+/) {
             $package =~ s/^\+//;
-            eval "require $package; 1" or die;
+            Mouse::Util::load_class($package);
         }
     }
-    use Filter::Simple sub { s/^/package $package;\nuse Mouse;\n/; }
+    use Filter::Simple sub { s/^/package $package;\nuse Mouse;\nuse Mouse::Util::TypeConstraints;\n/; }
 }
 
 1;
-
 __END__
-
-=pod
 
 =head1 NAME
 
@@ -37,18 +33,18 @@ ouse - syntactic sugar to make Mouse one-liners easier
 
 =head1 DESCRIPTION
 
-ouse.pm is a simple source filter that adds C<package $name; use Mouse;> 
+F<ouse.pm> is a simple source filter that adds C<package $name; use Mouse;> 
 to the beginning of your script and was entirely created because typing 
-perl -e'package Foo; use Mouse; ...' was annoying me... especially after
+perl C<< -e'package Foo; use Mouse; ...' >> was annoying me... especially after
 getting used to having C<-Moose> for Moose.
 
 =head1 INTERFACE 
 
-ouse provides exactly one method and it's automically called by perl:
+C<ouse> provides exactly one method and it is automatically called by perl:
 
 =over 4
 
-=item B<import($package)>
+=item C<< oose->import() >>>
 
 Pass a package name to import to be used by the source filter.
 
@@ -62,11 +58,9 @@ You will need L<Filter::Simple> and eventually L<Mouse>
 
 None reported. But it is a source filter and might have issues there.
 
-=head1 BUGS
+=head1 SEE ALSO
 
-All complex software has bugs lurking in it, and this module is no
-exception. If you find a bug please either email me, or add the bug
-to cpan-RT.
+L<oose> for C<< perl -Moose -e '...' >>
 
 =head1 AUTHOR
 

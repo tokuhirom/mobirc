@@ -2,39 +2,46 @@ package Squirrel::Role;
 use strict;
 use warnings;
 
+use base qw(Squirrel);
+
 sub _choose_backend {
     if ( $INC{"Moose/Role.pm"} ) {
         return {
+            backend  => 'Moose::Role',
             import   => \&Moose::Role::import,
-            unimport => defined &Moose::Role::unimport ? \&Moose::Role::unimport : sub {},
+            unimport => \&Moose::Role::unimport,
         }
-    } else {
+    }
+    else {
         require Mouse::Role;
         return {
+            backend  => 'Mouse::Role',
             import   => \&Mouse::Role::import,
             unimport => \&Mouse::Role::unimport,
         }
     }
 }
 
-my %pkgs;
-
-sub _handlers {
-    my $class = shift;
-
-    my $caller = caller(1);
-
-    $pkgs{$caller} = $class->_choose_backend
-        unless $pkgs{$caller};
-}
-
-sub import {
-    goto $_[0]->_handlers->{import};
-}
-
-sub unimport {
-    goto $_[0]->_handlers->{unimport};
-}
-
 1;
+
+__END__
+
+=head1 NAME
+
+Squirrel::Role - Use Mouse::Role, unless Moose::Role is already loaded. (DEPRECATED)
+
+=head1 SYNOPSIS
+
+    use Squirrel::Role;
+
+=head1 DEPRECATION
+
+C<Squirrel::Role> is deprecated. C<Any::Moose> provides the same functionality,
+but better. :)
+
+=head1 SEE ALSO
+
+L<Any::Moose>
+
+=cut
 

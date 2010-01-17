@@ -1,177 +1,262 @@
 package Mouse::Meta::Class;
-use strict;
-use warnings;
+use Mouse::Util qw/:meta get_linear_isa not_supported/; # enables strict and warnings
 
-use Mouse::Meta::Method::Constructor;
-use Mouse::Meta::Method::Destructor;
-use Scalar::Util qw/blessed/;
-use Mouse::Util qw/get_linear_isa/;
-use Carp 'confess';
+use Scalar::Util qw/blessed weaken/;
 
-do {
-    my %METACLASS_CACHE;
+use Mouse::Meta::Module;
+our @ISA = qw(Mouse::Meta::Module);
 
-    # because Mouse doesn't introspect existing classes, we're forced to
-    # only pay attention to other Mouse classes
-    sub _metaclass_cache {
-        my $class = shift;
-        my $name  = shift;
-        return $METACLASS_CACHE{$name};
-    }
+sub attribute_metaclass;
+sub method_metaclass;
 
-    sub initialize {
-        my $class = shift;
-        my $name  = shift;
-        $METACLASS_CACHE{$name} = $class->new(name => $name)
-            if !exists($METACLASS_CACHE{$name});
-        return $METACLASS_CACHE{$name};
-    }
-};
+sub constructor_class;
+sub destructor_class;
 
-sub new {
-    my $class = shift;
-    my %args  = @_;
+my @MetaClassTypes = qw(
+    attribute_metaclass
+    method_metaclass
+    constructor_class
+    destructor_class
+);
+
+sub _construct_meta {
+    my($class, %args) = @_;
 
     $args{attributes} = {};
+    $args{methods}    = {};
+    $args{roles}      = [];
+
     $args{superclasses} = do {
         no strict 'refs';
-        \@{ $args{name} . '::ISA' };
+        \@{ $args{package} . '::ISA' };
     };
-    $args{roles} ||= [];
 
-    bless \%args, $class;
+    my $self = bless \%args, ref($class) || $class;
+    if(ref($self) ne __PACKAGE__){
+        $self->meta->_initialize_object($self, \%args);
+    }
+    return $self;
 }
 
-sub name { $_[0]->{name} }
+sub create_anon_class{
+    my $self = shift;
+    return $self->create(undef, @_);
+}
+
+sub is_anon_class;
+
+sub roles;
+
+sub calculate_all_roles {
+    my $self = shift;
+    my %seen;
+    return grep { !$seen{ $_->name }++ }
+           map  { $_->calculate_all_roles } @{ $self->roles };
+}
 
 sub superclasses {
     my $self = shift;
 
     if (@_) {
-        Mouse::load_class($_) for @_;
+        foreach my $super(@_){
+            Mouse::Util::load_class($super);
+            my $meta = Mouse::Util::get_metaclass_by_name($super);
+
+            next if not defined $meta;
+
+            if(Mouse::Util::is_a_metarole($meta)){
+                $self->throw_error("You cannot inherit from a Mouse Role ($super)");
+            }
+
+            next if $self->isa(ref $meta); # _superclass_meta_is_compatible
+
+            $self->_reconcile_with_superclass_meta($meta);
+        }
         @{ $self->{superclasses} } = @_;
     }
 
-    @{ $self->{superclasses} };
+    return @{ $self->{superclasses} };
 }
 
-sub add_method {
-    my $self = shift;
-    my $name = shift;
-    my $code = shift;
+sub _reconcile_with_superclass_meta {
+    my($self, $super_meta) = @_;
 
-    my $pkg = $self->name;
+    my @incompatibles;
 
-    no strict 'refs';
-    no warnings 'redefine';
-    $self->{'methods'}->{$name}++; # Moose stores meta object here.
-    *{ $pkg . '::' . $name } = $code;
+    foreach my $metaclass_type(@MetaClassTypes){
+        my $super_c = $super_meta->$metaclass_type();
+        my $self_c  = $self->$metaclass_type();
+
+        if(!$super_c->isa($self_c)){
+            push @incompatibles, ($metaclass_type => $super_c);
+        }
+    }
+
+    my @roles;
+
+    foreach my $role($self->meta->calculate_all_roles){
+        if(!$super_meta->meta->does_role($role->name)){
+            push @roles, $role->name;
+        }
+    }
+
+    #print "reconcile($self vs. $super_meta; @roles; @incompatibles)\n";
+
+    require Mouse::Util::MetaRole;
+    Mouse::Util::MetaRole::apply_metaclass_roles(
+        for_class       => $self,
+        metaclass       => ref $super_meta,
+        metaclass_roles => \@roles,
+        @incompatibles,
+    );
+    return;
 }
 
-# copied from Class::Inspector
-my $get_methods_for_class = sub {
-    my $self = shift;
-    my $name = shift;
+sub find_method_by_name{
+    my($self, $method_name) = @_;
+    defined($method_name)
+        or $self->throw_error('You must define a method name to find');
 
-    no strict 'refs';
-    # Get all the CODE symbol table entries
-    my @functions =
-      grep !/^(?:has|with|around|before|after|blessed|extends|confess|override|super)$/,
-      grep { defined &{"${name}::$_"} }
-      keys %{"${name}::"};
-    push @functions, keys %{$self->{'methods'}->{$name}} if $self;
-    wantarray ? @functions : \@functions;
-};
+    foreach my $class( $self->linearized_isa ){
+        my $method = $self->initialize($class)->get_method($method_name);
+        return $method if defined $method;
+    }
+    return undef;
+}
 
-sub get_method_list {
-    my $self = shift;
-    $get_methods_for_class->($self, $self->name);
+sub get_all_methods {
+    my($self) = @_;
+    return map{ $self->find_method_by_name($_) } $self->get_all_method_names;
 }
 
 sub get_all_method_names {
     my $self = shift;
     my %uniq;
     return grep { $uniq{$_}++ == 0 }
-            map { $get_methods_for_class->(undef, $_) }
+            map { Mouse::Meta::Class->initialize($_)->get_method_list() }
             $self->linearized_isa;
+}
+
+sub find_attribute_by_name{
+    my($self, $name) = @_;
+    my $attr;
+    foreach my $class($self->linearized_isa){
+        my $meta = Mouse::Util::get_metaclass_by_name($class) or next;
+        $attr = $meta->get_attribute($name) and last;
+    }
+    return $attr;
 }
 
 sub add_attribute {
     my $self = shift;
-    my $attr = shift;
 
-    $self->{'attributes'}{$attr->name} = $attr;
-}
+    my($attr, $name);
 
-sub compute_all_applicable_attributes {
-    my $self = shift;
-    my (@attr, %seen);
+    if(blessed $_[0]){
+        $attr = $_[0];
 
-    for my $class ($self->linearized_isa) {
-        my $meta = $self->_metaclass_cache($class)
-            or next;
+        $attr->isa('Mouse::Meta::Attribute')
+            || $self->throw_error("Your attribute must be an instance of Mouse::Meta::Attribute (or a subclass)");
 
-        for my $name (keys %{ $meta->get_attribute_map }) {
-            next if $seen{$name}++;
-            push @attr, $meta->get_attribute($name);
+        $name = $attr->name;
+    }
+    else{
+        # _process_attribute
+        $name = shift;
+
+        my %args = (@_ == 1) ? %{$_[0]} : @_;
+
+        defined($name)
+            or $self->throw_error('You must provide a name for the attribute');
+
+        if ($name =~ s/^\+//) { # inherited attributes
+            my $inherited_attr = $self->find_attribute_by_name($name)
+                or $self->throw_error("Could not find an attribute by the name of '$name' to inherit from in ".$self->name);
+
+            $attr = $inherited_attr->clone_and_inherit_options(%args);
+        }
+        else{
+            my($attribute_class, @traits) = $self->attribute_metaclass->interpolate_class(\%args);
+            $args{traits} = \@traits if @traits;
+
+            $attr = $attribute_class->new($name, %args);
         }
     }
 
-    return @attr;
+    weaken( $attr->{associated_class} = $self );
+
+    $self->{attributes}{$attr->name} = $attr;
+    $attr->install_accessors();
+
+    if(Mouse::Util::_MOUSE_VERBOSE && !$attr->{associated_methods} && ($attr->{is} || '') ne 'bare'){
+        Carp::cluck(qq{Attribute (}.$attr->name.qq{) of class }.$self->name.qq{ has no associated methods (did you mean to provide an "is" argument?)});
+    }
+    return $attr;
 }
 
-sub get_attribute_map { $_[0]->{attributes} }
-sub has_attribute     { exists $_[0]->{attributes}->{$_[1]} }
-sub get_attribute     { $_[0]->{attributes}->{$_[1]} }
+sub compute_all_applicable_attributes { # DEPRECATED
+    Carp::cluck('compute_all_applicable_attributes() has been deprecated. Use get_all_attributes() instead');
 
-sub linearized_isa { @{ get_linear_isa($_[0]->name) } }
+    return shift->get_all_attributes(@_)
+}
+
+sub linearized_isa;
+
+sub new_object;
 
 sub clone_object {
-    my $class    = shift;
-    my $instance = shift;
+    my $class  = shift;
+    my $object = shift;
+    my %params = (@_ == 1) ? %{$_[0]} : @_;
 
-    (blessed($instance) && $instance->isa($class->name))
-        || confess "You must pass an instance of the metaclass (" . $class->name . "), not ($instance)";
+    (blessed($object) && $object->isa($class->name))
+        || $class->throw_error("You must pass an instance of the metaclass (" . $class->name . "), not ($object)");
 
-    $class->clone_instance($instance, @_);
+    my $cloned = bless { %$object }, ref $object;
+    $class->_initialize_object($cloned, \%params);
+
+    return $cloned;
 }
 
-sub clone_instance {
+sub clone_instance { # DEPRECATED
     my ($class, $instance, %params) = @_;
 
-    (blessed($instance))
-        || confess "You can only clone instances, ($instance) is not a blessed instance";
+    Carp::cluck('clone_instance() has been deprecated. Use clone_object() instead');
 
-    my $clone = bless { %$instance }, ref $instance;
-
-    foreach my $attr ($class->compute_all_applicable_attributes()) {
-        if ( defined( my $init_arg = $attr->init_arg ) ) {
-            if (exists $params{$init_arg}) {
-                $clone->{ $attr->name } = $params{$init_arg};
-            }
-        }
-    }
-
-    return $clone;
-
+    return $class->clone_object($instance, %params);
 }
+
+
+sub immutable_options {
+    my ( $self, @args ) = @_;
+
+    return (
+        inline_constructor => 1,
+        inline_destructor  => 1,
+        constructor_name   => 'new',
+        @args,
+    );
+}
+
 
 sub make_immutable {
     my $self = shift;
-    my %args = (
-        inline_constructor => 1,
-        @_,
-    );
+    my %args = $self->immutable_options(@_);
 
-    my $name = $self->name;
     $self->{is_immutable}++;
 
     if ($args{inline_constructor}) {
-        $self->add_method('new' => Mouse::Meta::Method::Constructor->generate_constructor_method_inline( $self ));
+        my $c = $self->constructor_class;
+        Mouse::Util::load_class($c);
+        $self->add_method($args{constructor_name} =>
+            $c->_generate_constructor($self, \%args));
     }
 
     if ($args{inline_destructor}) {
-        $self->add_method('DESTROY' => Mouse::Meta::Method::Destructor->generate_destructor_method_inline( $self ));
+        my $c = $self->destructor_class;
+        Mouse::Util::load_class($c);
+        $self->add_method(DESTROY =>
+            $c->_generate_destructor($self, \%args));
     }
 
     # Moose's make_immutable returns true allowing calling code to skip setting an explicit true value
@@ -179,202 +264,294 @@ sub make_immutable {
     return 1;
 }
 
-sub make_mutable { confess "Mouse does not currently support 'make_mutable'" }
+sub make_mutable {
+    my($self) = @_;
+    $self->{is_immutable} = 0;
+    return;
+}
 
-sub is_immutable { $_[0]->{is_immutable} }
+sub is_immutable;
+sub is_mutable   { !$_[0]->is_immutable }
 
-sub attribute_metaclass { "Mouse::Meta::Class" }
+sub _install_modifier_pp{
+    my( $self, $type, $name, $code ) = @_;
+    my $into = $self->name;
+
+    my $original = $into->can($name)
+        or $self->throw_error("The method '$name' is not found in the inheritance hierarchy for class $into");
+
+    my $modifier_table = $self->{modifiers}{$name};
+
+    if(!$modifier_table){
+        my(@before, @after, @around, $cache, $modified);
+
+        $cache = $original;
+
+        $modified = sub {
+            for my $c (@before) { $c->(@_) }
+
+            if(wantarray){ # list context
+                my @rval = $cache->(@_);
+
+                for my $c(@after){ $c->(@_) }
+                return @rval;
+            }
+            elsif(defined wantarray){ # scalar context
+                my $rval = $cache->(@_);
+
+                for my $c(@after){ $c->(@_) }
+                return $rval;
+            }
+            else{ # void context
+                $cache->(@_);
+
+                for my $c(@after){ $c->(@_) }
+                return;
+            }
+        };
+
+        $self->{modifiers}{$name} = $modifier_table = {
+            original => $original,
+
+            before   => \@before,
+            after    => \@after,
+            around   => \@around,
+
+            cache    => \$cache, # cache for around modifiers
+        };
+
+        $self->add_method($name => $modified);
+    }
+
+    if($type eq 'before'){
+        unshift @{$modifier_table->{before}}, $code;
+    }
+    elsif($type eq 'after'){
+        push @{$modifier_table->{after}}, $code;
+    }
+    else{ # around
+        push @{$modifier_table->{around}}, $code;
+
+        my $next = ${ $modifier_table->{cache} };
+        ${ $modifier_table->{cache} } = sub{ $code->($next, @_) };
+    }
+
+    return;
+}
 
 sub _install_modifier {
-    my ( $self, $into, $type, $name, $code ) = @_;
-    if (eval "require Class::Method::Modifiers::Fast; 1") {
-        Class::Method::Modifiers::Fast::_install_modifier( 
-            $into,
-            $type,
-            $name,
-            $code
-        );
+    my ( $self, $type, $name, $code ) = @_;
+
+    # load Class::Method::Modifiers first
+    my $no_cmm_fast = do{
+        local $@;
+        eval q{ use Class::Method::Modifiers::Fast 0.041 () };
+        $@;
+    };
+
+    my $impl;
+    if($no_cmm_fast){
+        $impl = \&_install_modifier_pp;
     }
-    elsif (eval "require Class::Method::Modifiers; 1") {
-        Class::Method::Modifiers::_install_modifier( 
-            $into,
-            $type,
-            $name,
-            $code
-        );
+    else{
+        my $install_modifier = Class::Method::Modifiers::Fast->can('install_modifier');
+        $impl = sub {
+            my ( $self, $type, $name, $code ) = @_;
+            my $into = $self->name;
+            $install_modifier->($into, $type, $name, $code);
+
+            $self->add_method($name => do{
+                no strict 'refs';
+                \&{ $into . '::' . $name };
+            });
+            return;
+        };
     }
-    else {
-        Carp::croak("Method modifiers require the use of Class::Method::Modifiers. Please install it from CPAN and file a bug report with this application.");
+
+    # replace this method itself :)
+    {
+        no warnings 'redefine';
+        *_install_modifier = $impl;
     }
+
+    $self->$impl( $type, $name, $code );
 }
 
 sub add_before_method_modifier {
     my ( $self, $name, $code ) = @_;
-    $self->_install_modifier( $self->name, 'before', $name, $code );
+    $self->_install_modifier( 'before', $name, $code );
 }
 
 sub add_around_method_modifier {
     my ( $self, $name, $code ) = @_;
-    $self->_install_modifier( $self->name, 'around', $name, $code );
+    $self->_install_modifier( 'around', $name, $code );
 }
 
 sub add_after_method_modifier {
     my ( $self, $name, $code ) = @_;
-    $self->_install_modifier( $self->name, 'after', $name, $code );
+    $self->_install_modifier( 'after', $name, $code );
 }
 
-sub roles { $_[0]->{roles} }
+sub add_override_method_modifier {
+    my ($self, $name, $code) = @_;
+
+    if($self->has_method($name)){
+        $self->throw_error("Cannot add an override method if a local method is already present");
+    }
+
+    my $package = $self->name;
+
+    my $super_body = $package->can($name)
+        or $self->throw_error("You cannot override '$name' because it has no super method");
+
+    $self->add_method($name => sub {
+        local $Mouse::SUPER_PACKAGE = $package;
+        local $Mouse::SUPER_BODY    = $super_body;
+        local @Mouse::SUPER_ARGS    = @_;
+
+        $code->(@_);
+    });
+    return;
+}
+
+sub add_augment_method_modifier {
+    my ($self, $name, $code) = @_;
+    if($self->has_method($name)){
+        $self->throw_error("Cannot add an augment method if a local method is already present");
+    }
+
+    my $super = $self->find_method_by_name($name)
+        or $self->throw_error("You cannot augment '$name' because it has no super method");
+
+    my $super_package = $super->package_name;
+    my $super_body    = $super->body;
+
+    $self->add_method($name => sub{
+        local $Mouse::INNER_BODY{$super_package} = $code;
+        local $Mouse::INNER_ARGS{$super_package} = [@_];
+        $super_body->(@_);
+    });
+    return;
+}
 
 sub does_role {
     my ($self, $role_name) = @_;
 
     (defined $role_name)
-        || confess "You must supply a role name to look for";
+        || $self->throw_error("You must supply a role name to look for");
 
-    for my $role (@{ $self->{roles} }) {
-        return 1 if $role->name eq $role_name;
+    for my $class ($self->linearized_isa) {
+        my $meta = Mouse::Util::get_metaclass_by_name($class)
+            or next;
+
+        for my $role (@{ $meta->roles }) {
+
+            return 1 if $role->does_role($role_name);
+        }
     }
 
     return 0;
 }
 
-sub create {
-    my ($self, $package_name, %options) = @_;
-
-    (ref $options{superclasses} eq 'ARRAY')
-        || confess "You must pass an ARRAY ref of superclasses"
-            if exists $options{superclasses};
-
-    (ref $options{attributes} eq 'ARRAY')
-        || confess "You must pass an ARRAY ref of attributes"
-            if exists $options{attributes};
-
-    (ref $options{methods} eq 'HASH')
-        || confess "You must pass a HASH ref of methods"
-            if exists $options{methods};
-
-    do {
-        ( defined $package_name && $package_name )
-          || confess "You must pass a package name";
-
-        my $code = "package $package_name;";
-        $code .= "\$$package_name\:\:VERSION = '" . $options{version} . "';"
-          if exists $options{version};
-        $code .= "\$$package_name\:\:AUTHORITY = '" . $options{authority} . "';"
-          if exists $options{authority};
-
-        eval $code;
-        confess "creation of $package_name failed : $@" if $@;
-    };
-
-    my %initialize_options = %options;
-    delete @initialize_options{qw(
-        package
-        superclasses
-        attributes
-        methods
-        version
-        authority
-    )};
-    my $meta = $self->initialize( $package_name => %initialize_options );
-
-    # FIXME totally lame
-    $meta->add_method('meta' => sub {
-        $self->initialize(ref($_[0]) || $_[0]);
-    });
-
-    $meta->superclasses(@{$options{superclasses}})
-        if exists $options{superclasses};
-    # NOTE:
-    # process attributes first, so that they can
-    # install accessors, but locally defined methods
-    # can then overwrite them. It is maybe a little odd, but
-    # I think this should be the order of things.
-    if (exists $options{attributes}) {
-        foreach my $attr (@{$options{attributes}}) {
-            Mouse::Meta::Attribute->create($meta, $attr->{name}, %$attr);
-        }
-    }
-    if (exists $options{methods}) {
-        foreach my $method_name (keys %{$options{methods}}) {
-            $meta->add_method($method_name, $options{methods}->{$method_name});
-        }
-    }
-    return $meta;
-}
-
-{
-    my $ANON_CLASS_SERIAL = 0;
-    my $ANON_CLASS_PREFIX = 'Mouse::Meta::Class::__ANON__::SERIAL::';
-    sub create_anon_class {
-        my ( $class, %options ) = @_;
-        my $package_name = $ANON_CLASS_PREFIX . ++$ANON_CLASS_SERIAL;
-        return $class->create( $package_name, %options );
-    }
-}
-
 1;
-
 __END__
 
 =head1 NAME
 
-Mouse::Meta::Class - hook into the Mouse MOP
+Mouse::Meta::Class - The Mouse class metaclass
+
+=head1 VERSION
+
+This document describes Mouse version 0.47
 
 =head1 METHODS
 
-=head2 initialize ClassName -> Mouse::Meta::Class
+=head2 C<< initialize(ClassName) -> Mouse::Meta::Class >>
 
-Finds or creates a Mouse::Meta::Class instance for the given ClassName. Only
+Finds or creates a C<Mouse::Meta::Class> instance for the given ClassName. Only
 one instance should exist for a given class.
 
-=head2 new %args -> Mouse::Meta::Class
-
-Creates a new Mouse::Meta::Class. Don't call this directly.
-
-=head2 name -> ClassName
+=head2 C<< name -> ClassName >>
 
 Returns the name of the owner class.
 
-=head2 superclasses -> [ClassName]
+=head2 C<< superclasses -> ClassNames >> C<< superclass(ClassNames) >>
 
 Gets (or sets) the list of superclasses of the owner class.
 
-=head2 add_attribute Mouse::Meta::Attribute
+=head2 C<< add_method(name => CodeRef) >>
+
+Adds a method to the owner class.
+
+=head2 C<< has_method(name) -> Bool >>
+
+Returns whether we have a method with the given name.
+
+=head2 C<< get_method(name) -> Mouse::Meta::Method | undef >>
+
+Returns a L<Mouse::Meta::Method> with the given name.
+
+Note that you can also use C<< $metaclass->name->can($name) >> for a method body.
+
+=head2 C<< get_method_list -> Names >>
+
+Returns a list of method names which are defined in the local class.
+If you want a list of all applicable methods for a class, use the
+C<get_all_methods> method.
+
+=head2 C<< get_all_methods -> (Mouse::Meta::Method) >>
+
+Return the list of all L<Mouse::Meta::Method> instances associated with
+the class and its superclasses.
+
+=head2 C<< add_attribute(name => spec | Mouse::Meta::Attribute) >>
 
 Begins keeping track of the existing L<Mouse::Meta::Attribute> for the owner
 class.
 
-=head2 compute_all_applicable_attributes -> (Mouse::Meta::Attribute)
+=head2 C<< has_attribute(Name) -> Bool >>
+
+Returns whether we have a L<Mouse::Meta::Attribute> with the given name.
+
+=head2 C<< get_attribute Name -> Mouse::Meta::Attribute | undef >>
+
+Returns the L<Mouse::Meta::Attribute> with the given name.
+
+=head2 C<< get_attribute_list -> Names >>
+
+Returns a list of attribute names which are defined in the local
+class. If you want a list of all applicable attributes for a class,
+use the C<get_all_attributes> method.
+
+=head2 C<< get_all_attributes -> (Mouse::Meta::Attribute) >>
 
 Returns the list of all L<Mouse::Meta::Attribute> instances associated with
 this class and its superclasses.
 
-=head2 get_attribute_map -> { name => Mouse::Meta::Attribute }
-
-Returns a mapping of attribute names to their corresponding
-L<Mouse::Meta::Attribute> objects.
-
-=head2 has_attribute Name -> Bool
-
-Returns whether we have a L<Mouse::Meta::Attribute> with the given name.
-
-=head2 get_attribute Name -> Mouse::Meta::Attribute | undef
-
-Returns the L<Mouse::Meta::Attribute> with the given name.
-
-=head2 linearized_isa -> [ClassNames]
+=head2 C<< linearized_isa -> [ClassNames] >>
 
 Returns the list of classes in method dispatch order, with duplicates removed.
 
-=head2 clone_object Instance -> Instance
+=head2 C<< new_object(Parameters) -> Instance >>
 
-Clones the given C<Instance> which must be an instance governed by this
+Creates a new instance.
+
+=head2 C<< clone_object(Instance, Parameters) -> Instance >>
+
+Clones the given instance which must be an instance governed by this
 metaclass.
 
-=head2 clone_instance Instance, Parameters -> Instance
+=head2 C<< throw_error(Message, Parameters) >>
 
-Clones the given C<Instance> and sets any additional parameters.
+Throws an error with the given message.
+
+=head1 SEE ALSO
+
+L<Mouse::Meta::Module>
+
+L<Moose::Meta::Class>
+
+L<Class::MOP::Class>
 
 =cut
 

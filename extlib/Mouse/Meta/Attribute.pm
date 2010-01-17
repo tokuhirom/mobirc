@@ -1,375 +1,168 @@
 package Mouse::Meta::Attribute;
-use strict;
-use warnings;
-require overload;
+use Mouse::Util qw(:meta); # enables strict and warnings
 
-use Carp 'confess';
-use Scalar::Util ();
+use Carp ();
+
+use Mouse::Meta::TypeConstraint;
+
 
 sub new {
-    my ($class, $name, %options) = @_;
+    my $class = shift;
+    my $name  = shift;
 
-    $options{name} = $name;
+    my %args  = (@_ == 1) ? %{ $_[0] } : @_;
 
-    $options{init_arg} = $name
-        unless exists $options{init_arg};
 
-    $options{is} ||= '';
+    # XXX: for backward compatibility (with method modifiers)
+    if($class->can('canonicalize_args') != \&canonicalize_args){
+        %args = $class->canonicalize_args($name, %args);
+    }
 
-    bless \%options, $class;
+    $class->_process_options($name, \%args);
+
+    $args{name} = $name;
+
+    my $self = bless \%args, $class;
+
+    # extra attributes
+    if($class ne __PACKAGE__){
+        $class->meta->_initialize_object($self, \%args);
+    }
+
+# XXX: there is no fast way to check attribute validity
+#    my @bad = ...;
+#    if(@bad){
+#        @bad = sort @bad;
+#        Carp::cluck("Found unknown argument(s) passed to '$name' attribute constructor in '$class': @bad");
+#    }
+
+    return $self;
 }
 
-sub name                 { $_[0]->{name}                   }
-sub associated_class     { $_[0]->{associated_class}       }
-sub _is_metadata         { $_[0]->{is}                     }
-sub is_required          { $_[0]->{required}               }
-sub default              { $_[0]->{default}                }
-sub is_lazy              { $_[0]->{lazy}                   }
-sub is_lazy_build        { $_[0]->{lazy_build}             }
-sub predicate            { $_[0]->{predicate}              }
-sub clearer              { $_[0]->{clearer}                }
-sub handles              { $_[0]->{handles}                }
-sub is_weak_ref          { $_[0]->{weak_ref}               }
-sub init_arg             { $_[0]->{init_arg}               }
-sub type_constraint      { $_[0]->{type_constraint}        }
-sub trigger              { $_[0]->{trigger}                }
-sub builder              { $_[0]->{builder}                }
-sub should_auto_deref    { $_[0]->{auto_deref}             }
-sub should_coerce        { $_[0]->{should_coerce}          }
-sub find_type_constraint { $_[0]->{find_type_constraint}   }
+sub has_read_method      { $_[0]->has_reader || $_[0]->has_accessor }
+sub has_write_method     { $_[0]->has_writer || $_[0]->has_accessor }
 
-sub has_default          { exists $_[0]->{default}         }
-sub has_predicate        { exists $_[0]->{predicate}       }
-sub has_clearer          { exists $_[0]->{clearer}         }
-sub has_handles          { exists $_[0]->{handles}         }
-sub has_type_constraint  { exists $_[0]->{type_constraint} }
-sub has_trigger          { exists $_[0]->{trigger}         }
-sub has_builder          { exists $_[0]->{builder}         }
-
-sub _create_args {
+sub _create_args { # DEPRECATED
     $_[0]->{_create_args} = $_[1] if @_ > 1;
     $_[0]->{_create_args}
 }
 
-sub inlined_name {
-    my $self = shift;
-    my $name = $self->name;
-    my $key   = "'" . $name . "'";
-    return $key;
+sub interpolate_class{
+    my($class, $args) = @_;
+
+    if(my $metaclass = delete $args->{metaclass}){
+        $class = Mouse::Util::resolve_metaclass_alias( Attribute => $metaclass );
+    }
+
+    my @traits;
+    if(my $traits_ref = delete $args->{traits}){
+
+        for (my $i = 0; $i < @{$traits_ref}; $i++) {
+            my $trait = Mouse::Util::resolve_metaclass_alias(Attribute => $traits_ref->[$i], trait => 1);
+
+            next if $class->does($trait);
+
+            push @traits, $trait;
+
+            # are there options?
+            push @traits, $traits_ref->[++$i]
+                if ref($traits_ref->[$i+1]);
+        }
+
+        if (@traits) {
+            $class = Mouse::Meta::Class->create_anon_class(
+                superclasses => [ $class ],
+                roles        => \@traits,
+                cache        => 1,
+            )->name;
+        }
+    }
+
+    return( $class, @traits );
 }
 
-sub generate_accessor {
-    my $attribute = shift;
+sub canonicalize_args{ # DEPRECATED
+    my ($self, $name, %args) = @_;
 
-    my $name          = $attribute->name;
-    my $default       = $attribute->default;
-    my $constraint    = $attribute->find_type_constraint;
-    my $builder       = $attribute->builder;
-    my $trigger       = $attribute->trigger;
-    my $is_weak       = $attribute->is_weak_ref;
-    my $should_deref  = $attribute->should_auto_deref;
-    my $should_coerce = $attribute->should_coerce;
-
-    my $self  = '$_[0]';
-    my $key   = $attribute->inlined_name;
-
-    my $accessor = "sub {\n";
-    if ($attribute->_is_metadata eq 'rw') {
-        $accessor .= 'if (@_ >= 2) {' . "\n";
-
-        my $value = '$_[1]';
-
-        if ($constraint) {
-            $accessor .= 'my $val = ';
-            if ($should_coerce) {
-                $accessor  .= 'Mouse::Util::TypeConstraints->typecast_constraints("'.$attribute->associated_class->name.'", $attribute->{find_type_constraint}, $attribute->{type_constraint}, '.$value.');';
-            } else {
-                $accessor .= $value.';';
-            }
-            $accessor .= 'local $_ = $val;';
-            $accessor .= '
-                unless ($constraint->()) {
-                    $attribute->verify_type_constraint_error($name, $_, $attribute->type_constraint);
-                }' . "\n";
-            $value = '$val';
-        }
-
-        # if there's nothing left to do for the attribute we can return during
-        # this setter
-        $accessor .= 'return ' if !$is_weak && !$trigger && !$should_deref;
-
-        $accessor .= $self.'->{'.$key.'} = '.$value.';' . "\n";
-
-        if ($is_weak) {
-            $accessor .= 'Scalar::Util::weaken('.$self.'->{'.$key.'}) if ref('.$self.'->{'.$key.'});' . "\n";
-        }
-
-        if ($trigger) {
-            $accessor .= '$trigger->('.$self.', '.$value.', $attribute);' . "\n";
-        }
-
-        $accessor .= "}\n";
-    }
-    else {
-        $accessor .= 'confess "Cannot assign a value to a read-only accessor" if scalar(@_) >= 2;' . "\n";
-    }
-
-    if ($attribute->is_lazy) {
-        $accessor .= $self.'->{'.$key.'} = ';
-
-        $accessor .= $attribute->has_builder
-                ? $self.'->$builder'
-                    : ref($default) eq 'CODE'
-                    ? '$default->('.$self.')'
-                    : '$default';
-        $accessor .= ' if !exists '.$self.'->{'.$key.'};' . "\n";
-    }
-
-    if ($should_deref) {
-        my $type_constraint = $attribute->type_constraint;
-        if (!ref($type_constraint) && $type_constraint eq 'ArrayRef') {
-            $accessor .= 'if (wantarray) {
-                return @{ '.$self.'->{'.$key.'} || [] };
-            }';
-        }
-        else {
-            $accessor .= 'if (wantarray) {
-                return %{ '.$self.'->{'.$key.'} || {} };
-            }';
-        }
-    }
-
-    $accessor .= 'return '.$self.'->{'.$key.'};
-    }';
-
-    my $sub = eval $accessor;
-    confess $@ if $@;
-    return $sub;
-}
-
-sub generate_predicate {
-    my $attribute = shift;
-    my $key = $attribute->inlined_name;
-
-    my $predicate = 'sub { exists($_[0]->{'.$key.'}) }';
-
-    my $sub = eval $predicate;
-    confess $@ if $@;
-    return $sub;
-}
-
-sub generate_clearer {
-    my $attribute = shift;
-    my $key = $attribute->inlined_name;
-
-    my $clearer = 'sub { delete($_[0]->{'.$key.'}) }';
-
-    my $sub = eval $clearer;
-    confess $@ if $@;
-    return $sub;
-}
-
-sub generate_handles {
-    my $attribute = shift;
-    my $reader = $attribute->name;
-    my %handles = $attribute->_canonicalize_handles($attribute->handles);
-
-    my %method_map;
-
-    for my $local_method (keys %handles) {
-        my $remote_method = $handles{$local_method};
-
-        my $method = 'sub {
-            my $self = shift;
-            $self->'.$reader.'->'.$remote_method.'(@_)
-        }';
-
-        $method_map{$local_method} = eval $method;
-        confess $@ if $@;
-    }
-
-    return \%method_map;
-}
-
-sub create {
-    my ($self, $class, $name, %args) = @_;
-
-    $args{name} = $name;
-    $args{associated_class} = $class;
-
-    %args = $self->canonicalize_args($name, %args);
-    $self->validate_args($name, \%args);
-
-    $args{should_coerce} = delete $args{coerce}
-        if exists $args{coerce};
-
-    if (exists $args{isa}) {
-        my $type_constraint = delete $args{isa};
-        $type_constraint =~ s/\s//g;
-        my @type_constraints = split /\|/, $type_constraint;
-
-        my $code;
-        my $optimized_constraints = Mouse::Util::TypeConstraints->optimized_constraints;
-        if (@type_constraints == 1) {
-            $code = $optimized_constraints->{$type_constraints[0]} ||
-                sub { Scalar::Util::blessed($_) && $_->isa($type_constraints[0]) };
-            $args{type_constraint} = $type_constraints[0];
-        } else {
-            my @code_list = map {
-                my $type = $_;
-                $optimized_constraints->{$type} ||
-                    sub { Scalar::Util::blessed($_) && $_->isa($type) }
-            } @type_constraints;
-            $code = sub {
-                for my $code (@code_list) {
-                    return 1 if $code->();
-                }
-                return 0;
-            };
-            $args{type_constraint} = \@type_constraints;
-        }
-        $args{find_type_constraint} = $code;
-    }
-
-    my $attribute = $self->new($name, %args);
-
-    $attribute->_create_args(\%args);
-
-    $class->add_attribute($attribute);
-
-    # install an accessor
-    if ($attribute->_is_metadata eq 'rw' || $attribute->_is_metadata eq 'ro') {
-        my $accessor = $attribute->generate_accessor;
-        $class->add_method($name => $accessor);
-    }
-
-    for my $method (qw/predicate clearer/) {
-        my $predicate = "has_$method";
-        if ($attribute->$predicate) {
-            my $generator = "generate_$method";
-            my $coderef = $attribute->$generator;
-            $class->add_method($attribute->$method => $coderef);
-        }
-    }
-
-    if ($attribute->has_handles) {
-        my $method_map = $attribute->generate_handles;
-        for my $method_name (keys %$method_map) {
-            $class->add_method($method_name => $method_map->{$method_name});
-        }
-    }
-
-    return $attribute;
-}
-
-sub canonicalize_args {
-    my $self = shift;
-    my $name = shift;
-    my %args = @_;
-
-    if ($args{lazy_build}) {
-        $args{lazy}      = 1;
-        $args{required}  = 1;
-        $args{builder}   = "_build_${name}"
-            if !exists($args{builder});
-        if ($name =~ /^_/) {
-            $args{clearer}   = "_clear${name}" if !exists($args{clearer});
-            $args{predicate} = "_has${name}" if !exists($args{predicate});
-        }
-        else {
-            $args{clearer}   = "clear_${name}" if !exists($args{clearer});
-            $args{predicate} = "has_${name}" if !exists($args{predicate});
-        }
-    }
+    Carp::cluck("$self->canonicalize_args has been deprecated."
+        . "Use \$self->_process_options instead.");
 
     return %args;
 }
 
-sub validate_args {
-    my $self = shift;
-    my $name = shift;
-    my $args = shift;
+sub create { # DEPRECATED
+    my ($self, $class, $name, %args) = @_;
 
-    confess "You can not use lazy_build and default for the same attribute ($name)"
-        if $args->{lazy_build} && exists $args->{default};
+    Carp::cluck("$self->create has been deprecated."
+        . "Use \$meta->add_attribute and \$attr->install_accessors instead.");
 
-    confess "You cannot have lazy attribute ($name) without specifying a default value for it"
-        if $args->{lazy}
-        && !exists($args->{default})
-        && !exists($args->{builder});
+    # noop
+    return $self;
+}
 
-    confess "References are not allowed as default values, you must wrap the default of '$name' in a CODE reference (ex: sub { [] } and not [])"
-        if ref($args->{default})
-        && ref($args->{default}) ne 'CODE';
+sub _coerce_and_verify {
+    my($self, $value, $instance) = @_;
 
-    confess "You cannot auto-dereference without specifying a type constraint on attribute ($name)"
-        if $args->{auto_deref} && !exists($args->{isa});
+    my $type_constraint = $self->{type_constraint};
+    return $value if !defined $type_constraint;
 
-    confess "You cannot auto-dereference anything other than a ArrayRef or HashRef on attribute ($name)"
-        if $args->{auto_deref}
-        && $args->{isa} ne 'ArrayRef'
-        && $args->{isa} ne 'HashRef';
-
-    if ($args->{trigger}) {
-        if (ref($args->{trigger}) eq 'HASH') {
-            Carp::carp "HASH-based form of trigger has been removed. Only the coderef form of triggers are now supported.";
-        }
-
-        confess "Trigger must be a CODE ref on attribute ($name)"
-            if ref($args->{trigger}) ne 'CODE';
+    if ($self->should_coerce && $type_constraint->has_coercion) {
+        $value = $type_constraint->coerce($value);
     }
 
-    return 1;
+    $self->verify_against_type_constraint($value);
+
+    return $value;
 }
 
 sub verify_against_type_constraint {
-    return 1 unless $_[0]->{type_constraint};
+    my ($self, $value) = @_;
 
-    local $_ = $_[1];
-    return 1 if $_[0]->{find_type_constraint}->($_);
+    my $type_constraint = $self->{type_constraint};
+    return 1 if !$type_constraint;
+    return 1 if $type_constraint->check($value);
 
-    my $self = shift;
-    $self->verify_type_constraint_error($self->name, $_, $self->type_constraint);
+    $self->_throw_type_constraint_error($value, $type_constraint);
 }
 
-sub verify_type_constraint_error {
-    my($self, $name, $value, $type) = @_;
-    $type = ref($type) eq 'ARRAY' ? join '|', @{ $type } : $type;
-    my $display = defined($_) ? overload::StrVal($_) : 'undef';
-    Carp::confess("Attribute ($name) does not pass the type constraint because: Validation failed for \'$type\' failed with value $display");
+sub _throw_type_constraint_error {
+    my($self, $value, $type) = @_;
+
+    $self->throw_error(
+        sprintf q{Attribute (%s) does not pass the type constraint because: %s},
+            $self->name,
+            $type->get_message($value),
+    );
 }
 
-sub coerce_constraint { ## my($self, $value) = @_;
-    my $type = $_[0]->{type_constraint}
-        or return $_[1];
-    return Mouse::Util::TypeConstraints->typecast_constraints($_[0]->associated_class->name, $_[0]->find_type_constraint, $type, $_[1]);
-}
+sub clone_and_inherit_options{
+    my($self, %args) = @_;
 
-sub _canonicalize_handles {
-    my $self    = shift;
-    my $handles = shift;
+    my($attribute_class, @traits) = ref($self)->interpolate_class(\%args);
 
-    if (ref($handles) eq 'HASH') {
-        return %$handles;
+    $args{traits} = \@traits if @traits;
+    # do not inherit the 'handles' attribute
+    foreach my $name(keys %{$self}){
+        if(!exists $args{$name} && $name ne 'handles'){
+            $args{$name} = $self->{$name};
+        }
     }
-    elsif (ref($handles) eq 'ARRAY') {
-        return map { $_ => $_ } @$handles;
-    }
-    else {
-        confess "Unable to canonicalize the 'handles' option with $handles";
-    }
+    return $attribute_class->new($self->name, %args);
 }
 
-sub clone_parent {
+sub clone_parent { # DEPRECATED
     my $self  = shift;
     my $class = shift;
     my $name  = shift;
     my %args  = ($self->get_parent_args($class, $name), @_);
 
-    $self->create($class, $name, %args);
+    Carp::cluck("$self->clone_parent has been deprecated."
+        . "Use \$meta->add_attribute and \$attr->install_accessors instead.");
+
+    $self->clone_and_inherited_args($class, $name, %args);
 }
 
-sub get_parent_args {
+sub get_parent_args { # DEPRECATED
     my $self  = shift;
     my $class = shift;
     my $name  = shift;
@@ -380,119 +173,306 @@ sub get_parent_args {
         return %{ $super_attr->_create_args };
     }
 
-    confess "Could not find an attribute by the name of '$name' to inherit from";
+    $self->throw_error("Could not find an attribute by the name of '$name' to inherit from");
+}
+
+
+sub get_read_method {
+    return $_[0]->reader || $_[0]->accessor
+}
+sub get_write_method {
+    return $_[0]->writer || $_[0]->accessor
+}
+
+sub _get_accessor_method_ref {
+    my($self, $type, $generator) = @_;
+
+    my $metaclass = $self->associated_class
+        || $self->throw_error('No asocciated class for ' . $self->name);
+
+    my $accessor = $self->$type();
+    if($accessor){
+        return $metaclass->get_method_body($accessor);
+    }
+    else{
+        return $self->accessor_metaclass->$generator($self, $metaclass);
+    }
+}
+
+sub get_read_method_ref{
+    my($self) = @_;
+    return $self->{_read_method_ref} ||= $self->_get_accessor_method_ref('get_read_method', '_generate_reader');
+}
+
+sub get_write_method_ref{
+    my($self) = @_;
+    return $self->{_write_method_ref} ||= $self->_get_accessor_method_ref('get_write_method', '_generate_writer');
+}
+
+sub set_value {
+    my($self, $object, $value) = @_;
+    return $self->get_write_method_ref()->($object, $value);
+}
+
+sub get_value {
+    my($self, $object) = @_;
+    return $self->get_read_method_ref()->($object);
+}
+
+sub has_value {
+    my($self, $object) = @_;
+    my $accessor_ref = $self->{_predicate_ref}
+        ||= $self->_get_accessor_method_ref('predicate', '_generate_predicate');
+
+    return $accessor_ref->($object);
+}
+
+sub clear_value {
+    my($self, $object) = @_;
+    my $accessor_ref = $self->{_crealer_ref}
+        ||= $self->_get_accessor_method_ref('clearer', '_generate_clearer');
+
+    return $accessor_ref->($object);
+}
+
+
+sub associate_method{
+    my ($attribute, $method_name) = @_;
+    $attribute->{associated_methods}++;
+    return;
+}
+
+sub install_accessors{
+    my($attribute) = @_;
+
+    my $metaclass      = $attribute->associated_class;
+    my $accessor_class = $attribute->accessor_metaclass;
+
+    foreach my $type(qw(accessor reader writer predicate clearer)){
+        if(exists $attribute->{$type}){
+            my $generator = '_generate_' . $type;
+            my $code      = $accessor_class->$generator($attribute, $metaclass);
+            $metaclass->add_method($attribute->{$type} => $code);
+            $attribute->associate_method($attribute->{$type});
+        }
+    }
+
+    # install delegation
+    if(exists $attribute->{handles}){
+        my %handles = $attribute->_canonicalize_handles($attribute->{handles});
+
+        while(my($handle, $method_to_call) = each %handles){
+            $metaclass->add_method($handle =>
+                $attribute->_make_delegation_method(
+                    $handle, $method_to_call));
+
+            $attribute->associate_method($handle);
+        }
+    }
+
+    if($attribute->can('create') != \&create){
+        # backword compatibility
+        $attribute->create($metaclass, $attribute->name, %{$attribute});
+    }
+
+    return;
+}
+
+sub delegation_metaclass() { 'Mouse::Meta::Method::Delegation' }
+
+sub _canonicalize_handles {
+    my($self, $handles) = @_;
+
+    if (ref($handles) eq 'HASH') {
+        return %$handles;
+    }
+    elsif (ref($handles) eq 'ARRAY') {
+        return map { $_ => $_ } @$handles;
+    }
+    elsif ( ref($handles) eq 'CODE' ) {
+        my $class_or_role = ( $self->{isa} || $self->{does} )
+            || $self->throw_error( "Cannot find delegate metaclass for attribute " . $self->name );
+        return $handles->( $self, Mouse::Meta::Class->initialize("$class_or_role"));
+    }
+    elsif (ref($handles) eq 'Regexp') {
+        my $class_or_role = ($self->{isa} || $self->{does})
+            || $self->throw_error("Cannot delegate methods based on a Regexp without a type constraint (isa)");
+
+        my $meta = Mouse::Meta::Class->initialize("$class_or_role"); # "" for stringify
+        return map  { $_ => $_ }
+               grep { !Mouse::Object->can($_) && $_ =~ $handles }
+                   Mouse::Util::is_a_metarole($meta)
+                        ? $meta->get_method_list
+                        : $meta->get_all_method_names;
+    }
+    else {
+        $self->throw_error("Unable to canonicalize the 'handles' option with $handles");
+    }
+}
+
+sub _make_delegation_method {
+    my($self, $handle, $method_to_call) = @_;
+    my $delegator = $self->delegation_metaclass;
+    Mouse::Util::load_class($delegator);
+
+    return $delegator->_generate_delegation($self, $handle, $method_to_call);
+}
+
+sub throw_error{
+    my $self = shift;
+
+    my $metaclass = (ref $self && $self->associated_class) || 'Mouse::Meta::Class';
+    $metaclass->throw_error(@_, depth => 1);
 }
 
 1;
-
 __END__
 
 =head1 NAME
 
-Mouse::Meta::Attribute - attribute metaclass
+Mouse::Meta::Attribute - The Mouse attribute metaclass
+
+=head1 VERSION
+
+This document describes Mouse version 0.47
 
 =head1 METHODS
 
-=head2 new %args -> Mouse::Meta::Attribute
+=head2 C<< new(%options) -> Mouse::Meta::Attribute >>
 
 Instantiates a new Mouse::Meta::Attribute. Does nothing else.
 
-=head2 create OwnerClass, AttributeName, %args -> Mouse::Meta::Attribute
+It adds the following options to the constructor:
 
-Creates a new attribute in OwnerClass. Accessors and helper methods are
-installed. Some error checking is done.
+=over 4
 
-=head2 name -> AttributeName
+=item C<< is => 'ro', 'rw', 'bare' >>
 
-=head2 associated_class -> OwnerClass
+This provides a shorthand for specifying the C<reader>, C<writer>, or
+C<accessor> names. If the attribute is read-only ('ro') then it will
+have a C<reader> method with the same attribute as the name.
 
-=head2 is_required -> Bool
+If it is read-write ('rw') then it will have an C<accessor> method
+with the same name. If you provide an explicit C<writer> for a
+read-write attribute, then you will have a C<reader> with the same
+name as the attribute, and a C<writer> with the name you provided.
 
-=head2 default -> Item
+Use 'bare' when you are deliberately not installing any methods
+(accessor, reader, etc.) associated with this attribute; otherwise,
+Moose will issue a deprecation warning when this attribute is added to a
+metaclass.
 
-=head2 has_default -> Bool
+=item C<< isa => Type >>
 
-=head2 is_lazy -> Bool
+This option accepts a type. The type can be a string, which should be
+a type name. If the type name is unknown, it is assumed to be a class
+name.
 
-=head2 predicate -> MethodName | Undef
+This option can also accept a L<Moose::Meta::TypeConstraint> object.
 
-=head2 has_predicate -> Bool
+If you I<also> provide a C<does> option, then your C<isa> option must
+be a class name, and that class must do the role specified with
+C<does>.
 
-=head2 clearer -> MethodName | Undef
+=item C<< does => Role >>
 
-=head2 has_clearer -> Bool
+This is short-hand for saying that the attribute's type must be an
+object which does the named role.
 
-=head2 handles -> { LocalName => RemoteName }
+B<This option is not yet supported.>
 
-=head2 has_handles -> Bool
+=item C<< coerce => Bool >>
 
-=head2 is_weak_ref -> Bool
+This option is only valid for objects with a type constraint
+(C<isa>). If this is true, then coercions will be applied whenever
+this attribute is set.
 
-=head2 init_arg -> Str
+You can make both this and the C<weak_ref> option true.
 
-=head2 type_constraint -> Str
+=item C<< trigger => CodeRef >>
 
-=head2 has_type_constraint -> Bool
+This option accepts a subroutine reference, which will be called after
+the attribute is set.
 
-=head2 trigger => CODE | Undef
+=item C<< required => Bool >>
 
-=head2 has_trigger -> Bool
+An attribute which is required must be provided to the constructor. An
+attribute which is required can also have a C<default> or C<builder>,
+which will satisfy its required-ness.
 
-=head2 builder => MethodName | Undef
+A required attribute must have a C<default>, C<builder> or a
+non-C<undef> C<init_arg>
 
-=head2 has_builder -> Bool
+=item C<< lazy => Bool >>
 
-=head2 is_lazy_build => Bool
+A lazy attribute must have a C<default> or C<builder>. When an
+attribute is lazy, the default value will not be calculated until the
+attribute is read.
 
-=head2 should_auto_deref -> Bool
+=item C<< weak_ref => Bool >>
 
-Informational methods.
+If this is true, the attribute's value will be stored as a weak
+reference.
 
-=head2 generate_accessor -> CODE
+=item C<< auto_deref => Bool >>
 
-Creates a new code reference for the attribute's accessor.
+If this is true, then the reader will dereference the value when it is
+called. The attribute must have a type constraint which defines the
+attribute as an array or hash reference.
 
-=head2 generate_predicate -> CODE
+=item C<< lazy_build => Bool >>
 
-Creates a new code reference for the attribute's predicate.
+Setting this to true makes the attribute lazy and provides a number of
+default methods.
 
-=head2 generate_clearer -> CODE
+  has 'size' => (
+      is         => 'ro',
+      lazy_build => 1,
+  );
 
-Creates a new code reference for the attribute's clearer.
+is equivalent to this:
 
-=head2 generate_handles -> { MethodName => CODE }
+  has 'size' => (
+      is        => 'ro',
+      lazy      => 1,
+      builder   => '_build_size',
+      clearer   => 'clear_size',
+      predicate => 'has_size',
+  );
 
-Creates a new code reference for each of the attribute's handles methods.
+=back
 
-=head2 find_type_constraint -> CODE
+=head2 C<< associate_method(MethodName) >>
 
-Returns a code reference which can be used to check that a given value passes
-this attribute's type constraint;
+Associates a method with the attribute. Typically, this is called internally
+when an attribute generates its accessors.
 
-=head2 verify_against_type_constraint Item -> 1 | ERROR
+Currently the argument I<MethodName> is ignored in Mouse.
 
-Checks that the given value passes this attribute's type constraint. Returns 1
+=head2 C<< verify_against_type_constraint(Item) -> TRUE | ERROR >>
+
+Checks that the given value passes this attribute's type constraint. Returns C<true>
 on success, otherwise C<confess>es.
 
-=head2 canonicalize_args Name, %args -> %args
+=head2 C<< clone_and_inherit_options(options) -> Mouse::Meta::Attribute >>
 
-Canonicalizes some arguments to create. In particular, C<lazy_build> is
-canonicalized into C<lazy>, C<builder>, etc.
-
-=head2 validate_args Name, \%args -> 1 | ERROR
-
-Checks that the arguments to create the attribute (ie those specified by
-C<has>) are valid.
-
-=head2 clone_parent OwnerClass, AttributeName, %args -> Mouse::Meta::Attribute
-
-Creates a new attribute in OwnerClass, inheriting options from parent classes.
+Creates a new attribute in the owner class, inheriting options from parent classes.
 Accessors and helper methods are installed. Some error checking is done.
 
-=head2 get_parent_args OwnerClass, AttributeName -> Hash
+=head2 C<< get_read_method_ref >>
 
-Returns the options that the parent class of C<OwnerClass> used for attribute
-C<AttributeName>.
+=head2 C<< get_write_method_ref >>
+
+Returns the subroutine reference of a method suitable for reading or
+writing the attribute's value in the associated class. These methods
+always return a subroutine reference, regardless of whether or not the
+attribute is read- or write-only.
+
+=head1 SEE ALSO
+
+L<Moose::Meta::Attribute>
+
+L<Class::MOP::Attribute>
 
 =cut
 
