@@ -1,80 +1,95 @@
 package Mouse;
-use strict;
-use warnings;
-use 5.006;
-use base 'Exporter';
+use 5.006_002;
 
-our $VERSION = '0.17';
+use Mouse::Exporter; # enables strict and warnings
 
-BEGIN {
-    if ($ENV{MOUSE_DEBUG}) {
-        *DEBUG = sub (){ 1 };
-    } else {
-        *DEBUG = sub (){ 0 };
-    }
+our $VERSION = '0.47';
+
+use Carp         qw(confess);
+use Scalar::Util qw(blessed);
+
+use Mouse::Util qw(load_class is_class_loaded get_code_package not_supported);
+
+use Mouse::Meta::Module;
+use Mouse::Meta::Class;
+use Mouse::Meta::Role;
+use Mouse::Meta::Attribute;
+use Mouse::Object;
+use Mouse::Util::TypeConstraints ();
+
+Mouse::Exporter->setup_import_methods(
+    as_is => [qw(
+        extends with
+        has
+        before after around
+        override super
+        augment  inner
+    ),
+        \&Scalar::Util::blessed,
+        \&Carp::confess,
+   ],
+);
+
+
+sub extends {
+    Mouse::Meta::Class->initialize(scalar caller)->superclasses(@_);
+    return;
 }
 
-use Carp 'confess';
-use Scalar::Util 'blessed';
-use Mouse::Util;
-
-use Mouse::Meta::Attribute;
-use Mouse::Meta::Class;
-use Mouse::Object;
-use Mouse::Util::TypeConstraints;
-
-our @EXPORT = qw(extends has before after around override super blessed confess with);
-
-sub extends { Mouse::Meta::Class->initialize(caller)->superclasses(@_) }
+sub with {
+    Mouse::Util::apply_all_roles(scalar(caller), @_);
+    return;
+}
 
 sub has {
-    my $meta = Mouse::Meta::Class->initialize(caller);
+    my $meta = Mouse::Meta::Class->initialize(scalar caller);
+    my $name = shift;
 
-    my $names = shift;
-    $names = [$names] if !ref($names);
+    $meta->throw_error(q{Usage: has 'name' => ( key => value, ... )})
+        if @_ % 2; # odd number of arguments
 
-    for my $name (@$names) {
-        if ($name =~ s/^\+//) {
-            Mouse::Meta::Attribute->clone_parent($meta, $name, @_);
-        }
-        else {
-            Mouse::Meta::Attribute->create($meta, $name, @_);
+    if(ref $name){ # has [qw(foo bar)] => (...)
+        for (@{$name}){
+            $meta->add_attribute($_ => @_);
         }
     }
+    else{ # has foo => (...)
+        $meta->add_attribute($name => @_);
+    }
+    return;
 }
 
 sub before {
-    my $meta = Mouse::Meta::Class->initialize(caller);
+    my $meta = Mouse::Meta::Class->initialize(scalar caller);
 
     my $code = pop;
 
     for (@_) {
         $meta->add_before_method_modifier($_ => $code);
     }
+    return;
 }
 
 sub after {
-    my $meta = Mouse::Meta::Class->initialize(caller);
+    my $meta = Mouse::Meta::Class->initialize(scalar caller);
 
     my $code = pop;
 
     for (@_) {
         $meta->add_after_method_modifier($_ => $code);
     }
+    return;
 }
 
 sub around {
-    my $meta = Mouse::Meta::Class->initialize(caller);
+    my $meta = Mouse::Meta::Class->initialize(scalar caller);
 
     my $code = pop;
 
     for (@_) {
         $meta->add_around_method_modifier($_ => $code);
     }
-}
-
-sub with {
-    Mouse::Util::apply_all_roles((caller)[0], @_);
+    return;
 }
 
 our $SUPER_PACKAGE;
@@ -84,127 +99,74 @@ our @SUPER_ARGS;
 sub super {
     # This check avoids a recursion loop - see
     # t/100_bugs/020_super_recursion.t
-    return if defined $SUPER_PACKAGE && $SUPER_PACKAGE ne caller();
-    return unless $SUPER_BODY; $SUPER_BODY->(@SUPER_ARGS);
+    return if  defined $SUPER_PACKAGE && $SUPER_PACKAGE ne caller();
+    return if !defined $SUPER_BODY;
+    $SUPER_BODY->(@SUPER_ARGS);
 }
 
 sub override {
-    my $meta = Mouse::Meta::Class->initialize(caller);
-    my $pkg = $meta->name;
-
-    my $name = shift;
-    my $code = shift;
-
-    my $body = $pkg->can($name)
-        or confess "You cannot override '$name' because it has no super method";
-
-    $meta->add_method($name => sub {
-        local $SUPER_PACKAGE = $pkg;
-        local @SUPER_ARGS = @_;
-        local $SUPER_BODY = $body;
-
-        $code->(@_);
-    });
+    # my($name, $method) = @_;
+    Mouse::Meta::Class->initialize(scalar caller)->add_override_method_modifier(@_);
 }
 
-sub import {
-    my $class = shift;
+our %INNER_BODY;
+our %INNER_ARGS;
 
-    strict->import;
-    warnings->import;
-
-    my $caller = caller;
-
-    # we should never export to main
-    if ($caller eq 'main') {
-        warn qq{$class does not export its sugar to the 'main' package.\n};
+sub inner {
+    my $pkg = caller();
+    if ( my $body = $INNER_BODY{$pkg} ) {
+        my $args = $INNER_ARGS{$pkg};
+        local $INNER_ARGS{$pkg};
+        local $INNER_BODY{$pkg};
+        return $body->(@{$args});
+    }
+    else {
         return;
     }
+}
 
-    my $meta = Mouse::Meta::Class->initialize($caller);
-    $meta->superclasses('Mouse::Object')
+sub augment {
+    #my($name, $method) = @_;
+    Mouse::Meta::Class->initialize(scalar caller)->add_augment_method_modifier(@_);
+    return;
+}
+
+sub init_meta {
+    shift;
+    my %args = @_;
+
+    my $class = $args{for_class}
+                    or confess("Cannot call init_meta without specifying a for_class");
+
+    my $base_class = $args{base_class} || 'Mouse::Object';
+    my $metaclass  = $args{metaclass}  || 'Mouse::Meta::Class';
+
+    my $meta = $metaclass->initialize($class);
+
+    $meta->add_method(meta => sub{
+        return $metaclass->initialize(ref($_[0]) || $_[0]);
+    });
+
+    $meta->superclasses($base_class)
         unless $meta->superclasses;
 
-    no strict 'refs';
-    no warnings 'redefine';
-    *{$caller.'::meta'} = sub { $meta };
+    # make a class type for each Mouse class
+    Mouse::Util::TypeConstraints::class_type($class)
+        unless Mouse::Util::TypeConstraints::find_type_constraint($class);
 
-    if (@_) {
-        __PACKAGE__->export_to_level( 1, $class, @_);
-    } else {
-        # shortcut for the common case of no type character
-        no strict 'refs';
-        for my $keyword (@EXPORT) {
-            *{ $caller . '::' . $keyword } = *{__PACKAGE__ . '::' . $keyword};
-        }
-    }
-}
-
-sub unimport {
-    my $caller = caller;
-
-    no strict 'refs';
-    for my $keyword (@EXPORT) {
-        delete ${ $caller . '::' }{$keyword};
-    }
-}
-
-sub load_class {
-    my $class = shift;
-
-    if (ref($class) || !defined($class) || !length($class)) {
-        my $display = defined($class) ? $class : 'undef';
-        confess "Invalid class name ($display)";
-    }
-
-    return 1 if $class eq 'Mouse::Object';
-    return 1 if is_class_loaded($class);
-
-    (my $file = "$class.pm") =~ s{::}{/}g;
-
-    eval { CORE::require($file) };
-    confess "Could not load class ($class) because : $@" if $@;
-
-    return 1;
-}
-
-sub is_class_loaded {
-    my $class = shift;
-
-    return 0 if ref($class) || !defined($class) || !length($class);
-
-    # walk the symbol table tree to avoid autovififying
-    # \*{${main::}{"Foo::"}} == \*main::Foo::
-
-    my $pack = \*::;
-    foreach my $part (split('::', $class)) {
-        return 0 unless exists ${$$pack}{"${part}::"};
-        $pack = \*{${$$pack}{"${part}::"}};
-    }
-
-    # check for $VERSION or @ISA
-    return 1 if exists ${$$pack}{VERSION}
-             && defined *{${$$pack}{VERSION}}{SCALAR};
-    return 1 if exists ${$$pack}{ISA}
-             && defined *{${$$pack}{ISA}}{ARRAY};
-
-    # check for any method
-    foreach ( keys %{$$pack} ) {
-        next if substr($_, -2, 2) eq '::';
-        return 1 if defined *{${$$pack}{$_}}{CODE};
-    }
-
-    # fail
-    return 0;
+    return $meta;
 }
 
 1;
-
 __END__
 
 =head1 NAME
 
 Mouse - Moose minus the antlers
+
+=head1 VERSION
+
+This document describes Mouse version 0.47
 
 =head1 SYNOPSIS
 
@@ -234,21 +196,22 @@ Mouse - Moose minus the antlers
 
 =head1 DESCRIPTION
 
-L<Moose> is wonderful.
+L<Moose> is wonderful. B<Use Moose instead of Mouse.>
 
-Unfortunately, it's a little slow. Though significant progress has been made
-over the years, the compile time penalty is a non-starter for some
-applications.
+Unfortunately, Moose has a compile-time penalty. Though significant progress
+has been made over the years, the compile time penalty is a non-starter for
+some very specific applications. If you are writing a command-line application
+or CGI script where startup time is essential, you may not be able to use
+Moose. We recommend that you instead use L<HTTP::Engine> and FastCGI for the
+latter, if possible.
 
-Mouse aims to alleviate this by providing a subset of Moose's
-functionality, faster. In particular, L<Moose/has> is missing only a few
-expert-level features.
+Mouse aims to alleviate this by providing a subset of Moose's functionality,
+faster.
 
-We're also going as light on dependencies as possible.
-L<Class::Method::Modifiers> or L<Data::Util> is required if you want support
-for L</before>, L</after>, and L</around>.
+We're also going as light on dependencies as possible. Mouse currently has
+B<no dependencies> except for testing modules.
 
-=head2 MOOSE COMPAT
+=head2 MOOSE COMPATIBILITY
 
 Compatibility with Moose has been the utmost concern. Fewer than 1% of the
 tests fail when run against Moose instead of Mouse. Mouse code coverage is also
@@ -257,9 +220,16 @@ runs the test suite 4x faster.
 
 The idea is that, if you need the extra power, you should be able to run
 C<s/Mouse/Moose/g> on your codebase and have nothing break. To that end,
-nothingmuch has written L<Squirrel> (part of this distribution) which will act
-as Mouse unless Moose is loaded, in which case it will act as Moose.
-L<Any::Moose> is a more high-tech L<Squirrel>.
+we have written L<Any::Moose> which will act as Mouse unless Moose is loaded,
+in which case it will act as Moose. Since Mouse is a little sloppier than
+Moose, if you run into weird errors, it would be worth running:
+
+    ANY_MOOSE=Moose perl your-script.pl
+
+to see if the bug is caused by Mouse. Moose's diagnostics and validation are
+also much better.
+
+See also L<Mouse::Spec> for compatibility and incompatibility with Moose.
 
 =head2 MouseX
 
@@ -271,133 +241,152 @@ list or #moose on IRC beforehand.
 
 =head1 KEYWORDS
 
-=head2 meta -> Mouse::Meta::Class
+=head2 C<< $object->meta -> Mouse::Meta::Class >>
 
 Returns this class' metaclass instance.
 
-=head2 extends superclasses
+=head2 C<< extends superclasses >>
 
 Sets this class' superclasses.
 
-=head2 before (method|methods) => Code
+=head2 C<< before (method|methods) => CodeRef >>
 
-Installs a "before" method modifier. See L<Moose/before> or
-L<Class::Method::Modifiers/before>.
+Installs a "before" method modifier. See L<Moose/before>.
 
-Use of this feature requires L<Class::Method::Modifiers>!
+=head2 C<< after (method|methods) => CodeRef >>
 
-=head2 after (method|methods) => Code
+Installs an "after" method modifier. See L<Moose/after>.
 
-Installs an "after" method modifier. See L<Moose/after> or
-L<Class::Method::Modifiers/after>.
+=head2 C<< around (method|methods) => CodeRef >>
 
-Use of this feature requires L<Class::Method::Modifiers>!
+Installs an "around" method modifier. See L<Moose/around>.
 
-=head2 around (method|methods) => Code
-
-Installs an "around" method modifier. See L<Moose/around> or
-L<Class::Method::Modifiers/around>.
-
-Use of this feature requires L<Class::Method::Modifiers>!
-
-=head2 has (name|names) => parameters
+=head2 C<< has (name|names) => parameters >>
 
 Adds an attribute (or if passed an arrayref of names, multiple attributes) to
 this class. Options:
 
 =over 4
 
-=item is => ro|rw
+=item C<< is => ro|rw|bare >>
 
-If specified, inlines a read-only/read-write accessor with the same name as
+The I<is> option accepts either I<rw> (for read/write), I<ro> (for read
+only) or I<bare> (for nothing). These will create either a read/write accessor
+or a read-only accessor respectively, using the same name as the C<$name> of
 the attribute.
 
-=item isa => TypeConstraint
+If you need more control over how your accessors are named, you can
+use the C<reader>, C<writer> and C<accessor> options, however if you
+use those, you won't need the I<is> option.
 
-Provides basic type checking in the constructor and accessor. Basic types such
-as C<Int>, C<ArrayRef>, C<Defined> are supported. Any unknown type is taken to
-be a class check (e.g. isa => 'DateTime' would accept only L<DateTime>
-objects).
+=item C<< isa => TypeName | ClassName >>
 
-=item required => 0|1
+Provides type checking in the constructor and accessor. The following types are
+supported. Any unknown type is taken to be a class check
+(e.g. C<< isa => 'DateTime' >> would accept only L<DateTime> objects).
+
+    Any Item Bool Undef Defined Value Num Int Str ClassName
+    Ref ScalarRef ArrayRef HashRef CodeRef RegexpRef GlobRef
+    FileHandle Object
+
+For more documentation on type constraints, see L<Mouse::Util::TypeConstraints>.
+
+=item C<< does => RoleName >>
+
+This will accept the name of a role which the value stored in this attribute
+is expected to have consumed.
+
+=item C<< coerce => Bool >>
+
+This will attempt to use coercion with the supplied type constraint to change
+the value passed into any accessors or constructors. You B<must> have supplied
+a type constraint in order for this to work. See L<Moose::Cookbook::Basics::Recipe5>
+for an example.
+
+=item C<< required => Bool >>
 
 Whether this attribute is required to have a value. If the attribute is lazy or
 has a builder, then providing a value for the attribute in the constructor is
 optional.
 
-=item init_arg => Str | Undef
+=item C<< init_arg => Str | Undef >>
 
 Allows you to use a different key name in the constructor.  If undef, the
-attribue can't be passed to the constructor.
+attribute can't be passed to the constructor.
 
-=item default => Value | CodeRef
+=item C<< default => Value | CodeRef >>
 
 Sets the default value of the attribute. If the default is a coderef, it will
 be invoked to get the default value. Due to quirks of Perl, any bare reference
 is forbidden, you must wrap the reference in a coderef. Otherwise, all
 instances will share the same reference.
 
-=item lazy => 0|1
+=item C<< lazy => Bool >>
 
 If specified, the default is calculated on demand instead of in the
 constructor.
 
-=item predicate => Str
+=item C<< predicate => Str >>
 
 Lets you specify a method name for installing a predicate method, which checks
 that the attribute has a value. It will not invoke a lazy default or builder
 method.
 
-=item clearer => Str
+=item C<< clearer => Str >>
 
 Lets you specify a method name for installing a clearer method, which clears
 the attribute's value from the instance. On the next read, lazy or builder will
 be invoked.
 
-=item handles => HashRef|ArrayRef
+=item C<< handles => HashRef|ArrayRef|Regexp >>
 
 Lets you specify methods to delegate to the attribute. ArrayRef forwards the
 given method names to method calls on the attribute. HashRef maps local method
 names to remote method names called on the attribute. Other forms of
-L</handles>, such as regular expression and coderef, are not yet supported.
+L</handles>, such as RoleName and CodeRef, are not yet supported.
 
-=item weak_ref => 0|1
+=item C<< weak_ref => Bool >>
 
 Lets you automatically weaken any reference stored in the attribute.
 
 Use of this feature requires L<Scalar::Util>!
 
-=item trigger => CodeRef
+=item C<< trigger => CodeRef >>
 
 Any time the attribute's value is set (either through the accessor or the constructor), the trigger is called on it. The trigger receives as arguments the instance, the new value, and the attribute instance.
 
-Mouse 0.05 supported more complex triggers, but this behavior is now removed.
-
-=item builder => Str
+=item C<< builder => Str >>
 
 Defines a method name to be called to provide the default value of the
 attribute. C<< builder => 'build_foo' >> is mostly equivalent to
 C<< default => sub { $_[0]->build_foo } >>.
 
-=item auto_deref => 0|1
+=item C<< auto_deref => Bool >>
 
 Allows you to automatically dereference ArrayRef and HashRef attributes in list
 context. In scalar context, the reference is returned (NOT the list length or
 bucket status). You must specify an appropriate type constraint to use
 auto_deref.
 
-=item lazy_build => 0|1
+=item C<< lazy_build => Bool >>
 
-Automatically define lazy => 1 as well as builder => "_build_$attr", clearer =>
-"clear_$attr', predicate => 'has_$attr' unless they are already defined.
+Automatically define the following options:
+
+    has $attr => (
+        # ...
+        lazy      => 1
+        builder   => "_build_$attr",
+        clearer   => "clear_$attr",
+        predicate => "has_$attr",
+    );
 
 =back
 
-=head2 confess error -> BOOM
+=head2 C<< confess(message) -> BOOM >>
 
 L<Carp/confess> for your convenience.
 
-=head2 blessed value -> ClassName | undef
+=head2 C<< blessed(value) -> ClassName | undef >>
 
 L<Scalar::Util/blessed> for your convenience.
 
@@ -413,43 +402,71 @@ You may use L</extends> to replace the superclass list.
 Please unimport Mouse (C<no Mouse>) so that if someone calls one of the
 keywords (such as L</extends>) it will break loudly instead breaking subtly.
 
-=head1 FUNCTIONS
+=head1 CAVEATS
 
-=head2 load_class Class::Name
+If you use Mouse::XS you might see a fatal error on callbacks
+which include C<eval 'BEGIN{ die }'>, which typically occurs in such code
+as C<eval 'use NotInstalledModule'>. This is not
+a bug in Mouse. In fact, it is a bug in Perl (RT #69939).
 
-This will load a given C<Class::Name> (or die if it's not loadable).
-This function can be used in place of tricks like
-C<eval "use $module"> or using C<require>.
+To work around this problem, surround C<eval STRING> with C<eval BLOCK>:
 
-=head2 is_class_loaded Class::Name -> Bool
+    sub callback {
+        # eval 'use NotInstalledModule';       # NG
+        eval{ eval 'use NotInstalledModule' }; # OK
+    }
 
-Returns whether this class is actually loaded or not. It uses a heuristic which
-involves checking for the existence of C<$VERSION>, C<@ISA>, and any
-locally-defined method.
+It seems ridiculous, but it works as you expected.
+
+=head1 SOURCE CODE ACCESS
+
+We have a public git repository:
+
+ git clone git://git.moose.perl.org/Mouse.git
+
+=head1 DEPENDENCIES
+
+Perl 5.6.2 or later.
+
+=head1 SEE ALSO
+
+L<Mouse::Spec>
+
+L<Moose>
+
+L<Moose::Manual>
+
+L<Moose::Cookbook>
+
+L<Class::MOP>
 
 =head1 AUTHORS
 
-Shawn M Moore, C<< <sartak at gmail.com> >>
+Shawn M Moore E<lt>sartak at gmail.comE<gt>
 
-Yuval Kogman, C<< <nothingmuch at woobling.org> >>
+Yuval Kogman E<lt>nothingmuch at woobling.orgE<gt>
 
 tokuhirom
 
 Yappo
 
+wu-lee
+
+Goro Fuji (gfx) E<lt>gfuji at cpan.orgE<gt>
+
 with plenty of code borrowed from L<Class::MOP> and L<Moose>
 
 =head1 BUGS
 
-No known bugs.
-
-Please report any bugs through RT: email
-C<bug-mouse at rt.cpan.org>, or browse
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Mouse>.
+All complex software has bugs lurking in it, and this module is no exception.
+Please report any bugs to C<bug-mouse at rt.cpan.org>, or through the web
+interface at L<http://rt.cpan.org/Public/Dist/Display.html?Name=Mouse>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2008 Shawn M Moore.
+Copyright (c) 2008-2010 Infinity Interactive, Inc.
+
+http://www.iinteractive.com/
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
