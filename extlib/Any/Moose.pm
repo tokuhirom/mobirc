@@ -1,10 +1,12 @@
 package Any::Moose;
-our $VERSION = '0.05';
-
+our $VERSION = '0.11';
 # ABSTRACT: use Moose or Mouse modules
 
+use 5.006_002;
 use strict;
 use warnings;
+
+use Carp ();
 
 our $PREFERRED = $ENV{'ANY_MOOSE'};
 
@@ -12,12 +14,9 @@ sub import {
     my $self = shift;
     my $pkg  = caller;
 
-    # Any::Moose gives you strict and warnings (but only the first time, in case
-    # you do something like: use Any::Moose; no strict 'refs')
-    if (!defined(_backer_of($pkg))) {
-        strict->import;
-        warnings->import;
-    }
+    # Any::Moose gives you strict and warnings
+    strict->import;
+    warnings->import;
 
     # first options are for Mo*se
     unshift @_, 'Moose' if !@_ || ref($_[0]);
@@ -40,24 +39,38 @@ sub import {
 }
 
 sub unimport {
-    my $self = shift;
-    my $pkg  = caller;
+    my $sel = shift;
+    my $pkg = caller;
+    my $module;
 
-    my $backer = _backer_of($pkg);
-
-    eval "package $pkg;\n"
-       . '$backer->unimport(@_);';
+    if(@_){
+        $module = any_moose(shift, $pkg);
+    }
+    else {
+        $module = _backer_of($pkg);
+    }
+    my $e = do{
+        local $@;
+        eval "package $pkg;\n"
+           . '$module->unimport();';
+        $@;
+   };
+   Carp::croak("Cannot unimport Any::Moose: $e") if $e;
+   return;
 }
 
 sub _backer_of {
     my $pkg = shift;
 
-    return 'Mouse' if $INC{'Mouse.pm'}
-                   && Mouse::Meta::Class->_metaclass_cache($pkg);
-    return 'Mouse::Role' if $INC{'Mouse/Role.pm'}
-                         && Mouse::Meta::Role->_metaclass_cache($pkg);
+    if(exists $INC{'Mouse.pm'}){
+        my $meta = Mouse::Util::get_metaclass_by_name($pkg);
+        if ($meta) {
+            return 'Mouse::Role' if $meta->isa('Mouse::Meta::Role');
+            return 'Mouse'       if $meta->isa('Mouse::Meta::Class');
+       }
+    }
 
-    if (is_moose_loaded()) {
+    if (_is_moose_loaded()) {
         my $meta = Class::MOP::get_metaclass_by_name($pkg);
         if ($meta) {
             return 'Moose::Role' if $meta->isa('Moose::Meta::Role');
@@ -97,8 +110,14 @@ sub _install_module {
 
     require $file;
 
-    eval "package $options->{package};\n"
-       . '$module->import(@{ $options->{imports} });';
+    my $e = do {
+        local $@;
+        eval "package $options->{package};\n"
+           . '$module->import(@{ $options->{imports} });';
+        $@;
+    };
+    Carp::croak("Cannot import Any::Moose: $e") if $e;
+    return;
 }
 
 sub any_moose {
@@ -107,43 +126,62 @@ sub any_moose {
 
     # Mouse gets first dibs because it doesn't introspect existing classes
 
-    if ((_backer_of($package)||'') =~ /^Mouse/) {
+    my $backer = _backer_of($package) || '';
+
+    if ($backer =~ /^Mouse/) {
         $fragment =~ s/^Moose/Mouse/;
         return $fragment;
     }
 
-    return $fragment if (_backer_of($package)||'') =~ /^Moose/;
+    return $fragment if $backer =~ /^Moose/;
 
-    # If we're loading up the backing class...
-    if ($fragment eq 'Moose' || $fragment eq 'Moose::Role') {
-        if (!$PREFERRED) {
-            $PREFERRED = is_moose_loaded() ? 'Moose' : 'Mouse';
-
-            (my $file = $PREFERRED . '.pm') =~ s{::}{/}g;
-            require $file;
+    if (!$PREFERRED) {
+        local $@;
+        if (_is_moose_loaded()) {
+            $PREFERRED = 'Moose';
         }
-
-        $fragment =~ s/^Moose/Mouse/ if $PREFERRED eq 'Mouse';
-        return $fragment;
+        elsif (eval { require Mouse }) {
+            $PREFERRED = 'Mouse';
+        }
+        elsif (eval { require Moose }) {
+            $PREFERRED = 'Moose';
+        }
+        else {
+            require Carp;
+            Carp::confess("Unable to locate Mouse or Moose in INC");
+        }
     }
 
-    require Carp;
-    Carp::croak("Neither Moose nor Mouse backs the '$package' package.");
+    $fragment =~ s/^Moose/Mouse/ if mouse_is_preferred();
+    return $fragment;
 }
 
 sub load_class {
     my ($class_name) = @_;
-    return Class::MOP::load_class($class_name)
-        if is_moose_loaded();
+    return Class::MOP::load_class($class_name) if moose_is_preferred();
     return Mouse::load_class($class_name);
 }
 
-sub is_moose_loaded { !!$INC{'Class/MOP.pm'} }
+sub is_class_loaded {
+    my ($class_name) = @_;
+    return Class::MOP::is_class_loaded($class_name) if moose_is_preferred();
+    return Mouse::is_class_loaded($class_name);
+}
+
+sub moose_is_preferred { $PREFERRED eq 'Moose' }
+sub mouse_is_preferred { $PREFERRED eq 'Mouse' }
+
+sub _is_moose_loaded { exists $INC{'Class/MOP.pm'} }
+
+sub is_moose_loaded {
+    Carp::carp("Any::Moose::is_moose_loaded is deprecated. Please use Any::Moose::moose_is_preferred instead");
+    goto \&_is_moose_loaded;
+}
 
 sub _canonicalize_fragment {
     my $fragment = shift;
 
-    return 'Moose' if !defined($fragment);
+    return 'Moose' if !$fragment;
 
     # any_moose("X::Types") -> any_moose("MooseX::Types")
     $fragment =~ s/^X::/MooseX::/;
@@ -157,23 +195,21 @@ sub _canonicalize_fragment {
     # any_moose("Util") -> any_moose("Moose::Util")
     $fragment =~ s/^(?!Moose)/Moose::/;
 
-    # any_moose("Moose::") (via any_moose("")) -> any_moose("Moose")
-    $fragment =~ s/^Moose::$/Moose/;
-
     return $fragment;
 }
 
 1;
 
 
-__END__
+=pod
+
 =head1 NAME
 
 Any::Moose - use Moose or Mouse modules
 
 =head1 VERSION
 
-version 0.05
+version 0.11
 
 =head1 SYNOPSIS
 
@@ -183,6 +219,9 @@ version 0.05
 
     # uses Moose if it's loaded, Mouse otherwise
     use Any::Moose;
+
+    # cleans the namespace up
+    no Any::Moose;
 
 =head2 OTHER MODULES
 
@@ -217,12 +256,19 @@ version 0.05
 Actual documentation is forthcoming, once we solidify all the bits of the API.
 The examples above are very likely to continue working.
 
+=head1 SEE ALSO
+
+L<Moose>
+
+L<Mouse>
+
 =head1 AUTHORS
 
   Shawn M Moore <sartak@bestpractical.com>
   Florian Ragwitz <rafl@debian.org>
   Stevan Little <stevan@iinteractive.com>
   Tokuhiro Matsuno <tokuhirom@gmail.com>
+  Goro Fuji <gfuji@cpan.org>
 
 =head1 COPYRIGHT AND LICENSE
 
@@ -230,4 +276,9 @@ This software is copyright (c) 2009 by Best Practical Solutions.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as perl itself.
+
+=cut
+
+
+__END__
 
