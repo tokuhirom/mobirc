@@ -20,36 +20,36 @@ use HTTP::Engine::Interface
         output_header => sub {},
         write => sub {
             my($self, $buffer) = @_;
+            Carp::carp("do not pass the utf8-string as HTTP-Response: '$buffer'") if Encode::is_utf8($buffer);
             $self->output_body_buffer( $self->output_body_buffer . $buffer );
         },
     }
 ;
 
-use URI::WithBase;
-use IO::Scalar;
+use HTTP::Engine::Test::Request;
+use Carp ();
+use Encode ();
 
 sub run {
     my ( $self, $request, %args ) = @_;
+    Carp::croak('missing request object') unless $request;
+    Carp::croak('incorrect request object($request->uri() returns undef)') unless $request->uri;
+    if ($request->method eq 'POST') {
+        Carp::carp('missing content-length header') unless defined $request->content_length;
+        Carp::carp('missing content-type header') unless $request->content_type;
+    }
 
     return $self->handle_request(
-        uri        => URI::WithBase->new( $request->uri ),
-        base       => do {
-            my $base = $request->uri->clone;
-            $base->path_query('/');
-            $base;
-        },
-        headers    => $request->headers,
-        method     => $request->method,
-        protocol   => $request->protocol,
-        address    => "127.0.0.1",
-        port       => "80",
-        user       => undef,
-        _https_info => undef,
-        _connection => {
-            input_handle  => IO::Scalar->new( \( $request->content ) ),
-            env           => ($args{env} || {}),
-        },
-        %args,
+        HTTP::Engine::Test::Request->build_request_args(
+            $request->uri,
+            $request->content,
+            {
+                headers  => $request->headers,
+                method   => $request->method,
+                protocol => $request->protocol,
+                %args,
+            },
+        ),
     );
 }
 
@@ -82,6 +82,10 @@ HTTP::Engine::Interface::Test - HTTP::Engine Test Interface
 =head1 DESCRIPTION
 
 HTTP::Engine::Interface::Test is test engine base class
+
+=head1 SEE ALSO
+
+L<HTTP::Engine::Test::Request>
 
 =head1 AUTHOR
 

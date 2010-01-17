@@ -137,6 +137,28 @@ __END__
 
 HTTP::Engine::Interface::POE - POE interface for HTTP::Engine.
 
+=head1 SYNOPSIS
+
+    use POE;
+
+    HTTP::Engine->new(
+        interface => {
+            module => 'POE',
+            args   => {
+                host => '127.0.0.1',
+                port => 1984,
+            },
+            request_handler => sub {
+                HTTP::Engine::Response->new(
+                    status => 200,
+                    body   => 'foo'
+                )
+            }
+        },
+    )->run;
+
+    POE::Kernel->run();
+
 =head1 DESCRIPTION
 
 This is POE interface for HTTP::Engine.

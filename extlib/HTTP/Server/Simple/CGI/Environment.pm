@@ -105,7 +105,7 @@ sub header {
         unless $tag =~ m/^(?:CONTENT_(?:LENGTH|TYPE)|COOKIE)$/;
 
     if ( exists $ENV{$tag} ) {
-        $ENV{$tag} .= "; $value";
+        $ENV{$tag} .= ", $value";
     }
     else {
         $ENV{$tag} = $value;

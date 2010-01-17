@@ -1,5 +1,9 @@
 package YAML::Tag;
-use strict; use warnings;
+
+use strict;
+use warnings;
+
+our $VERSION = '0.71';
 
 use overload '""' => sub { ${$_[0]} };
 

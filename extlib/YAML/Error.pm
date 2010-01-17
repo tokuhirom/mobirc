@@ -1,6 +1,11 @@
 package YAML::Error;
-use strict; use warnings;
-use YAML::Base; use base 'YAML::Base';
+
+use strict;
+use warnings;
+use YAML::Base;
+
+our $VERSION = '0.71';
+our @ISA     = 'YAML::Base';
 
 field 'code';
 field 'type' => 'Error';
@@ -185,7 +190,8 @@ YAML_LOAD_WARN_GLOB_IO
     );
 
 package YAML::Warning;
-use base 'YAML::Error';
+
+our @ISA = 'YAML::Error';
 
 1;
 

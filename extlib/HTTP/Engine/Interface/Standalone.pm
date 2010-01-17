@@ -303,6 +303,8 @@ HTTP::Engine::Interface::Standalone - Standalone HTTP Server
 
 THIS MODULE WILL REMOVE!!
 
+use L<HTTP::Engine::Interface::PSGI> + L<Plack::Server::Standalone> instead
+
 =head1 AUTHOR
 
 Kazuhiro Osawa

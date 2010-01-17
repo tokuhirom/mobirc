@@ -12,7 +12,7 @@ package CGI::Simple::Cookie;
 
 use strict;
 use vars '$VERSION';
-$VERSION = '1.106';
+$VERSION = '1.112';
 use CGI::Simple::Util qw(rearrange unescape escape);
 use overload '""' => \&as_string, 'cmp' => \&compare, 'fallback' => 1;
 
@@ -29,12 +29,18 @@ sub parse {
   my ( $self, $raw_cookie ) = @_;
   return () unless $raw_cookie;
   my %results;
-  my @pairs = split "; ?", $raw_cookie;
+  my @pairs = split "[;,] ?", $raw_cookie;
   for my $pair ( @pairs ) {
-    $pair =~ s/^\s+|\s+$//;    # trim leading trailing whitespace
-    my ( $key, $value ) = split "=", $pair;
-    next unless defined $value;
-    my @values = map { unescape( $_ ) } split /[&;]/, $value;
+    # trim leading trailing whitespace
+    $pair =~ s/^\s+//;
+    $pair =~ s/\s+$//;
+    my ( $key, $value ) = split( "=", $pair, 2 );
+    next if !defined( $value );
+    my @values = ();
+    if ( $value ne '' ) {
+      @values = map unescape( $_ ), split( /[&;]/, $value . '&dmy' );
+      pop @values;
+    }
     $key = unescape( $key );
 
     # A bug in Netscape can cause several cookies with same name to
@@ -66,24 +72,27 @@ sub raw_fetch {
 sub new {
   my ( $class, @params ) = @_;
   $class = ref( $class ) || $class;
-  my ( $name, $value, $path, $domain, $secure, $expires ) = rearrange(
+  my ( $name, $value, $path, $domain, $secure, $expires, $httponly )
+   = rearrange(
     [
       'NAME', [ 'VALUE', 'VALUES' ],
       'PATH',   'DOMAIN',
-      'SECURE', 'EXPIRES'
+      'SECURE', 'EXPIRES',
+      'HTTPONLY'
     ],
     @params
-  );
+   );
   return undef unless defined $name and defined $value;
   my $self = {};
   bless $self, $class;
   $self->name( $name );
   $self->value( $value );
   $path ||= "/";
-  $self->path( $path )       if defined $path;
-  $self->domain( $domain )   if defined $domain;
-  $self->secure( $secure )   if defined $secure;
-  $self->expires( $expires ) if defined $expires;
+  $self->path( $path )         if defined $path;
+  $self->domain( $domain )     if defined $domain;
+  $self->secure( $secure )     if defined $secure;
+  $self->expires( $expires )   if defined $expires;
+  $self->httponly( $httponly ) if defined $httponly;
   return $self;
 }
 
@@ -97,6 +106,7 @@ sub as_string {
   push @cookie, "path=" . $self->path       if $self->path;
   push @cookie, "expires=" . $self->expires if $self->expires;
   push @cookie, "secure"                    if $self->secure;
+  push @cookie, "HttpOnly"                  if $self->httponly;
   return join "; ", @cookie;
 }
 
@@ -149,13 +159,19 @@ sub path {
   return $self->{'path'};
 }
 
+sub httponly {
+  my ( $self, $httponly ) = @_;
+  $self->{'httponly'} = $httponly if defined $httponly;
+  return $self->{'httponly'};
+}
+
 1;
 
 __END__
 
 =head1 NAME
 
-CGI::Simple::Cookie - Interface to Netscape Cookies
+CGI::Simple::Cookie - Interface to browse cookies
 
 =head1 SYNOPSIS
 
@@ -179,11 +195,11 @@ CGI::Simple::Cookie - Interface to Netscape Cookies
 
 =head1 DESCRIPTION
 
-CGI::Simple::Cookie is an interface to Netscape (HTTP/1.1) cookies, an
-innovation that allows Web servers to store persistent information on
-the browser's side of the connection.  Although CGI::Simple::Cookie is
-intended to be used in conjunction with CGI::Simple.pm (and is in fact
-used by it internally), you can use this module independently.
+CGI::Simple::Cookie is an interface to HTTP/1.1 cookies, a mechanism
+that allows Web servers to store persistent information on the browser's
+side of the connection. Although CGI::Simple::Cookie is intended to be
+used in conjunction with CGI::Simple.pm (and is in fact used by it
+internally), you can use this module independently.
 
 For full information on cookies see:
 
@@ -214,8 +230,8 @@ the user quits the browser.
 This is a partial or complete domain name for which the cookie is
 valid.  The browser will return the cookie to any host that matches
 the partial domain name.  For example, if you specify a domain name
-of ".capricorn.com", then Netscape will return the cookie to
-Web servers running on any of the machines "www.capricorn.com",
+of ".capricorn.com", then the browser will return the cookie to
+web servers running on any of the machines "www.capricorn.com",
 "ftp.capricorn.com", "feckless.capricorn.com", etc.  Domain names
 must contain at least two periods to prevent attempts to match
 on top level domains like ".edu".  If no domain is specified, then
@@ -236,6 +252,16 @@ that all scripts at your site will receive the cookie.
 
 If the "secure" attribute is set, the cookie will only be sent to your
 script if the CGI request is occurring on a secure channel, such as SSL.
+
+=item B<4. HttpOnly flag>
+
+If the "httponly" attribute is set, the cookie will only be accessible
+through HTTP Requests. This cookie will be inaccessible via JavaScript
+(to prevent XSS attacks).
+
+See this URL for more information including supported browsers:
+
+L<http://www.owasp.org/index.php/HTTPOnly>
 
 =back
 
@@ -270,6 +296,9 @@ pages at your site.
 
 B<-secure> if set to a true value instructs the browser to return the
 cookie only when a cryptographic protocol is in use.
+
+B<-httponly> if set to a true value, the cookie will not be accessible
+via JavaScript.
 
 =head2 Sending the Cookie to the Browser
 
@@ -372,6 +401,14 @@ Get or set the cookie's path.
 =item B<expires()>
 
 Get or set the cookie's expiration time.
+
+=item B<secure()>
+
+Get or set the cookie's secure flag.
+
+=item B<httponly()>
+
+Get or set the cookie's HttpOnly flag.
 
 =back
 

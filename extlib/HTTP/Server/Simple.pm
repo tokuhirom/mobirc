@@ -8,7 +8,7 @@ use Carp;
 use URI::Escape;
 
 use vars qw($VERSION $bad_request_doc);
-$VERSION = '0.38';
+$VERSION = '0.41';
 
 =head1 NAME
 
@@ -210,12 +210,15 @@ sub background {
     croak "Can't fork: $!" unless defined($child);
     return $child if $child;
 
+    srand(); # after a fork, we need to reset the random seed
+             # or we'll get the same numbers in both branches
     if ( $^O !~ /MSWin32/ ) {
         require POSIX;
         POSIX::setsid()
             or croak "Can't start a new session: $!";
     }
-    $self->run(@_);
+    $self->run(@_); # should never return
+    exit;           # just to be sure
 }
 
 =head2 run [ARGUMENTS]
@@ -660,7 +663,6 @@ sub setup_listener {
         )
         or croak "bind to @{[$self->host||'*']}:@{[$self->port]}: $!";
     listen( HTTPDaemon, SOMAXCONN ) or croak "listen: $!";
-
 }
 
 

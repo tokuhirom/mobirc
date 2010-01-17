@@ -1,9 +1,8 @@
 package HTTP::Engine;
-use 5.00800;
+use 5.008;
 use Any::Moose;
-our $VERSION = '0.1.4';
+our $VERSION = '0.03003';
 use HTTP::Engine::Request;
-use HTTP::Engine::Request::Upload;
 use HTTP::Engine::Response;
 use HTTP::Engine::Types::Core qw( Interface );
 
@@ -15,12 +14,7 @@ has 'interface' => (
 );
 
 no Any::Moose;
-$_->meta->make_immutable(inline_destructor => 1) for qw(
-    HTTP::Engine::Request::Upload
-    HTTP::Engine::Request
-    HTTP::Engine::Response
-    HTTP::Engine
-);
+__PACKAGE__->meta->make_immutable(inline_destructor => 1);
 1;
 __END__
 
@@ -30,7 +24,7 @@ __END__
 
 =head1 NAME
 
-HTTP::Engine - Web Server Gateway Interface and HTTP Server Engine Drivers (Yet Another Catalyst::Engine)
+HTTP::Engine - Web Server Gateway Interface and HTTP Server Engine Drivers
 
 =head1 SYNOPSIS
 
@@ -42,96 +36,53 @@ HTTP::Engine - Web Server Gateway Interface and HTTP Server Engine Drivers (Yet 
               host => 'localhost',
               port =>  1978,
           },
-          request_handler => 'main::handle_request',# or CODE ref
+          request_handler => \&handle_request,
       },
   );
   $engine->run;
 
-  use Data::Dumper;
   sub handle_request {
       my $req = shift;
-      HTTP::Engine::Response->new( body => Dumper($req) );
+      HTTP::Engine::Response->new( body => "Hello world" );
   }
-
-
-=head1 MILESTONE
-
-=head2 0.x.x
-
-A substantial document. (A tutorial, the Cookbook and hacking HowTo)
-
-=head2 0.1.x (Now here)
-
-Improvement in performance and resource efficiency.
-Most specifications are frozen.
-The specification is changed by the situation.
-
-I want to perform Async support. (AnyEvent? Danga::Socket? IO::Async?)
-
-=head3 0.1.4
-
-switched to L<Any::Moose>
-
-=head2 0.0.99_x
-
-It is an adjustment stage to the following version.
-
-=head2 0.0.x
-
-Version 0.0.x is a concept release, the internal interface is still fluid. 
-It is mostly based on the code of Catalyst::Engine.
-
-=head1 COMPATIBILITY
-
-version over 0.0.13 is incompatible of version under 0.0.12.
-
-using L<HTTP::Engine::Compat> module if you want compatibility of version under 0.0.12.
-
-version 0.0.13 is unsupported of context and middleware.
-
-=head1 MIDDLEWARE
-
-Middleware can be used if you wish. Please see L<HTTP::Engine::Middleware>.
 
 =head1 DESCRIPTION
 
-HTTP::Engine abstracts handling the input and output of various web server
-environments, including CGI, mod_perl and FastCGI. 
+HTTP::Engine abstracts handling the input and output of various web
+server environments, including CGI, mod_perl and FastCGI. Most of the
+code is ported over from Catalyst::Engine.
 
-While some people use <CGI.pm>  in a CGI environment, but switch
-<Apache::Request> under mod_perl for better performance, these HTTP request
-abstractions have incompatible interfaces, so it is not easy to switch between
-them.
+If you're familiar with WSGI for Python or Rack for Ruby, HTTP::Engine
+exactly does the same thing, for Perl.
 
-HTTP::Engine will prepare a L<HTTP::Engine::Request> object for you which is
-optimized for your current environment, and pass that to your request handler.
-Your request handler than prepares a L<HTTP::Engine::Response> object, which we
-communicate back to the server for you. 
+=head1 WHY WOULD YOU USE HTTP::ENGINE
 
-L<HTTP::Engine::Request> covers the bases of common request process tasks, like
-handling GET and POST parameters and processing file uploads. Unlike CGI.pm,
-but like most other web programming languages, it allows you to mix GET and
-POST parameters.
+L<CGI.pm> is popular under the CGI environment and L<Apache::Request>
+is great for better performance under mod_perl environment. The
+problem is, these HTTP request and response handling abstractions have
+incompatible interfaces, and it's not easy to switch between them.
 
-And importantly, it allows you to seamlessly move your code from CGI to a
-persistent without rewriting your code. At the same time, you'll maintain the
-possibility of additional performance benefits, as HTTP::Engine can
-transparently take advantage of native mod_perl functions when they are
-available.
+HTTP::Engine prepareas a L<HTTP::Engine::Request> object for you which
+is optimized for your current environment, and pass that to your
+request handler. Your request handler then returns a
+L<HTTP::Engine::Response> object, which we communicate back to the
+server for you.
 
-=head1 COMMUNITY
+L<HTTP::Engine::Request> covers the bases of common request process
+tasks, like handling GET and POST parameters, parsing HTTP cookies and
+processing file uploads. Unlike CGI.pm, but like most other web
+programming languages, it allows you to mix GET and POST parameters.
 
-The community can be found via:
+And importantly, it allows you to seamlessly move your code from CGI
+to a persistent environment (like mod_perl or FastCGI) without
+rewriting your code. At the same time, you'll maintain the possibility
+of additional performance benefits, as HTTP::Engine can transparently
+take advantage of native mod_perl functions when they are available.
 
-  IRC: irc.perl.org#http-engine irc.freenode.net#coderepos
+=head1 MIDDLEWARE
 
-  Wiki Page: http://coderepos.org/share/wiki/HTTP%3A%3AEngine
-
-  SVN: http://svn.coderepos.org/share/lang/perl/HTTP-Engine  
-
-  Trac: http://coderepos.org/share/browser/lang/perl/HTTP-Engine
-
-  Mailing list: http://lists.scsys.co.uk/cgi-bin/mailman/listinfo/http-engine
+Middleware is a framwork to extend HTTP::Engine, much like
+Catalyst::Plugin for Catalyst. Please see L<HTTP::Engine::Middleware>.
 
 =head1 INTERFACES
 
@@ -188,29 +139,22 @@ Or you can let HTTP::Engine instantiate the interface for you:
     }
   )->run();
 
-=head1 CONCEPT
 
-=over 4
+=head1 COMMUNITY
 
-=item HTTP::Engine is Not
+The community can be found via:
 
-    session manager
-    authentication manager
-    URL dispatcher
-    model manager
-    toy
-    black magick
+  IRC: irc.perl.org#http-engine
 
-=item HTTP::Engine is
+  Mailing list: http://lists.scsys.co.uk/cgi-bin/mailman/listinfo/http-engine
 
-    HTTP abstraction layer
+  GitHub: http://github.com/http-engine/HTTP-Engine
 
-=item HTTP::Engine's ancestry
+  Twitter: http://twitter.com/httpengine
 
-    WSGI
-    Rack
+=head1 ADDITIONAL DOCUMENTATIONS
 
-=back
+L<http://en.wikibooks.org/wiki/Perl_Programming/HTTP::Engine> writing by gugod++.
 
 =head1 AUTHOR
 
@@ -250,6 +194,14 @@ gugod
 
 stevan
 
+hirose31
+
+fujiwara
+
+miyagawa
+
+Shawn M Moore
+
 =head1 SEE ALSO
 
 L<HTTP::Engine::Middleware>,
@@ -261,9 +213,11 @@ L<Moose>
 
 =head1 REPOSITORY
 
-  svn co http://svn.coderepos.org/share/lang/perl/HTTP-Engine/trunk HTTP-Engine
+We moved to GitHub.
 
-HTTP::Engine's Subversion repository is hosted at L<http://coderepos.org/share/>.
+  git clone git://github.com/http-engine/HTTP-Engine.git
+
+HTTP::Engine's Git repository is hosted at L<http://github.com/http-engine/HTTP-Engine>.
 patches and collaborators are welcome.
 
 =head1 LICENSE

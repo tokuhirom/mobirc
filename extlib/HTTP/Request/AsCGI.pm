@@ -1,5 +1,6 @@
 package HTTP::Request::AsCGI;
-
+our $VERSION = '1.2';
+# ABSTRACT: Set up a CGI environment from an HTTP::Request
 use strict;
 use warnings;
 use bytes;
@@ -9,10 +10,21 @@ use Carp;
 use HTTP::Response;
 use IO::Handle;
 use IO::File;
+use URI ();
+use URI::Escape ();
 
-__PACKAGE__->mk_accessors(qw[ enviroment request stdin stdout stderr ]);
+__PACKAGE__->mk_accessors(qw[ environment request stdin stdout stderr ]);
 
-our $VERSION = 0.5;
+# old typo
+
+*enviroment = \&environment;
+
+my %reserved = map { sprintf('%02x', ord($_)) => 1 } split //, $URI::reserved;
+sub _uri_safe_unescape {
+    my ($s) = @_;
+    $s =~ s/%([a-fA-F0-9]{2})/$reserved{lc($1)} ? "%$1" : pack('C', hex($1))/ge;
+    $s
+}
 
 sub new {
     my $class   = shift;
@@ -34,9 +46,12 @@ sub new {
     $uri->port(80)          unless $uri->port;
     $uri->host_port($host)  unless !$host || ( $host eq $uri->host_port );
 
+    # Get it before canonicalized so REQUEST_URI can be as raw as possible
+    my $request_uri = $uri->path_query;
+
     $uri = $uri->canonical;
 
-    my $enviroment = {
+    my $environment = {
         GATEWAY_INTERFACE => 'CGI/1.1',
         HTTP_HOST         => $uri->host_port,
         HTTPS             => ( $uri->scheme eq 'https' ) ? 'ON' : 'OFF',  # not in RFC 3875
@@ -50,10 +65,17 @@ sub new {
         REMOTE_ADDR       => '127.0.0.1',
         REMOTE_HOST       => 'localhost',
         REMOTE_PORT       => int( rand(64000) + 1000 ),                   # not in RFC 3875
-        REQUEST_URI       => $uri->path_query,                            # not in RFC 3875
+        REQUEST_URI       => $request_uri,                                # not in RFC 3875
         REQUEST_METHOD    => $request->method,
         @_
     };
+
+    # RFC 3875 says PATH_INFO is not URI-encoded. That's really
+    # annoying for applications that you can't tell "%2F" vs "/", but
+    # doing the partial decoding then makes it impossible to tell
+    # "%252F" vs "%2F". Encoding everything is more compatible to what
+    # web servers like Apache or lighttpd do, anyways.
+    $environment->{PATH_INFO} = URI::Escape::uri_unescape($environment->{PATH_INFO});
 
     foreach my $field ( $request->headers->header_field_names ) {
 
@@ -61,17 +83,17 @@ sub new {
         $key =~ tr/-/_/;
         $key =~ s/^HTTP_// if $field =~ /^Content-(Length|Type)$/;
 
-        unless ( exists $enviroment->{$key} ) {
-            $enviroment->{$key} = $request->headers->header($field);
+        unless ( exists $environment->{$key} ) {
+            $environment->{$key} = $request->headers->header($field);
         }
     }
 
-    unless ( $enviroment->{SCRIPT_NAME} eq '/' && $enviroment->{PATH_INFO} ) {
-        $enviroment->{PATH_INFO} =~ s/^\Q$enviroment->{SCRIPT_NAME}\E/\//;
-        $enviroment->{PATH_INFO} =~ s/^\/+/\//;
+    unless ( $environment->{SCRIPT_NAME} eq '/' && $environment->{PATH_INFO} ) {
+        $environment->{PATH_INFO} =~ s/^\Q$environment->{SCRIPT_NAME}\E/\//;
+        $environment->{PATH_INFO} =~ s/^\/+/\//;
     }
 
-    $self->enviroment($enviroment);
+    $self->environment($environment);
 
     return $self;
 }
@@ -79,33 +101,36 @@ sub new {
 sub setup {
     my $self = shift;
 
-    $self->{restore}->{enviroment} = {%ENV};
+    $self->{restore}->{environment} = {%ENV};
 
     binmode( $self->stdin );
 
     if ( $self->request->content_length ) {
 
-        syswrite( $self->stdin, $self->request->content )
+        $self->stdin->print($self->request->content)
           or croak("Can't write request content to stdin handle: $!");
 
-        sysseek( $self->stdin, 0, SEEK_SET )
+        $self->stdin->seek(0, SEEK_SET)
           or croak("Can't seek stdin handle: $!");
+
+        $self->stdin->flush
+          or croak("Can't flush stdin handle: $!");
     }
 
-    open( $self->{restore}->{stdin}, '<&', STDIN->fileno )
+    open( $self->{restore}->{stdin}, '<&'. STDIN->fileno )
       or croak("Can't dup stdin: $!");
 
-    open( STDIN, '<&=', $self->stdin->fileno )
+    open( STDIN, '<&='. $self->stdin->fileno )
       or croak("Can't open stdin: $!");
 
     binmode( STDIN );
 
     if ( $self->stdout ) {
 
-        open( $self->{restore}->{stdout}, '>&', STDOUT->fileno )
+        open( $self->{restore}->{stdout}, '>&'. STDOUT->fileno )
           or croak("Can't dup stdout: $!");
 
-        open( STDOUT, '>&=', $self->stdout->fileno )
+        open( STDOUT, '>&='. $self->stdout->fileno )
           or croak("Can't open stdout: $!");
 
         binmode( $self->stdout );
@@ -114,10 +139,10 @@ sub setup {
 
     if ( $self->stderr ) {
 
-        open( $self->{restore}->{stderr}, '>&', STDERR->fileno )
+        open( $self->{restore}->{stderr}, '>&'. STDERR->fileno )
           or croak("Can't dup stderr: $!");
 
-        open( STDERR, '>&=', $self->stderr->fileno )
+        open( STDERR, '>&='. $self->stderr->fileno )
           or croak("Can't open stderr: $!");
 
         binmode( $self->stderr );
@@ -126,7 +151,7 @@ sub setup {
 
     {
         no warnings 'uninitialized';
-        %ENV = %{ $self->enviroment };
+        %ENV = (%ENV, %{ $self->environment });
     }
 
     if ( $INC{'CGI.pm'} ) {
@@ -151,7 +176,7 @@ sub response {
         $headers .= $line;
         last if $headers =~ /\x0d?\x0a\x0d?\x0a$/;
     }
-    
+
     unless ( defined $headers ) {
         $headers = "HTTP/1.1 500 Internal Server Error\x0d\x0a";
     }
@@ -178,7 +203,7 @@ sub response {
         $response->code($code);
         $response->message($message);
     }
-    
+
     my $length = ( stat( $self->stdout ) )[7] - tell( $self->stdout );
 
     if ( $response->code == 500 && !$length ) {
@@ -224,10 +249,10 @@ sub restore {
 
     {
         no warnings 'uninitialized';
-        %ENV = %{ $self->{restore}->{enviroment} };
+        %ENV = %{ $self->{restore}->{environment} };
     }
 
-    open( STDIN, '<&', $self->{restore}->{stdin} )
+    open( STDIN, '<&'. fileno($self->{restore}->{stdin}) )
       or croak("Can't restore stdin: $!");
 
     sysseek( $self->stdin, 0, SEEK_SET )
@@ -238,7 +263,7 @@ sub restore {
         STDOUT->flush
           or croak("Can't flush stdout: $!");
 
-        open( STDOUT, '>&', $self->{restore}->{stdout} )
+        open( STDOUT, '>&'. fileno($self->{restore}->{stdout}) )
           or croak("Can't restore stdout: $!");
 
         sysseek( $self->stdout, 0, SEEK_SET )
@@ -250,7 +275,7 @@ sub restore {
         STDERR->flush
           or croak("Can't flush stderr: $!");
 
-        open( STDERR, '>&', $self->{restore}->{stderr} )
+        open( STDERR, '>&'. fileno($self->{restore}->{stderr}) )
           or croak("Can't restore stderr: $!");
 
         sysseek( $self->stderr, 0, SEEK_SET )
@@ -269,65 +294,78 @@ sub DESTROY {
 
 1;
 
-__END__
+
+
+=pod
 
 =head1 NAME
 
-HTTP::Request::AsCGI - Setup a CGI enviroment from a HTTP::Request
+HTTP::Request::AsCGI - Set up a CGI environment from an HTTP::Request
+
+=head1 VERSION
+
+version 1.2
+
+=for Pod::Coverage   enviroment
+
+=cut
+
+=pod
+
 
 =head1 SYNOPSIS
 
     use CGI;
     use HTTP::Request;
     use HTTP::Request::AsCGI;
-    
+
     my $request = HTTP::Request->new( GET => 'http://www.host.com/' );
     my $stdout;
-    
+
     {
         my $c = HTTP::Request::AsCGI->new($request)->setup;
         my $q = CGI->new;
-        
+
         print $q->header,
               $q->start_html('Hello World'),
               $q->h1('Hello World'),
               $q->end_html;
-        
+
         $stdout = $c->stdout;
-        
-        # enviroment and descriptors will automatically be restored 
+
+        # environment and descriptors will automatically be restored
         # when $c is destructed.
     }
-    
+
     while ( my $line = $stdout->getline ) {
         print $line;
     }
-    
+
 =head1 DESCRIPTION
 
-Provides a convinient way of setting up an CGI enviroment from a HTTP::Request.
+Provides a convenient way of setting up an CGI environment from an HTTP::Request.
 
 =head1 METHODS
 
-=over 4 
+=over 4
 
 =item new ( $request [, key => value ] )
 
-Contructor, first argument must be a instance of HTTP::Request
-followed by optional pairs of environment key and value.
+Constructor.  The first argument must be a instance of HTTP::Request, followed
+by optional pairs of environment key and value.
 
-=item enviroment
+=item environment
 
-Returns a hashref containing the environment that will be used in setup. 
+Returns a hashref containing the environment that will be used in setup.
 Changing the hashref after setup has been called will have no effect.
 
 =item setup
 
-Setups the environment and descriptors.
+Sets up the environment and descriptors.
 
 =item restore
 
-Restores the enviroment and descriptors. Can only be called after setup.
+Restores the environment and descriptors. Can only be called after setup.
 
 =item request
 
@@ -370,13 +408,20 @@ handle with an file descriptor.
 
 Thomas L. Shinnick for his valuable win32 testing.
 
-=head1 AUTHOR
+=head1 AUTHORS
 
-Christian Hansen, C<ch@ngmedia.com>
+Christian Hansen <ch@ngmedia.com>
+Hans Dieter Pearcey <hdp@cpan.org>
 
-=head1 LICENSE
+=head1 COPYRIGHT AND LICENSE
 
-This library is free software. You can redistribute it and/or modify 
-it under the same terms as perl itself.
+This software is copyright (c) 2010 by Christian Hansen <ch@ngmedia.com>.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
 
 =cut
+
+
+__END__
+

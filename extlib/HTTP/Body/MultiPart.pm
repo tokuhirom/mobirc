@@ -30,7 +30,7 @@ HTTP Body Multipart Parser.
 sub init {
     my $self = shift;
 
-    unless ( $self->content_type =~ /boundary=\"?([^\";,]+)\"?/ ) {
+    unless ( $self->content_type =~ /boundary=\"?([^\";]+)\"?/ ) {
         my $content_type = $self->content_type;
         Carp::croak("Invalid boundary in content_type: '$content_type'");
     }

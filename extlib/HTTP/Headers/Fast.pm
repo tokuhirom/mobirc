@@ -4,7 +4,7 @@ use warnings;
 use 5.00800;
 use Carp ();
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 our $TRANSLATE_UNDERSCORE = 1;
 
@@ -66,6 +66,12 @@ sub new {
     my $self = bless {}, $class;
     $self->header(@_) if @_;    # set up initial headers
     $self;
+}
+
+sub isa {
+    my ($self, $klass) = @_;
+    my $proto = ref $self || $self;
+    return ($proto eq $klass || $klass eq 'HTTP::Headers') ? 1 : 0;
 }
 
 sub header {

@@ -109,7 +109,7 @@ sub run {
 
     sub hostname { $ENV{HTTP_HOST} || $ENV{SERVER_HOST} }
     sub protocol { $ENV{SERVER_PROTOCOL} || 'HTTP/1.0' }
-    sub method   { $ENV{HTTP_METHOD} || 'GET' }
+    sub method   { $ENV{REQUEST_METHOD} || 'GET' }
 
     sub param {
         my $self = shift;

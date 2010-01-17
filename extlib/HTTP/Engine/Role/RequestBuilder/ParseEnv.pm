@@ -69,7 +69,7 @@ sub _build_uri  {
     $uri->scheme($scheme);
     $uri->host($host);
     $uri->port($port);
-    $uri->path($path);
+    $uri->path($path || '/');
     $uri->query($env->{QUERY_STRING}) if $env->{QUERY_STRING};
 
     # sanitize the URI

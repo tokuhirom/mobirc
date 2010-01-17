@@ -80,6 +80,7 @@ sub as_http_response {
 }
 
 no Any::Moose;
+__PACKAGE__->meta->make_immutable(inline_destructor => 1);
 1;
 __END__
 

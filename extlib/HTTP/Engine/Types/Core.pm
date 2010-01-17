@@ -1,7 +1,8 @@
 package HTTP::Engine::Types::Core;
 use Any::Moose;
 use Any::Moose (
-    'X::Types' => [-declare => [qw/Interface Uri Header Handler/]],
+    'X::Types'        => [-declare => [qw/Interface Uri Header Handler/]],
+    'X::Types::'.any_moose() , [qw/HashRef Str Object CodeRef ArrayRef/],
 );
 
 use URI;
@@ -12,7 +13,7 @@ use HTTP::Headers::Fast;
 do {
     role_type Interface, { role => "HTTP::Engine::Role::Interface" };
 
-    coerce Interface, from 'HashRef' => via {
+    coerce Interface, from HashRef, via {
         my $module  = $_->{module};
         my $plugins = $_->{plugins} || [];
         my $args    = $_->{args};
@@ -29,9 +30,9 @@ do {
 };
 
 do {
-    class_type Uri, { class => "URI::WithBase" };
+    subtype Uri, as "URI::WithBase";
 
-    coerce Uri, from 'Str' => via {
+    coerce Uri, from Str, via {
 
         # generate base uri
         my $uri  = URI->new($_);
@@ -47,17 +48,18 @@ do {
 
 do {
     subtype Header,
-        as 'Object',
+        as Object,
         where { $_->isa('HTTP::Headers::Fast') || $_->isa('HTTP::Headers') };
 
     coerce Header,
-        from 'ArrayRef' => via { HTTP::Headers::Fast->new( @{$_} ) },
-        from 'HashRef'  => via { HTTP::Headers::Fast->new( %{$_} ) };
+        from ArrayRef, via { HTTP::Headers::Fast->new( @{$_} ) };
+    coerce Header,
+        from HashRef,  via { HTTP::Headers::Fast->new( %{$_} ) };
 };
 
 do {
-    subtype Handler, as 'CodeRef';
-    coerce Handler, from 'Str' => via { \&{$_} };
+    subtype Handler, as CodeRef;
+    coerce Handler, from Str, via { \&{$_} };
 };
 
 1;

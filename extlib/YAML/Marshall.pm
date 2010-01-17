@@ -1,6 +1,10 @@
 package YAML::Marshall;
-use strict; use warnings;
-use YAML::Node();
+
+use strict;
+use warnings;
+use YAML::Node ();
+
+our $VERSION = '0.71';
 
 sub import {
     my $class = shift;
@@ -11,7 +15,7 @@ sub import {
     }
 
     my $tag = shift;
-    if ($tag) {
+    if ( $tag ) {
         no warnings 'once';
         $YAML::TagClass->{$tag} = $package;
         ${$package . "::YamlTag"} = $tag;

@@ -1,7 +1,7 @@
 package CGI::Simple::Util;
 use strict;
 use vars qw( $VERSION @EXPORT_OK @ISA $UTIL );
-$VERSION = '1.106';
+$VERSION = '1.112';
 require Exporter;
 @ISA       = qw( Exporter );
 @EXPORT_OK = qw(
@@ -152,7 +152,7 @@ sub unescapeHTML {
         /^#(\d+)$/         && $ebcdic ? chr($UTIL->{'a2e'}->[$1]) :
         /^#x([0-9a-f]+)$/i && $latin  ? chr(hex($1)) :
         /^#x([0-9a-f]+)$/i && $ebcdic ? chr($UTIL->{'a2e'}->[hex $1]) :
-        $_
+        "\&$_;"
     }gex;
   return $unescape;
 }

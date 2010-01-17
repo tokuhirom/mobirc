@@ -1,9 +1,14 @@
 package YAML::Node;
-use strict; use warnings;
-use YAML::Base; use base 'YAML::Base';
+
+use strict;
+use warnings;
+
+use YAML::Base;
 use YAML::Tag;
 
-our @EXPORT = qw(ynode);
+our $VERSION = '0.71';
+our @ISA     = 'YAML::Base';
+our @EXPORT  = qw(ynode);
 
 sub ynode {
     my $self;
@@ -62,6 +67,7 @@ sub keys {
 
 #==============================================================================
 package yaml_scalar;
+
 @yaml_scalar::ISA = qw(YAML::Node);
 
 sub new {
@@ -87,6 +93,7 @@ sub STORE {
 
 #==============================================================================
 package yaml_sequence;
+
 @yaml_sequence::ISA = qw(YAML::Node);
 
 sub new {
@@ -126,6 +133,7 @@ sub undone {
 
 #==============================================================================
 package yaml_mapping;
+
 @yaml_mapping::ISA = qw(YAML::Node);
 
 sub new {

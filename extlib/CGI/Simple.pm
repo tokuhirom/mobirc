@@ -5,7 +5,6 @@ require 5.004;
 # this module is both strict (and warnings) compliant, but they are only used
 # in testing as they add an unnecessary compile time overhead in production.
 use strict;
-use warnings;
 use Carp;
 
 use vars qw(
@@ -14,7 +13,7 @@ use vars qw(
  $NPH $DEBUG $NO_NULL $FATAL *in
 );
 
-$VERSION = "1.106";
+$VERSION = "1.112";
 
 # you can hard code the global variable settings here if you want.
 # warning - do not delete the unless defined $VAR part unless you
@@ -280,7 +279,7 @@ sub _initialize {
   # chromatic's blessed GLOB patch
   # elsif ( (ref $init) =~ m/GLOB/i ) { # initialize from a file
   elsif ( UNIVERSAL::isa( $init, 'GLOB' ) ) {   # initialize from a file
-    $self->_init_from_file( $init );
+    $self->_read_parse( $init );
   }
   elsif ( ( ref $init ) eq 'CGI::Simple' ) {
 
@@ -302,20 +301,22 @@ sub _initialize {
   }
 }
 
-sub _internal_read($\$;$) {
-  my ( $self, $buffer, $len ) = @_;
+sub _internal_read($*\$;$) {
+  my ( $self, $glob, $buffer, $len ) = @_;
   $len = 4096 if !defined $len;
   if ( $self->{'.mod_perl'} ) {
     my $r = $self->_mod_perl_request();
     $r->read( $$buffer, $len );
   }
   else {
-    read( STDIN, $$buffer, $len );
+    read( $glob, $$buffer, $len );
   }
 }
 
 sub _read_parse {
-  my $self   = shift;
+  my $self = shift;
+  my $handle = shift || \*STDIN;
+
   my $data   = '';
   my $type   = $ENV{'CONTENT_TYPE'} || 'No CONTENT_TYPE received';
   my $length = $ENV{'CONTENT_LENGTH'} || 0;
@@ -331,7 +332,7 @@ sub _read_parse {
 
     # silently discard data ??? better to just close the socket ???
     while ( $length > 0 ) {
-      last unless _internal_read( $self, my $buffer );
+      last unless _internal_read( $self, $handle, my $buffer );
       $length -= length( $buffer );
     }
 
@@ -339,7 +340,7 @@ sub _read_parse {
   }
 
   if ( $length and $type =~ m|^multipart/form-data|i ) {
-    my $got_length = $self->_parse_multipart;
+    my $got_length = $self->_parse_multipart( $handle );
     if ( $length != $got_length ) {
       $self->cgi_error(
         "500 Bad read on multipart/form-data! wanted $length, got $got_length"
@@ -354,9 +355,9 @@ sub _read_parse {
       # we may not get all the data we want with a single read on large
       # POSTs as it may not be here yet! Credit Jason Luther for patch
       # CGI.pm < 2.99 suffers from same bug
-      _internal_read( $self, $data, $length );
+      _internal_read( $self, $handle, $data, $length );
       while ( length( $data ) < $length ) {
-        last unless _internal_read( $self, my $buffer );
+        last unless _internal_read( $self, $handle, my $buffer );
         $data .= $buffer;
       }
 
@@ -451,26 +452,27 @@ sub _parse_keywordlist {
   return @keywords;
 }
 
-sub _parse_multipart {
-  my $self = shift;
+sub _massage_boundary {
+  my ( $self, $boundary ) = @_;
 
-  # TODO: See 14838. We /could/ have a heuristic here for the case
-  # where no boundary is supplied.
-
-  my ( $boundary )
-   = $ENV{'CONTENT_TYPE'} =~ /boundary=\"?([^\";,]+)\"?/;
-  unless ( $boundary ) {
-    $self->cgi_error(
-      '400 No boundary supplied for multipart/form-data' );
-    return 0;
-  }
-
-# BUG: IE 3.01 on the Macintosh uses just the boundary, forgetting the --
+  # BUG: IE 3.01 on the Macintosh uses just the boundary,
+  # forgetting the --
   $boundary = '--' . $boundary
    unless exists $ENV{'HTTP_USER_AGENT'}
      && $ENV{'HTTP_USER_AGENT'} =~ m/MSIE\s+3\.0[12];\s*Mac/i;
 
-  $boundary = quotemeta $boundary;
+  return quotemeta $boundary;
+}
+
+sub _parse_multipart {
+  my $self = shift;
+  my $handle = shift or die "NEED A HANDLE!?";
+
+  my ( $boundary )
+   = $ENV{'CONTENT_TYPE'} =~ /boundary=\"?([^\";,]+)\"?/;
+
+  $boundary = $self->_massage_boundary( $boundary ) if $boundary;
+
   my $got_data = 0;
   my $data     = '';
   my $length   = $ENV{'CONTENT_LENGTH'} || 0;
@@ -479,9 +481,23 @@ sub _parse_multipart {
   READ:
 
   while ( $got_data < $length ) {
-    last READ unless _internal_read( $self, my $buffer );
+    last READ unless _internal_read( $self, $handle, my $buffer );
     $data .= $buffer;
     $got_data += length $buffer;
+
+    unless ( $boundary ) {
+      # If we're going to guess the boundary we need a complete line.
+      next READ unless $data =~ /^(.*)$CRLF/o;
+      $boundary = $1;
+
+      # Still no boundary? Give up...
+      unless ( $boundary ) {
+        $self->cgi_error(
+          '400 No boundary supplied for multipart/form-data' );
+        return 0;
+      }
+      $boundary = $self->_massage_boundary( $boundary );
+    }
 
     BOUNDARY:
 
@@ -497,12 +513,13 @@ sub _parse_multipart {
       my ( $param ) = $unfold =~ m/form-data;\s+name="?([^\";]*)"?/;
       my ( $filename )
        = $unfold =~ m/name="?\Q$param\E"?;\s+filename="?([^\"]*)"?/;
+
       if ( defined $filename ) {
         my ( $mime ) = $unfold =~ m/Content-Type:\s+([-\w\/]+)/io;
         $data =~ s/^\Q$header\E//;
         ( $got_data, $data, my $fh, my $size )
-         = $self->_save_tmpfile( $boundary, $filename, $got_data,
-          $data );
+         = $self->_save_tmpfile( $handle, $boundary, $filename,
+          $got_data, $data );
         $self->_add_param( $param, $filename );
         $self->{'.upload_fields'}->{$param} = $filename;
         $self->{'.filehandles'}->{$filename} = $fh if $fh;
@@ -531,7 +548,7 @@ sub _parse_multipart {
 }
 
 sub _save_tmpfile {
-  my ( $self, $boundary, $filename, $got_data, $data ) = @_;
+  my ( $self, $handle, $boundary, $filename, $got_data, $data ) = @_;
   my $fh;
   my $CRLF      = $self->crlf;
   my $length    = $ENV{'CONTENT_LENGTH'} || 0;
@@ -555,7 +572,7 @@ sub _save_tmpfile {
   while ( $got_data < $length ) {
 
     my $buffer = $data;
-    last unless _internal_read( $self, $data );
+    last unless _internal_read( $self, \*STDIN, $data );
 
     # fixed hanging bug if browser terminates upload part way through
     # thanks to Brandon Black
@@ -624,16 +641,6 @@ sub param {
     'overwrite' );
   return wantarray ? @{ $self->{$param} } : $self->{$param}->[0];
 }
-
-#1;
-
-###############   The following methods only loaded on demand   ###############
-###############  Move commonly used methods above the __DATA__  ###############
-############### token if you are into recreational optimization ###############
-###############  You can not use Selfloader and the __DATA__    ###############
-###############   token under mod_perl, so comment token out    ###############
-
-#__DATA__
 
 # a new method that provides access to a new internal routine. Useage:
 # $q->add_param( $param, $value, $overwrite )
@@ -839,6 +846,8 @@ sub parse_query_string {
 ################   Save and Restore params from file    ###############
 
 sub _init_from_file {
+  use Carp qw(confess);
+  confess "INIT_FROM_FILE called, stupid fucker!";
   my ( $self, $fh ) = @_;
   local $/ = "\n";
   while ( my $pair = <$fh> ) {
@@ -902,12 +911,13 @@ sub cookie {
   my ( $self, @params ) = @_;
   require CGI::Simple::Cookie;
   require CGI::Simple::Util;
-  my ( $name, $value, $path, $domain, $secure, $expires )
+  my ( $name, $value, $path, $domain, $secure, $expires, $httponly )
    = CGI::Simple::Util::rearrange(
     [
       'NAME', [ 'VALUE', 'VALUES' ],
       'PATH',   'DOMAIN',
-      'SECURE', 'EXPIRES'
+      'SECURE', 'EXPIRES',
+      'HTTPONLY'
     ],
     @params
    );
@@ -931,12 +941,13 @@ sub cookie {
   # If we get here, we're creating a new cookie
   return undef unless $name;    # this is an error
   @params = ();
-  push @params, '-name'    => $name;
-  push @params, '-value'   => $value;
-  push @params, '-domain'  => $domain if $domain;
-  push @params, '-path'    => $path if $path;
-  push @params, '-expires' => $expires if $expires;
-  push @params, '-secure'  => $secure if $secure;
+  push @params, '-name'     => $name;
+  push @params, '-value'    => $value;
+  push @params, '-domain'   => $domain if $domain;
+  push @params, '-path'     => $path if $path;
+  push @params, '-expires'  => $expires if $expires;
+  push @params, '-secure'   => $secure if $secure;
+  push @params, '-httponly' => $httponly if $httponly;
   return CGI::Simple::Cookie->new( @params );
 }
 
@@ -1406,7 +1417,7 @@ sub url {
     $url .= $script_name;
   }
   elsif ( $relative ) {
-    ( $url ) = $script_name =~ m!([^/]+)$!;
+    ( $url ) = $script_name =~ m#([^/]+)$#;
   }
   elsif ( $absolute ) {
     $url = $script_name;
@@ -1439,7 +1450,7 @@ CGI::Simple - A Simple totally OO CGI interface that is CGI.pm compliant
 
 =head1 VERSION
 
-This document describes CGI::Simple version 1.106.
+This document describes CGI::Simple version 1.112.
 
 =head1 SYNOPSIS
 
@@ -2184,10 +2195,7 @@ CGI.pm alias for print. $q->print('Hello World!') will print the usual
 
 =head1 HTTP COOKIES
 
-Netscape browsers versions 1.1 and higher, and all versions of
-Internet Explorer, support a so-called "cookie" designed to help
-maintain state within a browser session.  CGI.pm has several methods
-that support cookies.
+CGI.pm has several methods that support cookies.
 
 A cookie is a name=value pair much like the named parameters in a CGI
 query string.  CGI scripts create one or more cookies and send
@@ -2334,11 +2342,9 @@ simple to turn a CGI parameter into a cookie, and vice-versa:
 
 =head2 raw_cookie()
 
-Returns the HTTP_COOKIE variable, an HTTP extension implemented by
-Netscape browsers version 1.1 and higher, and all versions of Internet
-Explorer.  Cookies have a special format, and this method call just
-returns the raw form (?cookie dough).  See B<cookie()> for ways of
-setting and retrieving cooked cookies.
+Returns the HTTP_COOKIE variable. Cookies have a special format, and
+this method call just returns the raw form (?cookie dough). See
+B<cookie()> for ways of setting and retrieving cooked cookies.
 
 Called with no parameters, B<raw_cookie()> returns the packed cookie
 structure.  You can separate it into individual cookies by splitting
@@ -2719,8 +2725,7 @@ additions from Andrew Benham <adsb@bigfoot.com>
 You are also advised to put the script into NPH mode and to set $| to
 1 to avoid buffering problems.
 
-Only Netscape Navigator supports server push.
-Internet Explorer browsers do not.
+Browser support for server push is variable.
 
 Here is a simple script that demonstrates server push:
 
@@ -3351,40 +3356,13 @@ Unlike CGI.pm all the cgi-lib.pl functions from Version 2.18 are supported:
     CgiDie()
     CgiError()
 
-=cut
-
-############### Compatibility with mod_perl ################
-
-=head1 COMPATIBILITY WITH mod_perl
-
-This module uses Selfloader and the __DATA__ token to ensure that only code
-that is used gets complied. This optimises performance but means that it
-will not work under mod_perl in its default configuration. To configure it
-to run under mod perl you would need to remove two lines from the module.
-
-    use Selfloader;
-
-    ....
-
-    __DATA__
-
-With these two lines gone the entire module will load and compile at mod_perl
-startup. CGI::Simple's pure OO methods return data significantly faster than
-CGI.pm's OO methods
-
-=cut
-
-############### Compatibility with CGI.pm ################
-
 =head1 COMPATIBILITY WITH CGI.pm
 
 I has long been suggested that the CGI and HTML parts of CGI.pm should be
 split into separate modules (even the author suggests this!), CGI::Simple
 represents the realization of this and contains the complete CGI side of
 CGI.pm. Code-wise it weighs in at a little under 30% of the size of CGI.pm at
-a little under 1000 lines. It uses SelfLoader and only compiles the first 350
-lines. Other routines are loaded on first use. Internally around half the
-code is new although the method interfaces remain unchanged.
+a little under 1000 lines.
 
 A great deal of care has been taken to ensure that the interface remains
 unchanged although a few tweaks have been made. The test suite is extensive
@@ -3412,17 +3390,7 @@ from running the script on CGI.pm:
 
 =head1 DIFFERENCES FROM CGI.pm
 
-CGI::Simple is strict and warnings compliant. SelfLoader is used to load only
-the required code. You can easily optimize code loading simply by moving the
-__DATA__ token. Commonly called methods should go above the token and will
-be compiled at compile time (on load). Uncommonly used methods go below the
-__DATA__ token and will only be compiled as required at runtime when the
-method is actually called.
-
-As well as using SelfLoader to load the non core methods, Simple.pm uses
-IO::File to supply anonymous temp files for file uploads and Data::Dumper
-for cloning objects and dumping data.  These modules are all part of the
-standard Perl distribution.
+CGI::Simple is strict and warnings compliant.
 
 There are 4 modules in this distribution:
 
@@ -3569,14 +3537,6 @@ The following CGI.pm pragmas are not available:
     -nosticky
     -no_xhtml
     -private_tempfiles
-
--compile has been removed as it is not available using SelfLoader. If you
-wish to compile all of CGI::Simple comment out the line:
-
-    use SelfLoader
-
-and remove the __DATA__ token. Tempfiles are now private by default and the
-other pragmas are HTML related.
 
 =head2 Filehandles
 

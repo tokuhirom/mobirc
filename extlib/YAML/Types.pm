@@ -1,13 +1,20 @@
 package YAML::Types;
-use strict; use warnings;
-use YAML::Base; use base 'YAML::Base';
+
+use strict;
+use warnings;
+use YAML::Base;
 use YAML::Node;
+
+our $VERSION = '0.71';
+our @ISA     = 'YAML::Base';
 
 # XXX These classes and their APIs could still use some refactoring,
 # but at least they work for now.
 #-------------------------------------------------------------------------------
 package YAML::Type::blessed;
+
 use YAML::Base; # XXX
+
 sub yaml_dump {
     my $self = shift;
     my ($value) = @_;
@@ -31,6 +38,7 @@ sub yaml_dump {
 
 #-------------------------------------------------------------------------------
 package YAML::Type::undef;
+
 sub yaml_dump {
     my $self = shift;
 }
@@ -41,6 +49,7 @@ sub yaml_load {
 
 #-------------------------------------------------------------------------------
 package YAML::Type::glob;
+
 sub yaml_dump {
     my $self = shift;
     my $ynode = YAML::Node->new({}, '!perl/glob:');
@@ -109,8 +118,10 @@ sub yaml_load {
 
 #-------------------------------------------------------------------------------
 package YAML::Type::code;
+
 my $dummy_warned = 0; 
 my $default = '{ "DUMMY" }';
+
 sub yaml_dump {
     my $self = shift;
     my $code;
@@ -164,6 +175,7 @@ sub yaml_load {
 
 #-------------------------------------------------------------------------------
 package YAML::Type::ref;
+
 sub yaml_dump {
     my $self = shift;
     YAML::Node->new({(&YAML::VALUE, ${$_[0]})}, '!perl/ref')
@@ -179,6 +191,7 @@ sub yaml_load {
 
 #-------------------------------------------------------------------------------
 package YAML::Type::regexp;
+
 # XXX Be sure to handle blessed regexps (if possible)
 sub yaml_dump {
     die "YAML::Type::regexp::yaml_dump not currently implemented";
@@ -202,6 +215,7 @@ use constant _QR_TYPES => {
     msi => sub { qr{$_[0]}msi },
     msix => sub { qr{$_[0]}msix },
 };
+
 sub yaml_load {
     my $self = shift;
     my ($node, $class) = @_;

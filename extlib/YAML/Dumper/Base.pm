@@ -1,34 +1,39 @@
 package YAML::Dumper::Base;
-use strict; use warnings;
-use YAML::Base; use base 'YAML::Base';
+
+use strict;
+use warnings;
+use YAML::Base;
 use YAML::Node;
 
+our $VERSION = '0.71';
+our @ISA     = 'YAML::Base';
+
 # YAML Dumping options
-field spec_version => '1.0';
-field indent_width => 2;
-field use_header => 1;
-field use_version => 0;
-field sort_keys => 1;
-field anchor_prefix => '';
-field dump_code => 0;
-field use_block => 0;
-field use_fold => 0;
+field spec_version    => '1.0';
+field indent_width    => 2;
+field use_header      => 1;
+field use_version     => 0;
+field sort_keys       => 1;
+field anchor_prefix   => '';
+field dump_code       => 0;
+field use_block       => 0;
+field use_fold        => 0;
 field compress_series => 1;
-field inline_series => 0;
-field use_aliases => 1;
-field purity => 0;
-field stringify => 0;
+field inline_series   => 0;
+field use_aliases     => 1;
+field purity          => 0;
+field stringify       => 0;
 
 # Properties
-field stream => '';
-field document => 0;
+field stream      => '';
+field document    => 0;
 field transferred => {};
-field id_refcnt => {};
-field id_anchor => {};
-field anchor => 1;
-field level => 0;
-field offset => [];
-field headless => 0;
+field id_refcnt   => {};
+field id_anchor   => {};
+field anchor      => 1;
+field level       => 0;
+field offset      => [];
+field headless    => 0;
 field blessed_map => {};
 
 # Global Options are an idea taken from Data::Dumper. Really they are just

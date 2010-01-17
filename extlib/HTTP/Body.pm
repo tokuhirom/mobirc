@@ -4,7 +4,7 @@ use strict;
 
 use Carp       qw[ ];
 
-our $VERSION = '1.05';
+our $VERSION = '1.06';
 
 our $TYPES = {
     'application/octet-stream'          => 'HTTP::Body::OctetStream',
@@ -68,7 +68,8 @@ It is currently used by L<Catalyst> to parse POST bodies.
 
 When parsing multipart bodies, temporary files are created to store any
 uploaded files.  You must delete these temporary files yourself after
-processing them.
+processing them, or set $body->cleanup(1) to automatically delete them
+at DESTROY-time.
 
 =head1 METHODS
 
@@ -98,6 +99,7 @@ sub new {
     my $body = $TYPES->{ $type || 'application/octet-stream' };
 
     my $self = {
+        cleanup        => 0,
         buffer         => '',
         chunk_buffer   => '',
         body           => undef,
@@ -114,6 +116,20 @@ sub new {
     bless( $self, $body );
 
     return $self->init;
+}
+
+sub DESTROY {
+    my $self = shift;
+    
+    if ( $self->{cleanup} ) {
+        my @temps = ();
+        for my $upload ( values %{ $self->{upload} } ) {
+            push @temps, map { $_->{tempname} || () }
+                ( ref $upload eq 'ARRAY' ? @{$upload} : $upload );
+        }
+        
+        unlink map { $_ } grep { -e $_ } @temps;
+    }
 }
 
 =item add
@@ -218,6 +234,18 @@ Returns 1 if the request is chunked.
 
 sub chunked {
     return shift->{chunked};
+}
+
+=item cleanup
+
+Set to 1 to enable automatic deletion of temporary files at DESTROY-time.
+
+=cut
+
+sub cleanup {
+    my $self = shift;
+    $self->{cleanup} = shift if @_;
+    return $self->{cleanup};
 }
 
 =item content_length
@@ -366,7 +394,7 @@ sub tmpdir {
 
 =head1 AUTHOR
 
-Christian Hansen, C<ch@ngmedia.com>
+Christian Hansen, C<chansen@cpan.org>
 
 Sebastian Riedel, C<sri@cpan.org>
 
