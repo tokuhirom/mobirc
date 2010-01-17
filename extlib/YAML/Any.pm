@@ -2,11 +2,12 @@ package YAML::Any;
 
 use 5.005003;
 use strict;
-use base 'Exporter';
+use Exporter ();
 
-@YAML::Any::EXPORT = qw(Dump Load);
+$YAML::Any::VERSION   = '0.71';
+@YAML::Any::ISA       = 'Exporter';
+@YAML::Any::EXPORT    = qw(Dump Load);
 @YAML::Any::EXPORT_OK = qw(DumpFile LoadFile);
-$YAML::Any::VERSION = '0.67';
 
 my @dump_options = qw(
     UseCode
@@ -25,6 +26,7 @@ my @dump_options = qw(
     Purity
     Stringify
 );
+
 my @load_options = qw(
     UseCode
     LoadCode

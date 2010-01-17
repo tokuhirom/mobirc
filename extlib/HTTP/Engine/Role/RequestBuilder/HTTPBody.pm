@@ -7,6 +7,7 @@ with qw(
     HTTP::Engine::Role::RequestBuilder::ReadBody
 );
 use HTTP::Body;
+use HTTP::Engine::Request::Upload;
 
 # tempolary file path for upload file.
 has upload_tmp => (

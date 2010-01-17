@@ -165,13 +165,34 @@ __END__
 
 HTTP::Engine::Interface::FCGI - FastCGI interface for HTTP::Engine
 
+=head1 SYNOPSIS
+
+    #!/usr/bin/perl
+    use HTTP::Engine;
+
+    HTTP::Engine->new(
+        interface => {
+          module => 'FCGI',
+          args   => {
+          },
+          request_handler => 'main::handle_request',# or CODE ref
+        },
+    )->run();
+
+    sub handle_request {
+        HTTP::Engine::Response->new( body => 'hello, world!' );
+    }
+
 =head1 ATTRIBUTES
 
 =over 4
 
 =item leave_umask
 
+
 =item keep_stderr
+
+send STDERR to stdout (a logfile)
 
 =item nointr
 
@@ -184,6 +205,8 @@ HTTP::Engine::Interface::FCGI - FastCGI interface for HTTP::Engine
 =item pidfile
 
 =item listen
+
+Pathname of socket or colon followed by local tcp port.
 
 =back
 

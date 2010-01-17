@@ -12,6 +12,10 @@ has request_handler => (
     required => 1,
 );
 
+# for PSGI streaming response
+# using HTTP::Engine::ResponseFinalizer
+sub can_has_streaming { 0 }
+
 sub handle_request {
     my ($self, %args) = @_;
 
@@ -33,11 +37,11 @@ sub handle_request {
         print STDERR $e;
         $res = HTTP::Engine::Response->new(
             status => 500,
-            body   => 'internal server errror',
+            body   => 'internal server error',
         );
     }
 
-    HTTP::Engine::ResponseFinalizer->finalize( $req => $res );
+    HTTP::Engine::ResponseFinalizer->finalize( $req => $res => $self );
 
     return $self->response_writer->finalize( $req => $res );
 }

@@ -1,12 +1,11 @@
 package Test::YAML;
+
 use Test::Base 0.47 -Base;
 use lib 'lib';
 
-our $VERSION = '0.57';
-
-our $YAML = 'YAML';
-
-our @EXPORT = qw(
+our $VERSION = '0.71';
+our $YAML    = 'YAML';
+our @EXPORT  = qw(
     no_diff
     run_yaml_tests
     run_roundtrip_nyn roundtrip_nyn
@@ -17,12 +16,12 @@ our @EXPORT = qw(
 
 delimiters('===', '+++');
 
-sub Dump() { YAML(Dump => @_) }
-sub Load() { YAML(Load => @_) }
-sub DumpFile() { YAML(DumpFile => @_) }
-sub LoadFile() { YAML(LoadFile => @_) }
+sub Dump     () { YAML(Dump => @_)     }
+sub Load     () { YAML(Load => @_)     }
+sub DumpFile () { YAML(DumpFile => @_) }
+sub LoadFile () { YAML(LoadFile => @_) }
 
-sub YAML() {
+sub YAML () {
     load_yaml_pm();
     my $meth = shift;
     my $code = $YAML->can($meth) or die "$YAML cannot do $meth";
@@ -183,7 +182,10 @@ sub _skip_test() {
 
 #-------------------------------------------------------------------------------
 package Test::YAML::Filter;
-use base 'Test::Base::Filter';
+
+use Test::Base::Filter ();
+
+our @ISA = 'Test::Base::Filter';
 
 sub yaml_dump {
     Test::YAML::Dump(@_);

@@ -43,9 +43,9 @@ use Apache2::ServerRec;
 use APR::Table;
 use HTTP::Engine;
 has 'apache' => (
-    is      => 'rw',
-    isa     => 'Apache2::RequestRec',
-    is_weak => 1,
+    is       => 'rw',
+    isa      => 'Apache2::RequestRec',
+    weak_ref => 1,
 );
 
 has 'context_key' => (
@@ -159,7 +159,7 @@ HTTP::Engine::Interface::ModPerl - mod_perl Adaptor for HTTP::Engine
       App->new->setup_engine({
           module => 'ModPerl',
       });
-x  }
+  }
 
 
   # in httpd.conf

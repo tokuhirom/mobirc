@@ -1,12 +1,15 @@
 package YAML;
-use strict; use warnings;
+
+use 5.008001;
+use strict;
+use warnings;
 use YAML::Base;
-use base 'YAML::Base';
-use YAML::Node;         # XXX This is a temp fix for Module::Build
-use 5.006001;
-our $VERSION = '0.68';
-our @EXPORT = qw'Dump Load';
-our @EXPORT_OK = qw'freeze thaw DumpFile LoadFile Bless Blessed';
+use YAML::Node; # XXX This is a temp fix for Module::Build
+
+our $VERSION   = '0.71';
+our @ISA       = 'YAML::Base';
+our @EXPORT    = qw{ Dump Load };
+our @EXPORT_OK = qw{ freeze thaw DumpFile LoadFile Bless Blessed };
 
 # XXX This VALUE nonsense needs to go.
 use constant VALUE => "\x07YAML\x07VALUE\x07";
@@ -54,7 +57,8 @@ sub DumpFile {
         }
         open $OUT, $mode, $filename
           or YAML::Base->die('YAML_DUMP_ERR_FILE_OUTPUT', $filename, $!);
-    }  
+    }
+    binmode $OUT, ':utf8';  # if $Config{useperlio} eq 'define';
     local $/ = "\n"; # reset special to "sane"
     print $OUT Dump(@_);
 }
@@ -66,9 +70,10 @@ sub LoadFile {
         $IN = $filename;
     }
     else {
-        open $IN, $filename
+        open $IN, '<', $filename
           or YAML::Base->die('YAML_LOAD_ERR_FILE_INPUT', $filename, $!);
     }
+    binmode $IN, ':utf8';  # if $Config{useperlio} eq 'define';
     return Load(do { local $/; <$IN> });
 }
 
@@ -154,11 +159,11 @@ switched over to the new UI-only version.
     ...
     
     # Dump the Perl data structures back into YAML.
-    print Dump($string, $arrayref, $hashref); 
+    print Dump($string, $arrayref, $hashref);
     
     # YAML::Dump is used the same way you'd use Data::Dumper::Dumper
     use Data::Dumper;
-    print Dumper($string, $arrayref, $hashref); 
+    print Dumper($string, $arrayref, $hashref);
 
 =head1 DESCRIPTION
 
@@ -176,7 +181,7 @@ specification.
 
 =over 4
 
-=item YAML is readable for people. 
+=item YAML is readable for people.
 
 It makes clear sense out of complex data structures. You should find
 that YAML is an exceptional data dumping tool. Structure is shown
@@ -260,11 +265,11 @@ YAML specification in pure Perl. This may not be the fastest or most
 stable module though. Currently, YAML.pm has lots of known bugs. It is
 mostly a great tool for dumping Perl data structures to a readable form.
 
-=item YAML::Lite
+=item YAML::Tiny
 
-The point of YAML::Lite is to strip YAML down to the 90% that people
+The point of YAML::Tiny is to strip YAML down to the 90% that people
 use most and offer that in a small, fast, stable, pure Perl form.
-YAML::Lite will simply die when it is asked to do something it can't.
+YAML::Tiny will simply die when it is asked to do something it can't.
 
 =item YAML::Syck
 
@@ -306,7 +311,7 @@ Data::Dumper::Dumper(). It takes a list of Perl data strucures and
 dumps them into a serialized form. It returns a string containing the
 YAML stream. The structures can be references or plain scalars.
 
-=item Load(string-containing-a-YAML-stream) 
+=item Load(string-containing-a-YAML-stream)
 
 Turn YAML into Perl data. This is the opposite of Dump. Just like
 Storable's thaw() function or the eval() function in relation to
@@ -426,7 +431,7 @@ looks pleasing to you; just be consistent for a given level.
 
 Default is 1. (true)
 
-Tells YAML.pm whether or not to sort hash keys when storing a document. 
+Tells YAML.pm whether or not to sort hash keys when storing a document.
 
 YAML::Node objects can have their own sort order, which is usually what
 you want. To override the YAML::Node order and sort the keys anyway, set
@@ -501,7 +506,7 @@ YAML.pm uses heuristics to guess which scalar style is best for a given
 node. Sometimes you'll want all multiline scalars to use the 'block'
 style. If so, set this option to 1.
 
-NOTE: YAML's block style is akin to Perl's here-document. 
+NOTE: YAML's block style is akin to Perl's here-document.
 
 =item UseFold
 
@@ -712,7 +717,7 @@ ending marker is required. The data is verbatim. No line folding.
 
 =item parser
 
-A YAML processor has four stages: parse, load, dump, emit. 
+A YAML processor has four stages: parse, load, dump, emit.
 
 A parser parses a YAML stream. YAML.pm's Load() function contains a
 parser.
@@ -729,9 +734,9 @@ walks through each Perl data structure and gives info to the emitter.
 
 =item emitter
 
-The emitter takes info from the dumper and turns it into a YAML stream. 
+The emitter takes info from the dumper and turns it into a YAML stream.
 
-NOTE: 
+NOTE:
 In YAML.pm the parser/loader and the dumper/emitter code are currently
 very closely tied together. In the future they may be broken into
 separate stages.
@@ -793,14 +798,16 @@ Ingy döt Net <ingy@cpan.org>
 is resonsible for YAML.pm.
 
 The YAML serialization language is the result of years of collaboration
-between Oren Ben-Kiki, Clark Evans and Ingy döt Net. Several others
+between Oren Ben-Kiki, Clark Evans and Ingy dE<ouml>t Net. Several others
 have added help along the way.
 
 =head1 COPYRIGHT
 
-Copyright (c) 2005, 2006, 2008. Ingy döt Net.
+Copyright (c) 2005, 2006, 2008. Ingy dE<ouml>t Net.
 
 Copyright (c) 2001, 2002, 2005. Brian Ingerson.
+
+Some parts copyright (c) 2009 - 2010 Adam Kennedy
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

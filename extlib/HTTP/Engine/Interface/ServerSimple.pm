@@ -28,6 +28,26 @@ has net_server => (
     default => undef,
 );
 
+has net_server_configure => (
+    is      => 'ro',
+    isa     => 'HashRef',
+    default => sub { +{} },
+);
+
+has print_banner => (
+    is       => 'ro',
+    isa      => 'CodeRef',
+    required => 1,
+    default  => sub { sub {
+        my $self = shift;
+        print(  __PACKAGE__
+              . " : You can connect to your server at "
+              . "http://" . ($self->host || 'localhost') . ":"
+              . $self->port
+              . "/\n" );
+    } }
+);
+
 sub run {
     my ($self, ) = @_;
 
@@ -78,13 +98,14 @@ sub run {
                     )
                 },
                 net_server => sub { $self->net_server },
+                print_banner => sub { $self->print_banner->($self) },
             },
             cache => 1
         )->name->new(
             $self->port
         );
     $server->host($self->host);
-    $server->run;
+    $server->run(%{ $self->net_server_configure });
 }
 
 __INTERFACE__
@@ -100,6 +121,42 @@ HTTP::Engine::Interface::ServerSimple - HTTP::Server::Simple interface for HTTP:
 HTTP::Engine::Plugin::Interface::ServerSimple is wrapper for HTTP::Server::Simple.
 
 HTTP::Server::Simple is flexible web server.And it can use Net::Server, so you can make it preforking or using Coro.
+
+=head1 ATTRIBUTES
+
+=over 4
+
+=item host
+
+=item port
+
+=item net_server
+
+User-overridable method. If you set it to a L<Net::Server> subclass, that subclass is used for the L<HTTP::Server::Simple>.
+
+=item net_server_configure
+
+Any arguments passed to this will be passed on to the underlying L<Net::Server> implementation.
+
+  # SYNOPSIS
+  my $engine = HTTP::Engine->new(
+      interface => {
+          module => 'ServerSimple',
+          args   => {
+              host => 'localhost',
+              port =>  1978,
+              net_server => 'Net::Server::PreForkSimple',
+              net_server_configure => {
+                  max_servers  => 5,
+                  max_requests => 100,
+              },
+          },
+          request_handler => 'main::handle_request',# or CODE ref
+      },
+  );
+  $engine->run;
+
+=back
 
 =head1 AUTHOR
 

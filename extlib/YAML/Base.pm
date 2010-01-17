@@ -1,8 +1,12 @@
 package YAML::Base;
-use strict; use warnings;
-use base 'Exporter';
 
-our @EXPORT = qw(field XXX);
+use strict;
+use warnings;
+use Exporter ();
+
+our $VERSION = '0.71';
+our @ISA     = 'Exporter';
+our @EXPORT  = qw(field XXX);
 
 sub new {
     my $class = shift;
