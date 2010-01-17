@@ -4,6 +4,12 @@ all_from 'lib/App/Mobirc.pm';
 
 license  'gpl';
 
+requires 'AnyEvent';
+
+# Plack
+requires 'Plack';
+requires 'Plack::Server::AnyEvent' => 0.03;
+
 # Mouse.
 requires 'Mouse' => 0.17;
 requires 'MouseX::Types' => 0.01;
