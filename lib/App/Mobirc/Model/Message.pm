@@ -32,7 +32,7 @@ has 'time' => (
 sub who_class {
     my $self = shift;
     my $who = $self->who;
-    if ($who && $who eq irc_nick()) {
+    if ($who && $who eq App::Mobirc->context->current_nick()) {
         return 'nick_myself';
     } else {
         return 'nick_normal';

@@ -26,21 +26,20 @@ sub channels {
 
 sub get_channel {
     my ($self, $name) = @_;
-    croak "channel name is flagged utf8" unless Encode::is_utf8($name);
     croak "invalid channel name : $name" if $name =~ / /;
+    $name = normalize_channel_name($name);
     return $self->channel_map->{$name} ||= App::Mobirc::Model::Channel->new(name=> $name);
 }
 
 sub delete_channel {
     my ($self, $name) = @_;
-    croak "channel name is flagged utf8" unless Encode::is_utf8($name);
     delete $self->channel_map->{$name};
 }
 
 # shortcut
 sub keyword_channel {
     my $self = shift;
-    $self->get_channel(U '*keyword*');
+    $self->get_channel('*keyword*');
 }
 
 # ORDER BY unread_lines, last_updated_at;
@@ -87,4 +86,3 @@ sub unread_channels {
 }
 
 __PACKAGE__->meta->make_immutable;
-1;

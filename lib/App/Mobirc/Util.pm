@@ -6,7 +6,7 @@ use Carp;
 use List::MoreUtils qw/any/;
 use Encode;
 
-our @EXPORT = qw/true false DEBUG normalize_channel_name daemonize decorate_irc_color U irc_nick global_context/;
+our @EXPORT = qw/true false DEBUG normalize_channel_name daemonize decorate_irc_color U global_context/;
 
 sub true  () { 1 } ## no critic.
 sub false () { 0 } ## no critic.
@@ -19,8 +19,6 @@ sub DEBUG($) { ## no critic.
     my $txt = shift;
     print STDERR "$txt\n" if $ENV{DEBUG};
 }
-
-sub irc_nick () { POE::Kernel->alias_resolve('irc_session')->get_heap->{irc}->nick_name } ## no critic
 
 # -------------------------------------------------------------------------
 
