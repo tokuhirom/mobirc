@@ -175,7 +175,7 @@ hook 'run_component' => sub {
             );
         },
         'join' => sub {
-            my ( $who, $channel_name, $is_myself ) = @_;
+            my ( $irc, $who, $channel_name, $is_myself ) = @_;
             DEBUG "JOIN($who, $channel_name, $is_myself)";
             $who =~ s/!.*//;
 
@@ -196,38 +196,36 @@ hook 'run_component' => sub {
             }
             $disconnect_msg = true;
         },
-#       'part' => sub {
-#           my ( $who, $channel_name, $is_myself, $msg ) = @_;
-#           DEBUG("PART($who, $channel_name, $is_myself, $msg)");
+        'part' => sub {
+            my ( $irc, $who, $channel_name, $is_myself, $msg ) = @_;
+            DEBUG("PART($who, $channel_name, $is_myself, $msg)");
+            $who =~ s/!.*//;
+            # chop off after the gap (bug workaround of POE::Filter::IRC)
+            $channel_name =~ s/ .*//;
 
-#           $who =~ s/!.*//;
+            if ($is_myself) {
+                $global_context->delete_channel($channel_name);
+            }
+            else {
+                my $message = "$who leaves";
+                if ($msg) {
+                    $message .= "($msg)";
+                }
 
-#           # chop off after the gap (bug workaround of POE::Filter::IRC)
-#           $channel_name =~ s/ .*//;
-
-#           if ($is_myself) {
-#               $global_context->delete_channel($channel_name);
-#           }
-#           else {
-#               my $message = "$who leaves";
-#               if ($msg) {
-#                   $message .= "($msg)";
-#               }
-
-#               my $channel = $global_context->get_channel($channel_name);
-#               $channel->add_message(
-#                   App::Mobirc::Model::Message->new(
-#                       who   => undef,
-#                       body  => $message,
-#                       class => 'leave',
-#                   )
-#               );
-#           }
-#           $disconnect_msg = true;
-#       },
+                my $channel = $global_context->get_channel($channel_name);
+                $channel->add_message(
+                    App::Mobirc::Model::Message->new(
+                        who   => undef,
+                        body  => $message,
+                        class => 'leave',
+                    )
+                );
+            }
+            $disconnect_msg = true;
+        },
         'kick' => sub {
             my ( $irc, $kickee, $channel_name, $is_myself, $msg ) = @_;
-            DEBUG "KICK($kickee, $channel_name, $is_myself, $msg)----------------------";
+            DEBUG "KICK($kickee, $channel_name, $is_myself, $msg)";
             my $kicker = 'anyone'; # AnyEvent::IRC::Client doesn't supports kicker!
             $msg ||= 'Flooder';
 

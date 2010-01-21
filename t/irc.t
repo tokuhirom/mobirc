@@ -71,7 +71,8 @@ test_tcp(
                             $irc->send_msg("PRIVMSG", '#foo', "THIS IS にほんご");
                             $irc->send_msg("PRIVMSG", '#foo', encode_ctcp(['ACTION', "too"]));
                             $irc->send_msg("PRIVMSG", '#foo', "DNBK");
-                            $irc->send_msg("TOPIC", '#foo', "THIS IS TOPIC");
+                            # $c->run_hook_first('process_command' => '/me hey', $c->get_channel('#foo'));
+                            # $c->run_hook('process_command' => 'ah,ah', '#foo');
                             $irc->send_msg("JOIN", '#finished');
                             undef $t;
                         });
@@ -91,7 +92,6 @@ test_tcp(
 
         # finalizer thread
         my $finalizer = AE::timer(0, 5, sub {
-            # TODO: test it.
             diag "Testing";
             my $chan = $c->get_channel('#finished');
             if (scalar(@{$chan->message_log()}) > 0) {
@@ -103,36 +103,37 @@ test_tcp(
 
         diag "finished";
         subtest '#foo' => sub {
+            my $i = 0;
             my @logs = $c->get_channel('#foo')->message_log();
-            is $logs[0]->class, 'public';
-            is $logs[0]->body, 'THIS IS PRIVMSG';
-            is $logs[1]->class, 'notice';
-            is $logs[1]->body, 'THIS IS NOTICE';
-            is $logs[2]->class, 'public';
-            is $logs[2]->body, U('THIS IS にほんご');
-            is $logs[3]->class, 'ctcp_action';
-            is $logs[3]->body, U('* tester too');
-            is $logs[4]->class, 'public';
-            is $logs[4]->body, U('DNBK');
-            is $logs[5]->class, 'kick';
-            is $logs[5]->body, U('anyone has kicked kan(kan)');
-            is $logs[6]->class, 'topic';
-            is $logs[6]->body, U('SERVER set topic: *** is GOD');
-            is(join(',', map { $_->class } @logs), 'public,notice,public,ctcp_action,public,kick,topic');
+            is $logs[$i]->class, 'join';
+            is $logs[$i++]->body, 'tester joined';
+            is $logs[$i]->class, 'public';
+            is $logs[$i++]->body, 'THIS IS PRIVMSG';
+            is $logs[$i]->class, 'notice';
+            is $logs[$i++]->body, 'THIS IS NOTICE';
+            is $logs[$i]->class, 'public';
+            is $logs[$i++]->body, U('THIS IS にほんご');
+            is $logs[$i]->class, 'ctcp_action';
+            is $logs[$i++]->body, U('* tester too');
+            is $logs[$i]->class, 'public';
+            is $logs[$i++]->body, U('DNBK');
+            is $logs[$i]->class, 'kick';
+            is $logs[$i++]->body, U('anyone has kicked kan(kan)');
+            is $logs[$i]->class, 'topic';
+            is $logs[$i++]->body, U('SERVER set topic: *** is GOD');
+            is $logs[$i]->class, 'leave';
+            is $logs[$i++]->body, U('parter leaves(parter)');
+            is(join(',', map { $_->class } @logs), 'join,public,notice,public,ctcp_action,public,kick,topic,leave');
             done_testing;
         };
-        subtest 'PRIVATE TALK'  => sub {
-            ok 'private talk';
-            TODO: {
-                local $TODO = 'support private talk';
-                my @logs = $c->get_channel('tester')->message_log();
-                is join("", map { $_->body } @logs), 'PRIVATE TALK';
-            }
-            done_testing;
-        };
+        TODO: {
+            local $TODO = 'support private talk';
+            my @logs = $c->get_channel('tester')->message_log();
+            is join("", map { $_->body } @logs), 'PRIVATE TALK';
+        }
         subtest 'finalized' => sub {
             my @logs = $c->get_channel('#finished')->message_log();
-            is join("", map { $_->body } @logs), 'FINISHED!';
+            like join("\n", map { $_->body } @logs), qr/FINISHED!/;
             is join(',', sort { $a cmp $b } map { $_->name } $c->server->channels), "#finished,#foo,*server*,john,tester", 'channels';
             done_testing;
         };
@@ -161,6 +162,8 @@ test_tcp(
                     $ircd->yield(daemon_cmd_join => 'SERVER', '#foo');
                     $ircd->yield( add_spoofed_nick => { nick => 'kan' } );
                     $ircd->yield(daemon_cmd_join => 'kan', '#foo');
+                    $ircd->yield( add_spoofed_nick => { nick => 'parter' } );
+                    $ircd->yield(daemon_cmd_join => 'parter', '#foo');
 
                     # Anyone connecting from the loopback gets spoofed hostname
                     $heap->{ircd}->add_auth(
@@ -213,6 +216,7 @@ test_tcp(
                     if ($msg eq 'DNBK') {
                         $heap->{ircd}->yield(daemon_cmd_kick => 'SERVER', '#foo', 'kan');
                         $heap->{ircd}->yield(daemon_cmd_topic => 'SERVER', '#foo', '*** is GOD');
+                        $heap->{ircd}->yield(daemon_cmd_part => 'parter', '#foo');
                     }
                 },
             },
