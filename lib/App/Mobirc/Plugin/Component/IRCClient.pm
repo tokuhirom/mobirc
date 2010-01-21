@@ -2,16 +2,27 @@ package App::Mobirc::Plugin::Component::IRCClient;
 use strict;
 use App::Mobirc::Plugin;
 
-use POE;
-use POE::Sugar::Args;
-use POE::Component::IRC 5.88;
-use POE::Filter::IRC::Compat;
+use AnyEvent;
+use AnyEvent::IRC;
+use AnyEvent::IRC::Client;
+use Data::Recursive::Encode;
 
 use Encode;
 use Carp;
 
 use App::Mobirc::Model::Message;
 use App::Mobirc::Util;
+
+has timeout => (
+    is      => 'ro',
+    isa     => 'Int',
+    default => 10,
+);
+
+has conn => (
+    is  => 'rw',
+    isa => 'AnyEvent::IRC::Client',
+);
 
 has ping_delay => (
     is      => 'ro',
@@ -71,23 +82,17 @@ hook process_command => sub {
 
     my $irc_incode = $self->incode;
     if ( $command && $channel->name =~ /^[#*%]/ ) {
-        if    ( $command =~ m{^/me(.*)} ) {
+        if ( $command =~ m{^/me(.*)} ) {
             DEBUG "CTCP ACTION";
             my $body = $1;
 
-            $poe_kernel->post(
-                'mobirc_irc',
-                ctcp => $channel->name => 'ACTION',
-                $body
+            $self->conn->send_srv(
+                PRIVMSG => $channel->name() => encode_ctcp(['ACTION', $body])
             );
 
             $channel->add_message(
                 App::Mobirc::Model::Message->new(
-                    who => decode(
-                        $irc_incode,
-                        $poe_kernel->alias_resolve('irc_session')
-                            ->get_heap->{irc}->nick_name
-                    ),
+                    who   => $self->current_nick(),
                     body  => $body,
                     class => 'ctcp_action',
                 )
@@ -101,24 +106,22 @@ hook process_command => sub {
               map { encode( $irc_incode, $_ ) } split /\s+/,
               $command;
 
-              $poe_kernel->post( 'mobirc_irc', @args );
+            $self->conn->send_srv(@_);
         }
         else {
             DEBUG "NORMAL PRIVMSG";
 
-            $poe_kernel->post( 'mobirc_irc',
-                privmsg => encode( $irc_incode, $channel->name ) =>
-                  encode( $irc_incode, $command ) );
+            $self->conn->send_srv(
+                'PRIVMSG',
+                encode( $irc_incode, $channel->name ),
+                encode( $irc_incode, $command )
+            );
 
             DEBUG "Sending command $command";
 
             $channel->add_message(
                 App::Mobirc::Model::Message->new(
-                    who => decode(
-                        $irc_incode,
-                        $poe_kernel->alias_resolve('irc_session')
-                            ->get_heap->{irc}->nick_name
-                    ),
+                    who   => $self->current_nick(),
                     body  => $command,
                     class => 'public',
                 )
@@ -134,394 +137,236 @@ hook 'run_component' => sub {
 
     DEBUG "initialize ircclient";
 
-    # irc component
-    my $irc = POE::Component::IRC->spawn(
-        Alias    => 'mobirc_irc',
-        Nick     => $self->nick,
-        Username => $self->username,
-        Ircname  => $self->desc,
-        Server   => $self->server,
-        Port     => $self->port,
-        Password => $self->password,
-    );
-
-    POE::Session->create(
-        heap => {
-            seen_traffic   => false,
-            disconnect_msg => true,
-            config         => $self,
-            irc            => $irc,
-            global_context => $global_context,
-        },
-        inline_states => {
-            _start   => \&on_irc_start,
-            _default => \&on_irc_default,
-
-            irc_001         => \&on_irc_001,
-            irc_join        => \&on_irc_join,
-            irc_part        => \&on_irc_part,
-            irc_public      => \&on_irc_public,
-            irc_notice      => \&on_irc_notice,
-            irc_topic       => \&on_irc_topic,
-            irc_332         => \&on_irc_topicraw,
-            irc_ctcp_action => \&on_irc_ctcp_action,
-            irc_kick        => \&on_irc_kick,
-            irc_snotice     => \&on_irc_snotice,
-            irc_msg         => \&on_irc_msg,
-
-            autoping => \&do_autoping,
-            connect  => \&do_connect,
-
-            irc_disconnected => \&on_irc_reconnect,
-            irc_error        => \&on_irc_reconnect,
-            irc_socketerr    => \&on_irc_reconnect,
+    my $irc = AnyEvent::IRC::Client->new();
+    $irc->connect(
+        $self->server,
+        $self->port,
+        {
+            nick => $self->nick,
+            real => $self->desc,
+            password => $self->password,
+            timeout => $self->timeout,
         }
     );
+    my $disconnect_msg = 1;
+    my %cb             = (
+        irc_001 => sub {
+            DEBUG "CONNECTED";
+            DEBUG "input charset is: " . $self->incode();
+
+            my $channel = $global_context->get_channel('*server*');
+            $channel->add_message(
+                App::Mobirc::Model::Message->new(
+                    who   => undef,
+                    body  => 'Connected to irc server!',
+                    class => 'connect',
+                )
+            );
+
+            $disconnect_msg = true;
+        },
+        'registered' => sub {
+            DEBUG 'registered event';
+            $irc->enable_ping(
+                $self->{ping_delay},
+                sub {
+                    print "disconnected connection\n";
+                }
+            );
+        },
+        'join' => sub {
+            my ( $who, $channel_name, $is_myself ) = @_;
+            DEBUG "JOIN($who, $channel_name, $is_myself)";
+            $who =~ s/!.*//;
+
+            # chop off after the gap (bug workaround of madoka)
+            $channel_name =~ s/ .*//;
+
+            # create channel
+            my $channel = $global_context->get_channel($channel_name);
+
+            unless ($is_myself) {
+                $channel->add_message(
+                    App::Mobirc::Model::Message->new(
+                        who   => undef,
+                        body  => $who . " joined",
+                        class => 'join',
+                    )
+                );
+            }
+            $disconnect_msg = true;
+        },
+#       'part' => sub {
+#           my ( $who, $channel_name, $is_myself, $msg ) = @_;
+#           DEBUG("PART($who, $channel_name, $is_myself, $msg)");
+
+#           $who =~ s/!.*//;
+
+#           # chop off after the gap (bug workaround of POE::Filter::IRC)
+#           $channel_name =~ s/ .*//;
+
+#           if ($is_myself) {
+#               $global_context->delete_channel($channel_name);
+#           }
+#           else {
+#               my $message = "$who leaves";
+#               if ($msg) {
+#                   $message .= "($msg)";
+#               }
+
+#               my $channel = $global_context->get_channel($channel_name);
+#               $channel->add_message(
+#                   App::Mobirc::Model::Message->new(
+#                       who   => undef,
+#                       body  => $message,
+#                       class => 'leave',
+#                   )
+#               );
+#           }
+#           $disconnect_msg = true;
+#       },
+        'kick' => sub {
+            my ( $irc, $kickee, $channel_name, $is_myself, $msg ) = @_;
+            DEBUG "KICK($kickee, $channel_name, $is_myself, $msg)----------------------";
+            my $kicker = 'anyone'; # AnyEvent::IRC::Client doesn't supports kicker!
+            $msg ||= 'Flooder';
+
+            $kicker =~ s/!.*//;
+
+            $global_context->get_channel($channel_name)->add_message(
+                App::Mobirc::Model::Message->new(
+                    who   => undef,
+                    body  => "$kicker has kicked $kickee($msg)",
+                    class => 'kick',
+                )
+            );
+
+            $disconnect_msg = true;
+        },
+        'publicmsg' => sub {
+            my ( $irc, $targ, $raw ) = @_;
+            my $who          = $raw->{prefix} || '*';
+            my $channel_name = $raw->{params}->[0];
+            my $msg          = $raw->{params}->[1];
+            my $class        = $raw->{command};
+            DEBUG "IRC_PRIVMSG($who, $channel_name, $msg)";
+
+            $who =~ s/!.*//;
+
+            $channel_name = normalize_channel_name($channel_name); # TODO: move to get_channel.
+
+            my $channel = $global_context->get_channel($channel_name);
+            $channel->add_message(
+                App::Mobirc::Model::Message->new(
+                    who   => $who,
+                    body  => $msg,
+                    class => lc($class) eq 'privmsg' ? 'public' : 'notice',
+                )
+            );
+
+            if ( $who eq $irc->nick ) {
+                DEBUG "CLEAR UNREAD, because I said.";
+                $channel->clear_unread;
+            }
+
+            $disconnect_msg = true;
+        },
+        channel_topic => sub {
+            my ( $irc, $channel_name, $topic, $who ) = @_;
+            DEBUG "CHANNEL_TOPIC($channel_name, $topic, $who)";
+
+            $who =~ s/!.*//;
+
+            my $channel = $global_context->get_channel($channel_name);
+            $channel->topic($topic);
+            $channel->add_message(
+                App::Mobirc::Model::Message->new(
+                    who   => undef,
+                    body  => "$who set topic: $topic",
+                    class => 'topic',
+                )
+            );
+
+            $disconnect_msg = true;
+        },
+        # TODO: CTCP ACTION SUPPORT
+        ctcp_action => sub {
+            my ( $irc, $who, $channel_name, $msg ) = @_;
+            DEBUG("CTCP_ACTION($who, $channel_name, $msg)");
+
+            $who =~ s/!.*//;
+
+            my $channel = $global_context->get_channel($channel_name);
+            my $body = sprintf( '* %s %s', $who, $msg );
+            $channel->add_message(
+                App::Mobirc::Model::Message->new(
+                    who   => undef,
+                    body  => $body,
+                    class => 'ctcp_action',
+                )
+            );
+
+            $disconnect_msg = true;
+        },
+        # TODO : support snotice
+#       irc_snotice => sub {
+#           DEBUG "getting snotice : $message";
+
+#           my $channel = $global_context->get_channel('*server*');
+#           $channel->add_message(
+#               App::Mobirc::Model::Message->new(
+#                   who   => undef,
+#                   body  => $message,
+#                   class => 'snotice',
+#               )
+#           );
+#       },
+        # handle error.
+        'error' => sub {
+            my ($self, $command, $message) = @_;
+            print STDERR "ERROR: $command($message)";
+        },
+        debug_recv => sub {
+            my ($irc, $raw) = @_;
+            # use Data::Dumper;
+            DEBUG "message: $raw->{command}";
+        },
+#       channel_add => sub {
+#           my ($msg, $channel_name, @nicks) = @_;
+#           DEBUG "CHANNEL_ADDR($msg, $channel_name)";
+#           $global_context->get_channel($channel_name);
+#       },
+#       channel_remove => sub {
+#           DEBUG 'channel_remove event';
+#       },
+    );
+
+    # decode args, automatically.
+    while ( my ( $key, $code ) = each %cb ) {
+        $cb{$key} = sub {
+            return $code->(@{Data::Recursive::Encode->decode($self->incode, \@_)});
+        };
+    }
+    $cb{privatemsg} = $cb{publicmsg};
+    $irc->reg_cb(%cb);
+    $self->conn($irc);
 
     $global_context->add_channel(
-        App::Mobirc::Model::Channel->new( name => U('*server*') ) );
+        App::Mobirc::Model::Channel->new( name => '*server*' )
+    );
+
+    $global_context->irc_component($self);
 };
 
-# -------------------------------------------------------------------------
-
-sub on_irc_default {
-    my $poe = sweet_args;
-    my ( $event, $args ) = _get_args($poe);
-
-    DEBUG "ignore unknown event: $_[ARG0]";
-
-    if ( $poe->heap->{global_context}
-        ->run_hook_first( 'on_irc_default', $poe, $event, $args ) )
-    {
-        return;
-    }
+# decoded current nick
+sub current_nick {
+    my $self = shift;
+    $self->_decode( $self->conn->nick() );
 }
 
-sub on_irc_msg {
-    my $poe = sweet_args;
-    my ( $who, $targets, $msg ) = _get_args($poe);
-
-    if ( $poe->heap->{global_context}
-        ->run_hook_first( 'on_irc_msg', $poe, $who, $targets, $msg ) )
-    {
-        return;
-    }
-}
-
-
-sub on_irc_start {
-    my $poe = sweet_args;
-    DEBUG "START";
-
-    $poe->kernel->alias_set('irc_session');
-
-    DEBUG "input charset is: " . $poe->heap->{config}->{incode};
-
-    $poe->heap->{irc}->yield( register => 'all' );
-    $poe->heap->{irc}->yield( connect  => {} );
-}
-
-sub on_irc_001 {
-    my $poe = sweet_args;
-
-    DEBUG "CONNECTED";
-
-    my $channel =
-      $poe->heap->{global_context}->get_channel( decode( 'utf8', '*server*' ) );
-    $channel->add_message(
-        App::Mobirc::Model::Message->new(
-            who   => undef,
-            body  => decode( 'utf8', 'Connected to irc server!' ),
-            class => 'connect',
-        )
-    );
-
-    $poe->heap->{disconnect_msg} = true;
-    $poe->kernel->delay( autoping => $poe->heap->{config}->{ping_delay} );
-}
-
-sub on_irc_join {
-    my $poe = sweet_args;
-
-    DEBUG "JOIN";
-
-    my ( $who, $channel_name ) = _get_args($poe);
-
-    $who =~ s/!.*//;
-
-    # chop off after the gap (bug workaround of madoka)
-    $channel_name =~ s/ .*//;
-    $channel_name = normalize_channel_name($channel_name);
-
-    # create channel
-    my $channel = $poe->heap->{global_context}->get_channel($channel_name);
-    unless ($channel) {
-        $channel =
-          App::Mobirc::Model::Channel->new( name => $channel_name );
-        $poe->heap->{global_context}->add_channel($channel);
-    }
-
-    my $irc = $poe->heap->{irc};
-    unless ( $who eq $irc->nick_name ) {
-        $channel->add_message(
-            App::Mobirc::Model::Message->new(
-                who   => undef,
-                body  => $who . U(" joined"),
-                class => 'join',
-            )
-        );
-    }
-    $poe->heap->{seen_traffic}   = true;
-    $poe->heap->{disconnect_msg} = true;
-}
-
-sub on_irc_part {
-    my $poe = sweet_args;
-
-    my ( $who, $channel_name, $msg ) = _get_args($poe);
-
-    $who =~ s/!.*//;
-
-    # chop off after the gap (bug workaround of POE::Filter::IRC)
-    $channel_name =~ s/ .*//;
-    $channel_name = normalize_channel_name($channel_name);
-
-    my $irc = $poe->heap->{irc};
-    if ( $who eq $irc->nick_name ) {
-        $poe->heap->{global_context}->delete_channel($channel_name);
-    }
-    else {
-        my $message = "$who leaves";
-        if ($msg) {
-            $message .= "($msg)";
-        }
-
-        my $channel = $poe->heap->{global_context}->get_channel($channel_name);
-        $channel->add_message(
-            App::Mobirc::Model::Message->new(
-                who   => undef,
-                body  => $message,
-                class => 'leave',
-            )
-        );
-    }
-    $poe->heap->{seen_traffic}   = true;
-    $poe->heap->{disconnect_msg} = true;
-}
-
-sub on_irc_public {
-    my $poe = sweet_args;
-
-    DEBUG "IRC PUBLIC";
-
-    my ( $who, $channel_name, $msg ) = _get_args($poe);
-
-    $who =~ s/!.*//;
-
-    $channel_name = $channel_name->[0];
-    $channel_name = normalize_channel_name($channel_name);
-
-    my $channel = $poe->heap->{global_context}->get_channel($channel_name);
-    $channel->add_message(
-        App::Mobirc::Model::Message->new(
-            who   => $who,
-            body  => $msg,
-            class => 'public',
-        )
-    );
-    my $irc = $poe->heap->{irc};
-
-    if ( $who eq $irc->nick_name ) {
-        DEBUG "CLEAR UNREAD";
-        $channel->clear_unread;
-    }
-
-    $poe->heap->{seen_traffic}   = true;
-    $poe->heap->{disconnect_msg} = true;
-}
-
-sub on_irc_notice {
-    my $poe = sweet_args;
-
-    my ( $who, $channel_name, $msg ) = _get_args($poe);
-
-    DEBUG "IRC NOTICE $who $channel_name $msg";
-
-    if ( $poe->heap->{global_context}
-        ->run_hook_first( 'on_irc_notice', $poe, $who, $channel_name, $msg ) )
-    {
-        return;
-    }
-
-    $who =~ s/!.*//;
-    $channel_name = $channel_name->[0];
-    $channel_name = normalize_channel_name($channel_name);
-
-    my $channel = $poe->heap->{global_context}->get_channel($channel_name);
-    $channel->add_message(
-        App::Mobirc::Model::Message->new(
-            who   => $who,
-            body  => $msg,
-            class => 'notice',
-        )
-    );
-    $poe->heap->{seen_traffic}   = true;
-    $poe->heap->{disconnect_msg} = true;
-}
-
-sub on_irc_topic {
-    my $poe = sweet_args;
-
-    my ( $who, $channel_name, $topic ) = _get_args($poe);
-
-    $who =~ s/!.*//;
-
-    DEBUG "SET TOPIC";
-    $channel_name = normalize_channel_name($channel_name);
-
-    my $channel = $poe->heap->{global_context}->get_channel($channel_name);
-    $channel->topic($topic);
-    $channel->add_message(
-        App::Mobirc::Model::Message->new(
-            who   => undef,
-            body  => "$who set topic: $topic",
-            class => 'topic',
-        )
-    );
-
-    $poe->heap->{seen_traffic}   = true;
-    $poe->heap->{disconnect_msg} = true;
-}
-
-sub on_irc_topicraw {
-    my $poe = sweet_args;
-
-    my ( $x, $y, $dat ) = _get_args($poe);
-
-    my ( $channel, $topic ) = @{$dat};
-
-    DEBUG "SET TOPIC RAW: $channel => $topic";
-
-    $poe->heap->{global_context}
-      ->get_channel( normalize_channel_name($channel) )->topic($topic);
-    $poe->heap->{seen_traffic}   = true;
-    $poe->heap->{disconnect_msg} = true;
-}
-
-sub on_irc_ctcp_action {
-    my $poe = sweet_args;
-
-    my ( $who, $channel_name, $msg ) = _get_args($poe);
-
-    $who =~ s/!.*//;
-    $channel_name = $channel_name->[0];
-
-    my $channel = $poe->heap->{global_context}->get_channel($channel_name);
-    my $body = sprintf( decode( 'utf8', "* %s %s" ), $who, $msg );
-    $channel->add_message(
-        App::Mobirc::Model::Message->new(
-            who   => undef,
-            body  => $body,
-            class => 'ctcp_action',
-        )
-    );
-
-    $poe->heap->{seen_traffic}   = true;
-    $poe->heap->{disconnect_msg} = true;
-}
-
-sub on_irc_kick {
-    my $poe = sweet_args;
-
-    DEBUG "DNBKICK";
-
-    my ( $kicker, $channel_name, $kickee, $msg ) = _get_args($poe);
-    $msg ||= 'Flooder';
-
-    $kicker =~ s/!.*//;
-
-    $poe->heap->{global_context}->get_channel($channel_name)->add_message(
-        App::Mobirc::Model::Message->new(
-            who   => undef,
-            body  => "$kicker has kicked $kickee($msg)",
-            class => 'kick',
-        )
-    );
-
-    $poe->heap->{seen_traffic}   = true;
-    $poe->heap->{disconnect_msg} = true;
-}
-
-sub do_connect {
-    my $poe = sweet_args;
-
-    $poe->heap->{irc}->yield( connect => {} );
-}
-
-sub do_autoping {
-    my $poe = sweet_args;
-
-    $poe->kernel->post( mobirc_irc => time )
-      unless $poe->heap->{seen_traffic};
-    $poe->heap->{seen_traffic} = false;
-    $poe->kernel->delay( autoping => $poe->heap->{config}->{ping_delay} );
-}
-
-sub on_irc_snotice {
-    my $poe = sweet_args;
-
-    my ( $message, ) = _get_args($poe);
-
-    DEBUG "getting snotice : $message";
-
-    my $channel = $poe->heap->{global_context}->get_channel( U('*server*') );
-    $channel->add_message(
-        App::Mobirc::Model::Message->new(
-            who   => undef,
-            body  => $message,
-            class => 'snotice',
-        )
-    );
-}
-
-sub on_irc_reconnect {
-    my $poe = sweet_args;
-
-    DEBUG "!RECONNECT! " . $poe->heap->{disconnect_msg};
-    if ( $poe->heap->{disconnect_msg} ) {
-        my $channel =
-          $poe->heap->{global_context}
-          ->get_channel( decode( 'utf8', '*server*' ) );
-        $channel->add_message(
-            App::Mobirc::Model::Message->new(
-                who  => undef,
-                body => decode(
-                    'utf8',
-                    'Disconnected from irc server, trying to reconnect...'
-                ),
-                class => 'reconnect',
-            )
-        );
-    }
-    $poe->heap->{disconnect_msg} = false;
-    $poe->kernel->delay( connect => $poe->heap->{config}->{reconnect_delay} );
-}
-
-# FIXME: I want more cool implement
-sub _get_args {
-    my $poe = shift;
-
-    my @ret;
-    for my $elem ( @{ $poe->args } ) {
-        if ( ref $elem && ref $elem eq 'ARRAY' ) {
-            push @ret,
-              [ map { decode( $poe->heap->{config}->{incode}, $_ ) } @$elem ];
-        }
-        else {
-            push @ret, decode( $poe->heap->{config}->{incode}, $elem );
-        }
-    }
-    return @ret;
+sub _decode {
+    my ( $self, $src ) = @_;
+    return decode( $self->incode, $src );
 }
 
 1;

@@ -3,8 +3,7 @@ use Mouse;
 with 'App::Mobirc::Role::Plaggable';
 use 5.00800;
 use Scalar::Util qw/blessed/;
-use AnyEvent::Impl::POE;
-use POE;
+use AnyEvent;
 use App::Mobirc::Util;
 use UNIVERSAL::require;
 use Carp;
@@ -21,6 +20,12 @@ has server => (
     isa     => 'App::Mobirc::Model::Server',
     default => sub { App::Mobirc::Model::Server->new() },
     handles => [qw/add_channel delete_channel channels get_channel delete_channel/], # for backward compatibility
+);
+
+has irc_component => (
+    is      => 'rw',
+    isa     => 'App::Mobirc::Plugin::Component::IRCClient',
+    handles => [qw/current_nick/],
 );
 
 has config => (
@@ -70,7 +75,6 @@ sub run {
 
     $self->run_hook('run_component');
 
-    # POE::Sugar::Args => Devel::Caller::Perl => DB => DB::catch(do not catch here)
     $SIG{INT} = sub { die "SIGINT\n" };
 
     AE::cv->recv;

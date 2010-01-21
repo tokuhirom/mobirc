@@ -29,23 +29,7 @@ our @EXPORT = qw/register hook/;
     sub import {
         my $caller = caller();
 
-        strict->import;
-        warnings->import;
-
-        return if $caller eq 'main';
-
-        my $meta = Mouse::Meta::Class->initialize($caller);
-        $meta->superclasses('Mouse::Object')
-            unless $meta->superclasses;
-
-        no strict 'refs';
-        no warnings 'redefine';
-        *{$caller.'::meta'} = sub { $meta };
-
-        for my $keyword (@Mouse::EXPORT) {
-            *{ $caller . '::' . $keyword } = *{'Mouse::' . $keyword};
-        }
-
+        Mouse->import({into_level => 1});
         __PACKAGE__->export_to_level(1);
     }
 }
