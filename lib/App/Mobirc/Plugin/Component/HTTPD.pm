@@ -9,6 +9,7 @@ use App::Mobirc::Web::Handler;
 use Plack;
 use Plack::Loader;
 use Plack::Middleware::ReverseProxy;
+use Plack::Middleware::Conditional;
 
 use Data::OptList;
 
@@ -47,12 +48,22 @@ hook run_component => sub {
     my ( $self, $global_context ) = @_;
 
     my $app = \&App::Mobirc::Web::Handler::handler;
+
+    # support reverse proy
+    $app = Plack::Middleware::Conditional->wrap(
+        $app,
+        condition => sub { $_[0]->{REMOTE_ADDR} eq '127.0.0.1' },
+        builder => sub { Plack::Middleware::ReverseProxy->wrap( $_[0] ) }
+    );
+
+    # apply middleares by user's configuration
     my $middlewares = Data::OptList::mkopt($self->middlewares);
     while (my ($module, $conf) = splice @$middlewares, 0, 2) {
         $module = Plack::Util::load_class($module, 'Plack::Middleware');
         $app = $module->wrap($app, %$conf);
     }
 
+    # load and run Server
     Plack::Loader->load(
         'AnyEvent',
         port => $self->port,
