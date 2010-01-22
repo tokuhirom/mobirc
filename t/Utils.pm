@@ -82,7 +82,7 @@ sub server () {
     no warnings 'redefine';
     *App::Mobirc::Web::Template::Run::irc_nick = sub () { 'tokuhirom' };
     *App::Mobirc::Model::Message::irc_nick = sub () { 'tokuhirom' };
-    *App::Mobirc::Util::irc_nick = sub () { 'tokuhirom' };
+    *App::Mobirc::current_nick = sub { 'tokuhirom' };
 }
 
 sub keyword_channel () { server->get_channel(U "*keyword*") }
