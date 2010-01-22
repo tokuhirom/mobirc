@@ -5,7 +5,7 @@ use App::Mobirc::Plugin;
 use AnyEvent;
 use AnyEvent::IRC;
 use AnyEvent::IRC::Client;
-use AnyEvent::IRC::Util qw/encode_ctcp/;
+use AnyEvent::IRC::Util qw/encode_ctcp prefix_nick/;
 use Data::Recursive::Encode;
 
 use Encode;
@@ -171,8 +171,8 @@ hook 'run_component' => sub {
         },
         'join' => sub {
             my ( $irc, $who, $channel_name, $is_myself ) = @_;
+            $who = prefix_nick($who);
             DEBUG "JOIN($who, $channel_name, $is_myself)";
-            $who =~ s/!.*//;
 
             # chop off after the gap (bug workaround of madoka)
             $channel_name =~ s/ .*//;
@@ -192,7 +192,7 @@ hook 'run_component' => sub {
         'part' => sub {
             my ( $irc, $who, $channel_name, $is_myself, $msg ) = @_;
             DEBUG("PART($who, $channel_name, $is_myself, $msg)");
-            $who =~ s/!.*//;
+            $who = prefix_nick($who);
             # chop off after the gap (bug workaround of POE::Filter::IRC)
             $channel_name =~ s/ .*//;
 
@@ -220,7 +220,7 @@ hook 'run_component' => sub {
             my $kicker = 'anyone'; # AnyEvent::IRC::Client doesn't supports kicker!
             $msg ||= 'Flooder';
 
-            $kicker =~ s/!.*//;
+            $kicker = prefix_nick($kicker);
 
             $global_context->get_channel($channel_name)->add_message(
                 who   => undef,
@@ -233,12 +233,11 @@ hook 'run_component' => sub {
         'publicmsg' => sub {
             my ( $irc, $targ, $raw ) = @_;
             my $who          = $raw->{prefix} || '*';
+            $who = prefix_nick($who);
             my $channel_name = $raw->{params}->[0];
             my $msg          = $raw->{params}->[1];
             my $class        = $raw->{command};
             DEBUG "IRC_PRIVMSG($who, $channel_name, $msg)";
-
-            $who =~ s/!.*//;
 
             my $channel = $global_context->get_channel($channel_name);
             $channel->add_message(
@@ -259,7 +258,7 @@ hook 'run_component' => sub {
             $who ||= '*anonymous*'; # why $who is missing?
 
             DEBUG "CHANNEL_TOPIC($channel_name, $topic, $who)";
-            $who =~ s/!.*//;
+            $who = prefix_nick($who);
 
             my $channel = $global_context->get_channel($channel_name);
             $channel->topic($topic);
@@ -275,7 +274,7 @@ hook 'run_component' => sub {
             my ( $irc, $who, $channel_name, $msg ) = @_;
             DEBUG("CTCP_ACTION($who, $channel_name, $msg)");
 
-            $who =~ s/!.*//;
+            $who = prefix_nick($who);
 
             my $channel = $global_context->get_channel($channel_name);
             my $body = sprintf( '* %s %s', $who, $msg );
