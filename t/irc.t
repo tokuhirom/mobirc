@@ -1,5 +1,7 @@
 use strict;
 use warnings;
+use AnyEvent;
+use AnyEvent::Impl::Perl; # do not use Impl::POE.
 use Test::Requires 'POE::Component::Server::IRC', 'Test::TCP', 'POE';
 use App::Mobirc;
 use AE;
@@ -71,8 +73,7 @@ test_tcp(
                             $irc->send_msg("PRIVMSG", '#foo', "THIS IS にほんご");
                             $irc->send_msg("PRIVMSG", '#foo', encode_ctcp(['ACTION', "too"]));
                             $irc->send_msg("PRIVMSG", '#foo', "DNBK");
-                            # $c->run_hook_first('process_command' => '/me hey', $c->get_channel('#foo'));
-                            # $c->run_hook('process_command' => 'ah,ah', '#foo');
+                            $c->run_hook_first('process_command' => 'process_command:test', $c->get_channel('#foo'));
                             $irc->send_msg("JOIN", '#finished');
                             undef $t;
                         });
@@ -103,38 +104,73 @@ test_tcp(
 
         diag "finished";
         subtest '#foo' => sub {
-            my $i = 0;
             my @logs = $c->get_channel('#foo')->message_log();
-            is $logs[$i]->class, 'join';
-            is $logs[$i++]->body, 'tester joined';
-            is $logs[$i]->class, 'public';
-            is $logs[$i++]->body, 'THIS IS PRIVMSG';
-            is $logs[$i]->class, 'notice';
-            is $logs[$i++]->body, 'THIS IS NOTICE';
-            is $logs[$i]->class, 'public';
-            is $logs[$i++]->body, U('THIS IS にほんご');
-            is $logs[$i]->class, 'ctcp_action';
-            is $logs[$i++]->body, U('* tester too');
-            is $logs[$i]->class, 'public';
-            is $logs[$i++]->body, U('DNBK');
-            is $logs[$i]->class, 'kick';
-            is $logs[$i++]->body, U('anyone has kicked kan(kan)');
-            is $logs[$i]->class, 'topic';
-            is $logs[$i++]->body, U('SERVER set topic: *** is GOD');
-            is $logs[$i]->class, 'leave';
-            is $logs[$i++]->body, U('parter leaves(parter)');
-            is(join(',', map { $_->class } @logs), 'join,public,notice,public,ctcp_action,public,kick,topic,leave');
+            my @msgs = (
+                {
+                    class => 'join',
+                    body => 'tester joined',
+                },
+                {
+                    class => 'public',
+                    body => 'THIS IS PRIVMSG',
+                },
+                {
+                    class => 'notice',
+                    body => 'THIS IS NOTICE',
+                },
+                {
+                    class => 'public',
+                    body => U('THIS IS にほんご'),
+                },
+                {
+                    class => 'ctcp_action',
+                    body => U('* tester too'),
+                },
+                {
+                    class => 'public',
+                    body =>  U('DNBK'),
+                },
+                {
+                    class => 'kick',
+                    body => U('anyone has kicked kan(kan)'),
+                },
+                {
+                    class => 'topic',
+                    body => U('SERVER set topic: *** is GOD'),
+                },
+                {
+                    class => 'leave',
+                    body => U('parter leaves(parter)'),
+                },
+                {
+                    class => 'public',
+                    body => U('ECHO: process_command:test'),
+                },
+            );
+            LOOP: for my $m (@msgs) {
+                no warnings;
+                for my $l (@logs) {
+                    if ($m->{class} eq $l->class && $m->{body} eq $l->{body}) {
+                         ok 1, "$m->{class}";
+                         next LOOP;
+                    }
+                }
+                ok 0, "$m->{class},$m->{body}";
+            }
+          # for my $l (@logs) {
+          #     note "$l->{class}: $l->{body}";
+          # }
             done_testing;
         };
-        TODO: {
-            local $TODO = 'support private talk';
-            my @logs = $c->get_channel('tester')->message_log();
-            is join("", map { $_->body } @logs), 'PRIVATE TALK';
-        }
+ #      TODO: {
+ #          local $TODO = 'support private talk';
+ #          my @logs = $c->get_channel('tester')->message_log();
+ #          is join("", map { $_->body } @logs), 'PRIVATE TALK';
+ #      }
         subtest 'finalized' => sub {
             my @logs = $c->get_channel('#finished')->message_log();
             like join("\n", map { $_->body } @logs), qr/FINISHED!/;
-            is join(',', sort { $a cmp $b } map { $_->name } $c->server->channels), "#finished,#foo,*server*,john,tester", 'channels';
+            is join(',', sort { $a cmp $b } map { $_->name } $c->server->channels), "#finished,#foo,*server*,john", 'channels';
             done_testing;
         };
 
@@ -177,46 +213,44 @@ test_tcp(
 
                     # Start a listener on the 'standard' IRC port.
                     $heap->{ircd}->add_listener(
-                        port => $port,
+                        port      => $port,
                         antiflood => '0',
                     );
 
                     # Add an operator who can connect from localhost
                     $heap->{ircd}->add_operator(
                         { username => 'tester', password => 'fishdont' } );
-
                     undef;
                 },
                 _default => sub {
-                    my ( $event, $args ) = @_[ ARG0 .. $#_ ];
-                    print STDOUT "SERVER: $event: ";
-                    foreach (@$args) {
-                      SWITCH: {
-                            if ( ref($_) eq 'ARRAY' ) {
-                                print STDOUT "[", join( ", ", @$_ ), "] ";
-                                last SWITCH;
-                            }
-                            if ( ref($_) eq 'HASH' ) {
-                                print STDOUT "{", join( ", ", %$_ ), "} ";
-                                last SWITCH;
-                            }
-                            print STDOUT "'$_' ";
-                        }
-                    }
-                    print STDOUT "\n";
-                    return 0;    # Don't handle signals.
+#                   my ( $event, $args ) = @_[ ARG0 .. $#_ ];
+#                   print STDOUT "SERVER: $event: ";
+#                   foreach (@$args) {
+#                     SWITCH: {
+#                           if ( ref($_) eq 'ARRAY' ) {
+#                               print STDOUT "[", join( ", ", @$_ ), "] ";
+#                               last SWITCH;
+#                           }
+#                           if ( ref($_) eq 'HASH' ) {
+#                               print STDOUT "{", join( ", ", %$_ ), "} ";
+#                               last SWITCH;
+#                           }
+#                           print STDOUT "'$_' ";
+#                       }
+#                   }
+#                   print STDOUT "\n";
+#                   return 0;    # Don't handle signals.
                 },
-              # ircd_join => sub {
-              # },
-              # ircd_daemon_public => sub {
-              #     warn "PRIVMSG : " . $_[ARG0];
-              # },
                 ircd_daemon_public => sub {
                     my ($heap, $who, $chan, $msg) = @_[HEAP, ARG0..$#_];
+                    $who =~ s/!.+//;
                     if ($msg eq 'DNBK') {
                         $heap->{ircd}->yield(daemon_cmd_kick => 'SERVER', '#foo', 'kan');
                         $heap->{ircd}->yield(daemon_cmd_topic => 'SERVER', '#foo', '*** is GOD');
                         $heap->{ircd}->yield(daemon_cmd_part => 'parter', '#foo');
+                    }
+                    if ($who eq 'john') {
+                        $heap->{ircd}->yield(daemon_cmd_privmsg => 'SERVER', '#foo', "ECHO: $msg");
                     }
                 },
             },

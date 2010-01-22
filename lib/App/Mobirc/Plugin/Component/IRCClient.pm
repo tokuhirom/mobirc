@@ -5,6 +5,7 @@ use App::Mobirc::Plugin;
 use AnyEvent;
 use AnyEvent::IRC;
 use AnyEvent::IRC::Client;
+use AnyEvent::IRC::Util qw/encode_ctcp/;
 use Data::Recursive::Encode;
 
 use Encode;
@@ -86,14 +87,14 @@ hook process_command => sub {
             DEBUG "CTCP ACTION";
             my $body = $1;
 
-            $self->conn->send_srv(
+            $self->conn->send_msg(
                 PRIVMSG => $channel->name() => encode_ctcp(['ACTION', $body])
             );
 
             $channel->add_message(
                 App::Mobirc::Model::Message->new(
                     who   => $self->current_nick(),
-                    body  => $body,
+                    body  => "* " . $self->current_nick() . ' ' . $body,
                     class => 'ctcp_action',
                 )
             );
