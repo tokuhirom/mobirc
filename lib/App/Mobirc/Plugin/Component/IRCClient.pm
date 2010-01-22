@@ -252,8 +252,6 @@ hook 'run_component' => sub {
 
             $who =~ s/!.*//;
 
-            $channel_name = normalize_channel_name($channel_name); # TODO: move to get_channel.
-
             my $channel = $global_context->get_channel($channel_name);
             $channel->add_message(
                 App::Mobirc::Model::Message->new(
@@ -272,8 +270,9 @@ hook 'run_component' => sub {
         },
         channel_topic => sub {
             my ( $irc, $channel_name, $topic, $who ) = @_;
-            DEBUG "CHANNEL_TOPIC($channel_name, $topic, $who)";
+            $who ||= '*anonymous*'; # why $who is missing?
 
+            DEBUG "CHANNEL_TOPIC($channel_name, $topic, $who)";
             $who =~ s/!.*//;
 
             my $channel = $global_context->get_channel($channel_name);
@@ -288,7 +287,6 @@ hook 'run_component' => sub {
 
             $disconnect_msg = true;
         },
-        # TODO: CTCP ACTION SUPPORT
         ctcp_action => sub {
             my ( $irc, $who, $channel_name, $msg ) = @_;
             DEBUG("CTCP_ACTION($who, $channel_name, $msg)");
