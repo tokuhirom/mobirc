@@ -6,11 +6,11 @@ use App::Mobirc;
 use App::Mobirc::Util;
 use App::Mobirc::Web::Handler;
 
-use HTTP::Engine;
-use HTTP::Engine::Middleware;
-
 use Plack;
 use Plack::Loader;
+use Plack::Middleware::ReverseProxy;
+
+use Data::OptList;
 
 use Mouse::Util::TypeConstraints;
 use JSON ();
@@ -46,19 +46,12 @@ has middlewares => (
 hook run_component => sub {
     my ( $self, $global_context ) = @_;
 
-    my $request_handler = \&App::Mobirc::Web::Handler::handler;
-
-    my $mw = HTTP::Engine::Middleware->new();
-    $mw->install(@{ $self->middlewares });
-    $request_handler = $mw->handler( $request_handler );
-
-    my $he = HTTP::Engine->new(
-        interface => {
-            module          => 'PSGI',
-            request_handler => $request_handler,
-        }
-    );
-    my $app = sub { $he->run(shift) };
+    my $app = \&App::Mobirc::Web::Handler::handler;
+    my $middlewares = Data::OptList::mkopt($self->middlewares);
+    while (my ($module, $conf) = splice @$middlewares, 0, 2) {
+        $module = Plack::Util::load_class($module, 'Plack::Middleware');
+        $app = $module->wrap($app, %$conf);
+    }
 
     Plack::Loader->load(
         'AnyEvent',

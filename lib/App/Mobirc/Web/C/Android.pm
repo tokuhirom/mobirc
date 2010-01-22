@@ -113,10 +113,10 @@ sub dispatch_channels {
         server->channels
     ];
 
-    HTTP::Engine::Response->new(
-        status       => 200,
-        content_type => 'application/json',
-        body         => $body,
+    Plack::Response->new(
+        200,
+        ['Content-Type' => 'application/json'],
+        $body,
     );
 }
 

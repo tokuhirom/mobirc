@@ -20,10 +20,10 @@ sub dispatch_deliver {
     my $file = file(config->{global}->{assets_dir}, 'static', $path);
     my ($ext)  = $file->basename =~ m{\.([^.]+)$};
 
-    HTTP::Engine::Response->new(
-        status       => 200,
-        content_type => $mime->{$ext} || "application/octet-stream",
-        body         => $file->openr(),
+    Plack::Response->new(
+        200,
+        ['Content-Type' => $mime->{$ext} || "application/octet-stream"],
+        $file->openr(),
     );
 }
 

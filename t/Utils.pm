@@ -2,7 +2,6 @@ package t::Utils;
 use strict;
 use warnings;
 use lib 'extlib';
-use HTTP::Engine;
 use HTTP::Request;
 use App::Mobirc;
 use App::Mobirc::Web::Handler;
@@ -12,6 +11,9 @@ use HTTP::Session::Store::OnMemory;
 use HTTP::Session::State::Null;
 use App::Mobirc::Util;
 use Cwd;
+use HTTP::Message::PSGI;
+use Plack::Request;
+use Plack::Response;
 
 sub import {
     my $pkg = caller(0);
@@ -42,24 +44,23 @@ sub create_global_context {
 
 sub test_he {
     my ($req, $cb) = @_;
+    $req or die "missing request";
+    if ($req->isa('HTTP::Request')) {
+        $req = Plack::Request->new(req_to_psgi($req));
+    }
 
-    HTTP::Engine->new(
-        interface => {
-            module          => 'Test',
-            request_handler => sub {
-                my $req = shift;
-                local $App::Mobirc::Web::Handler::CONTEXT = App::Mobirc::Web::Context->new(
-                    req     => $req,
-                    session => HTTP::Session->new(
-                        store   => HTTP::Session::Store::OnMemory->new(),
-                        state   => HTTP::Session::State::Null->new(),
-                        request => $req,
-                    ),
-                  );
-                $cb->($req),
-            }
-        }
-    )->run( $req );
+    my $app = sub {
+        local $App::Mobirc::Web::Handler::CONTEXT = App::Mobirc::Web::Context->new(
+            req     => $req,
+            session => HTTP::Session->new(
+                store   => HTTP::Session::Store::OnMemory->new(),
+                state   => HTTP::Session::State::Null->new(),
+                request => $req,
+            ),
+        );
+        $cb->($req),
+    };
+    return $app->();
 }
 
 sub test_he_filter(&) {
@@ -70,7 +71,7 @@ sub test_he_filter(&) {
     test_he( HTTP::Request->new('GET', '/', ['User-Agent' => 'MYPC']), sub {
         my $req = shift;
         $cb->($req);
-        return HTTP::Engine::Response->new( status => 200 );
+        return Plack::Response->new( 200 );
     });
 }
 
