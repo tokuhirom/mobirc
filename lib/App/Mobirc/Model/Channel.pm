@@ -35,7 +35,8 @@ has name => (
 );
 
 sub add_message {
-    my ($self, $message) = @_;
+    my $self = shift;
+    my $message = @_ == 1 ? $_[0] : App::Mobirc::Model::Message->new(@_);
 
     unless ($self->name eq '*keyword*') {
         $message->channel($self);
