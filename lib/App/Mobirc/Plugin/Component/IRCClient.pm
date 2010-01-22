@@ -217,7 +217,7 @@ hook 'run_component' => sub {
         'kick' => sub {
             my ( $irc, $kickee, $channel_name, $is_myself, $msg ) = @_;
             DEBUG "KICK($kickee, $channel_name, $is_myself, $msg)";
-            my $kicker = 'anyone'; # AnyEvent::IRC::Client doesn't supports kicker!
+            my $kicker = 'anyone'; # TODO: AnyEvent::IRC::Client doesn't supports kicker!
             $msg ||= 'Flooder';
 
             $kicker = prefix_nick($kicker);
