@@ -10,7 +10,7 @@ has session => (
 
 has req => (
     is       => 'rw',
-    isa      => 'HTTP::Engine::Request',
+    isa      => 'Plack::Request',
     required => 1,
 );
 

@@ -32,10 +32,10 @@ sub dispatch_channel {
     }
     $channel->clear_unread();
 
-    HTTP::Engine::Response->new(
-        status       => 200,
-        content_type => 'text/json',    # FIXME invalid
-        body         => $body,
+    Plack::Response->new(
+        200,
+        ['Content-Type' => 'text/json'],    # FIXME invalid
+        $body,
     );
 }
 
@@ -45,10 +45,10 @@ sub post_dispatch_channel {
 
     server->get_channel($channel)->post_command($message);
 
-    HTTP::Engine::Response->new(
-        status       => 200,
-        content_type => 'text/plain',
-        body         => 'ok',
+    Plack::Response->new(
+        200,
+        ['Content-Type' => 'text/plain'],
+        'ok',
     );
 }
 

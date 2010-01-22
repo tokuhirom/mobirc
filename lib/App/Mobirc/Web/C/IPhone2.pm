@@ -37,10 +37,10 @@ sub post_dispatch_channel {
 
     server->get_channel($channel)->post_command($message);
 
-    HTTP::Engine::Response->new(
-        status       => 200,
-        content_type => 'text/plain',
-        body         => 'ok',
+    Plack::Response->new(
+        200,
+        ['Content-Type' => 'text/plain'],
+        'ok',
     );
 }
 
@@ -59,10 +59,10 @@ sub dispatch_clear_all_unread {
         $channel->clear_unread;
     }
 
-    HTTP::Engine::Response->new(
-        status       => 200,
-        content_type => 'text/plain',
-        body         => 'ok',
+    Plack::Response->new(
+        200,
+        ['Content-Type' => 'text/plain'],
+        'ok',
     );
 }
 

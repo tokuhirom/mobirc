@@ -8,6 +8,8 @@ use HTTP::Session::State::GUID;
 use HTTP::Session::State::MobileAttributeID;
 use Module::Find;
 use URI::Escape;
+use Plack::Response;
+use Plack::Request;
 
 use App::Mobirc;
 use App::Mobirc::Util;
@@ -27,7 +29,7 @@ our $CONTEXT;
 sub web_context () { $CONTEXT } ## no critic
 
 sub handler {
-    my $req = shift;
+    my $req = Plack::Request->new(shift);
 
     my $session = _create_session($req);
 
@@ -38,7 +40,10 @@ sub handler {
     $session->finalize();
     
     DEBUG sprintf("%03d: %s", $res->status, $req->uri->path);
-    $res;
+    if (blessed($res)) {
+        $res = $res->finalize();
+    }
+    return $res;
 }
 
 sub _handler {
@@ -115,11 +120,11 @@ sub process_request_noauth {
         if ($rule->{controller} eq 'Account') {
             return do_dispatch($rule, $req, $session);
         } else {
-            return HTTP::Engine::Response->new(
-                status => 302,
-                headers => {
+            return Plack::Response->new(
+                302,
+                [
                     Location => '/account/login?return=' . uri_escape($req->request_uri)
-                }
+                ]
             );
         }
     } else {
@@ -149,9 +154,10 @@ sub res_404 {
 
     my $uri = $req->uri->path;
     warn "dan the 404 not found: $uri" if $uri ne '/favicon.ico';
-    return HTTP::Engine::Response->new(
-        status => 404,
-        body   => "404 not found: $uri",
+    return Plack::Response->new(
+        404,
+        ['Content-Type' => 'text/plain'],
+        "404 not found: $uri",
     );
 }
 

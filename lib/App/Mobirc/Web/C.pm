@@ -41,10 +41,10 @@ sub render {
         $out = encode_utf8($out);
     }->();
 
-    HTTP::Engine::Response->new(
-        status       => 200,
-        content_type => _content_type($req),
-        body         => $html,
+    Plack::Response->new(
+        200,
+        ['Content-Type' => _content_type($req)],
+        $html,
     );
 }
 
@@ -64,11 +64,11 @@ sub _content_type {
 # because au phone returns '400 Bad Request' when redrirect to http://example.com:portnumber/
 sub redirect {
     my $path = shift;
-    HTTP::Engine::Response->new(
-        status => 302,
-        headers => {
+    Plack::Response->new(
+        302,
+        [
             Location => $path
-        },
+        ],
     );
 }
 
