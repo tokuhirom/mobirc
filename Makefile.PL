@@ -9,17 +9,15 @@ requires 'AnyEvent' => 5.24;
 requires 'AnyEvent::IRC' => 0.95;
 
 # Plack
-requires 'Plack' => 0.9031;
-requires 'Plack::Server::AnyEvent' => 0.03;
+requires 'Plack'                           => 0.9031;
+requires 'Plack::Server::AnyEvent'         => 0.03;
+requires 'Plack::Request'                  => 0.09;
+requires 'Plack::Middleware::ReverseProxy' => 0.04;
 
 # Mouse.
 requires 'Mouse'         => 0.47;
 requires 'MouseX::Types' => 0.04;
 requires 'Any::Moose'    => 0.11;
-
-# http-engine
-requires 'HTTP::Engine' => '0.03002';
-requires 'HTTP::Engine::Middleware' => '0.10';
 
 # session
 requires 'HTTP::Session' => '0.29';
