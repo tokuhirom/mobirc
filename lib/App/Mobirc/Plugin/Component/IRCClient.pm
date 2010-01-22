@@ -92,11 +92,9 @@ hook process_command => sub {
             );
 
             $channel->add_message(
-                App::Mobirc::Model::Message->new(
-                    who   => $self->current_nick(),
-                    body  => "* " . $self->current_nick() . ' ' . $body,
-                    class => 'ctcp_action',
-                )
+                who   => $self->current_nick(),
+                body  => "* " . $self->current_nick() . ' ' . $body,
+                class => 'ctcp_action',
             );
         }
         elsif ( $command =~ m{^/} ) {
@@ -121,11 +119,9 @@ hook process_command => sub {
             DEBUG "Sending command $command";
 
             $channel->add_message(
-                App::Mobirc::Model::Message->new(
-                    who   => $self->current_nick(),
-                    body  => $command,
-                    class => 'public',
-                )
+                who   => $self->current_nick(),
+                body  => $command,
+                class => 'public',
             );
         }
         return true;
@@ -157,11 +153,9 @@ hook 'run_component' => sub {
 
             my $channel = $global_context->get_channel('*server*');
             $channel->add_message(
-                App::Mobirc::Model::Message->new(
-                    who   => undef,
-                    body  => 'Connected to irc server!',
-                    class => 'connect',
-                )
+                who   => undef,
+                body  => 'Connected to irc server!',
+                class => 'connect',
             );
 
             $disconnect_msg = true;
@@ -188,11 +182,9 @@ hook 'run_component' => sub {
 
             unless ($is_myself) {
                 $channel->add_message(
-                    App::Mobirc::Model::Message->new(
-                        who   => undef,
-                        body  => $who . " joined",
-                        class => 'join',
-                    )
+                    who   => undef,
+                    body  => $who . " joined",
+                    class => 'join',
                 );
             }
             $disconnect_msg = true;
@@ -215,11 +207,9 @@ hook 'run_component' => sub {
 
                 my $channel = $global_context->get_channel($channel_name);
                 $channel->add_message(
-                    App::Mobirc::Model::Message->new(
-                        who   => undef,
-                        body  => $message,
-                        class => 'leave',
-                    )
+                    who   => undef,
+                    body  => $message,
+                    class => 'leave',
                 );
             }
             $disconnect_msg = true;
@@ -233,11 +223,9 @@ hook 'run_component' => sub {
             $kicker =~ s/!.*//;
 
             $global_context->get_channel($channel_name)->add_message(
-                App::Mobirc::Model::Message->new(
-                    who   => undef,
-                    body  => "$kicker has kicked $kickee($msg)",
-                    class => 'kick',
-                )
+                who   => undef,
+                body  => "$kicker has kicked $kickee($msg)",
+                class => 'kick',
             );
 
             $disconnect_msg = true;
@@ -254,11 +242,9 @@ hook 'run_component' => sub {
 
             my $channel = $global_context->get_channel($channel_name);
             $channel->add_message(
-                App::Mobirc::Model::Message->new(
-                    who   => $who,
-                    body  => $msg,
-                    class => lc($class) eq 'privmsg' ? 'public' : 'notice',
-                )
+                who   => $who,
+                body  => $msg,
+                class => lc($class) eq 'privmsg' ? 'public' : 'notice',
             );
 
             if ( $who eq $irc->nick ) {
@@ -278,11 +264,9 @@ hook 'run_component' => sub {
             my $channel = $global_context->get_channel($channel_name);
             $channel->topic($topic);
             $channel->add_message(
-                App::Mobirc::Model::Message->new(
-                    who   => undef,
-                    body  => "$who set topic: $topic",
-                    class => 'topic',
-                )
+                who   => undef,
+                body  => "$who set topic: $topic",
+                class => 'topic',
             );
 
             $disconnect_msg = true;
@@ -296,11 +280,9 @@ hook 'run_component' => sub {
             my $channel = $global_context->get_channel($channel_name);
             my $body = sprintf( '* %s %s', $who, $msg );
             $channel->add_message(
-                App::Mobirc::Model::Message->new(
-                    who   => undef,
-                    body  => $body,
-                    class => 'ctcp_action',
-                )
+                who   => undef,
+                body  => $body,
+                class => 'ctcp_action',
             );
 
             $disconnect_msg = true;
