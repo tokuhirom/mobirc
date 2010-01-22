@@ -3,7 +3,6 @@ use utf8;
 use App::Mobirc;
 use Encode;
 use Test::Base;
-use t::Utils;
 
 my $global_context = global_context();
 $global_context->load_plugin( {module => 'DocRoot', config => {root => '/foo/'}} );
@@ -28,6 +27,8 @@ sub strip_spaces {
     s/\n\s*//g;
     s/\n//g;
 }
+
+run_is input => 'expected';
 
 __END__
 
