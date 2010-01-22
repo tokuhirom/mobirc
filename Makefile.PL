@@ -4,15 +4,18 @@ all_from 'lib/App/Mobirc.pm';
 
 license  'gpl';
 
-requires 'AnyEvent';
+# AnyEvent
+requires 'AnyEvent' => 5.24;
+requires 'AnyEvent::IRC' => 0.95;
 
 # Plack
-requires 'Plack';
+requires 'Plack' => 0.9031;
 requires 'Plack::Server::AnyEvent' => 0.03;
 
 # Mouse.
-requires 'Mouse' => 0.17;
-requires 'MouseX::Types' => 0.01;
+requires 'Mouse'         => 0.47;
+requires 'MouseX::Types' => 0.04;
+requires 'Any::Moose'    => 0.11;
 
 # http-engine
 requires 'HTTP::Engine' => '0.03002';
