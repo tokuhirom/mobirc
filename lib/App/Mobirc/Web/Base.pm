@@ -3,10 +3,10 @@ use strict;
 use warnings;
 use base qw/Exporter/;
 use Encode qw/decode_utf8/;
+use App::Mobirc::Util qw/global_context/;
 
 our @EXPORT = qw/global_context config server web_context session req mobile_attribute param is_iphone/;
 
-sub global_context ()   { App::Mobirc->context }
 sub config ()           { global_context->config }
 sub server ()           { global_context->server }
 
