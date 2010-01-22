@@ -22,7 +22,8 @@ my %optional_args = (
 );
 my %skip_packages = map { $_ => 1 } (
     'Module::Build',  # only for building
-    'LWP::UserAgent', # maybe you have this.
+    'LWP',            # maybe you have this.
+    'LWP::UserAgent', # ditto
     'HTML::Parser',   # ditto
     'HTML::Tagset',   # ditto
     'HTTP::Headers',  # ditto
