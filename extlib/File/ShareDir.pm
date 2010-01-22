@@ -8,7 +8,7 @@ File::ShareDir - Locate per-dist and per-module shared files
 
 =head1 SYNOPSIS
 
-  use File::SharedDir ':ALL';
+  use File::ShareDir ':ALL';
   
   # Where are distribution-level shared data files kept
   $dir = dist_dir('File-ShareDir');
@@ -116,7 +116,7 @@ use Class::Inspector ();
 
 use vars qw{$VERSION @ISA @EXPORT_OK %EXPORT_TAGS};
 BEGIN {
-	$VERSION     = '1.00';
+	$VERSION     = '1.01';
 	@ISA         = qw{ Exporter };
 	@EXPORT_OK   = qw{
 		dist_dir dist_file
@@ -199,7 +199,7 @@ sub _dist_dir_old {
 		'auto', split( /-/, $dist ),
 	);
 
-	# Find the full dir withing @INC
+	# Find the full dir within @INC
 	foreach my $inc ( @INC ) {
 		next unless defined $inc and ! ref $inc;
 		my $dir = File::Spec->catdir( $inc, $path );
@@ -546,11 +546,12 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
-L<File::HomeDir>, L<Module::Install>, L<Module::Install::Share>
+L<File::HomeDir>, L<Module::Install>, L<Module::Install::Share>,
+L<File::ShareDir::PAR>
 
 =head1 COPYRIGHT
 
-Copyright 2005 - 2008 Adam Kennedy.
+Copyright 2005 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

@@ -30,7 +30,7 @@ Class::Inspector - Get information about a class and its structure
 =head1 DESCRIPTION
 
 Class::Inspector allows you to get information about a loaded class. Most or
-all of this information can be found in other ways, but they arn't always
+all of this information can be found in other ways, but they aren't always
 very friendly, and usually involve a relatively high level of Perl wizardry,
 or strange and unusual looking code. Class::Inspector attempts to provide 
 an easier, more friendly interface to this information.
@@ -39,20 +39,22 @@ an easier, more friendly interface to this information.
 
 =cut
 
-use 5.005;
+use 5.006;
 # We don't want to use strict refs anywhere in this module, since we do a
-# lot of things in here that arn't strict refs friendly.
+# lot of things in here that aren't strict refs friendly.
 use strict qw{vars subs};
+use warnings;
 use File::Spec ();
 
 # Globals
 use vars qw{$VERSION $RE_IDENTIFIER $RE_CLASS $UNIX};
 BEGIN {
-	$VERSION = '1.23';
+	$VERSION = '1.24';
 
 	# If Unicode is available, enable it so that the
 	# pattern matches below match unicode method names.
 	# We can safely ignore any failure here.
+	local $@;
 	eval "require utf8; utf8->import";
 
 	# Predefine some regexs
@@ -486,6 +488,7 @@ sub subclasses {
 			# over that (bizarre) class. That would at limit
 			# problems with finding subclasses to only the
 			# modules that have broken ->isa implementation.
+			local $@;
 			eval {
 				if ( $c->isa($name) ) {
 					# Add to the found list, but don't add the class itself
@@ -603,10 +606,6 @@ sub _inc_to_local {
 
 =pod
 
-=head1 TO DO
-
-- Adding Class::Inspector::Functions
-
 =head1 SUPPORT
 
 Bugs should be reported via the CPAN bug tracker
@@ -625,7 +624,7 @@ L<http://ali.as/>, L<Class::Handle>
 
 =head1 COPYRIGHT
 
-Copyright 2002 - 2008 Adam Kennedy.
+Copyright 2002 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

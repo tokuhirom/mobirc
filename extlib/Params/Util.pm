@@ -64,30 +64,30 @@ require DynaLoader;
 
 use vars qw{$VERSION @ISA @EXPORT_OK %EXPORT_TAGS};
 
-	$VERSION   = '0.35';
-@ISA       = ('Exporter', 'DynaLoader');
-
-	@EXPORT_OK = qw{
-		_STRING     _IDENTIFIER
-		_CLASS      _CLASSISA   _SUBCLASS  _DRIVER
-		_NUMBER     _POSINT     _NONNEGINT
-		_SCALAR     _SCALAR0
-		_ARRAY      _ARRAY0     _ARRAYLIKE
-		_HASH       _HASH0      _HASHLIKE
-    _CODE       _CODELIKE
-		_INVOCANT
-    _REGEX
-		_INSTANCE   _SET        _SET0
-		_HANDLE
-		};
-
-	%EXPORT_TAGS = (ALL => \@EXPORT_OK);
+$VERSION   = '1.00';
+@ISA       = qw{
+	Exporter
+	DynaLoader
+};
+@EXPORT_OK = qw{
+	_STRING     _IDENTIFIER
+	_CLASS      _CLASSISA   _SUBCLASS  _DRIVER
+	_NUMBER     _POSINT     _NONNEGINT
+	_SCALAR     _SCALAR0
+	_ARRAY      _ARRAY0     _ARRAYLIKE
+	_HASH       _HASH0      _HASHLIKE
+	_CODE       _CODELIKE
+	_INVOCANT   _REGEX      _INSTANCE
+	_SET        _SET0
+	_HANDLE
+};
+%EXPORT_TAGS = ( ALL => \@EXPORT_OK );
 
 eval {
-    local $ENV{PERL_DL_NONLAZY} = 0 if $ENV{PERL_DL_NONLAZY};
-    bootstrap Params::Util $VERSION;
-    1;
-} if not $ENV{PARAMS_UTIL_PP};
+	local $ENV{PERL_DL_NONLAZY} = 0 if $ENV{PERL_DL_NONLAZY};
+	bootstrap Params::Util $VERSION;
+	1;
+} unless $ENV{PERL_PARAMS_UTIL_PP};
 
 
 
@@ -121,11 +121,11 @@ C<undef> if not.
 
 =cut
 
-eval <<'EOP' if not defined &_STRING;
+eval <<'END_PERL' unless defined &_STRING;
 sub _STRING ($) {
 	(defined $_[0] and ! ref $_[0] and length($_[0])) ? $_[0] : undef;
 }
-EOP
+END_PERL
 
 =pod
 
@@ -140,11 +140,11 @@ C<undef> if not.
 
 =cut
 
-eval <<'EOP' if not defined &_IDENTIFIER;
+eval <<'END_PERL' unless defined &_IDENTIFIER;
 sub _IDENTIFIER ($) {
-	(defined $_[0] and ! ref $_[0] and $_[0] =~ m/^[^\W\d]\w*$/s) ? $_[0] : undef;
+	(defined $_[0] and ! ref $_[0] and $_[0] =~ m/^[^\W\d]\w*\z/s) ? $_[0] : undef;
 }
-EOP
+END_PERL
 
 =pod
 
@@ -163,11 +163,11 @@ C<undef> if not.
 
 =cut
 
-eval <<'EOP' if not defined &_CLASS;
+eval <<'END_PERL' unless defined &_CLASS;
 sub _CLASS ($) {
-	(defined $_[0] and ! ref $_[0] and $_[0] =~ m/^[^\W\d]\w*(?:::\w+)*$/s) ? $_[0] : undef;
+	(defined $_[0] and ! ref $_[0] and $_[0] =~ m/^[^\W\d]\w*(?:::\w+)*\z/s) ? $_[0] : undef;
 }
-EOP
+END_PERL
 
 =pod
 
@@ -189,11 +189,11 @@ C<undef> if not.
 
 =cut
 
-eval <<'EOP' if not defined &_CLASSISA;
+eval <<'END_PERL' unless defined &_CLASSISA;
 sub _CLASSISA ($$) {
-	(defined $_[0] and ! ref $_[0] and $_[0] =~ m/^[^\W\d]\w*(?:::\w+)*$/s and $_[0]->isa($_[1])) ? $_[0] : undef;
+	(defined $_[0] and ! ref $_[0] and $_[0] =~ m/^[^\W\d]\w*(?:::\w+)*\z/s and $_[0]->isa($_[1])) ? $_[0] : undef;
 }
-EOP
+END_PERL
 
 =pod
 
@@ -215,11 +215,11 @@ C<undef> if not.
 
 =cut
 
-eval <<'EOP' if not defined &_SUBCLASS;
+eval <<'END_PERL' unless defined &_SUBCLASS;
 sub _SUBCLASS ($$) {
-	(defined $_[0] and ! ref $_[0] and $_[0] =~ m/^[^\W\d]\w*(?:::\w+)*$/s and $_[0] ne $_[1] and $_[0]->isa($_[1])) ? $_[0] : undef;
+	(defined $_[0] and ! ref $_[0] and $_[0] =~ m/^[^\W\d]\w*(?:::\w+)*\z/s and $_[0] ne $_[1] and $_[0]->isa($_[1])) ? $_[0] : undef;
 }
-EOP
+END_PERL
 
 =pod
 
@@ -237,13 +237,13 @@ number.
 
 =cut
 
-eval <<'EOP' if not defined &_NUMBER;
+eval <<'END_PERL' unless defined &_NUMBER;
 sub _NUMBER ($) {
 	( defined $_[0] and ! ref $_[0] and Scalar::Util::looks_like_number($_[0]) )
 	? $_[0]
 	: undef;
 }
-EOP
+END_PERL
 
 =pod
 
@@ -261,11 +261,11 @@ name.
 
 =cut
 
-eval <<'EOP' if not defined &_POSINT;
+eval <<'END_PERL' unless defined &_POSINT;
 sub _POSINT ($) {
 	(defined $_[0] and ! ref $_[0] and $_[0] =~ m/^[1-9]\d*$/) ? $_[0] : undef;
 }
-EOP
+END_PERL
 
 =pod
 
@@ -291,11 +291,11 @@ name.
 
 =cut
 
-eval <<'EOP' if not defined &_NONNEGINT;
+eval <<'END_PERL' unless defined &_NONNEGINT;
 sub _NONNEGINT ($) {
 	(defined $_[0] and ! ref $_[0] and $_[0] =~ m/^(?:0|[1-9]\d*)$/) ? $_[0] : undef;
 }
-EOP
+END_PERL
 
 =pod
 
@@ -313,11 +313,11 @@ if the value provided is not a C<SCALAR> reference.
 
 =cut
 
-eval <<'EOP' if not defined &_SCALAR;
+eval <<'END_PERL' unless defined &_SCALAR;
 sub _SCALAR ($) {
 	(ref $_[0] eq 'SCALAR' and defined ${$_[0]} and ${$_[0]} ne '') ? $_[0] : undef;
 }
-EOP
+END_PERL
 
 =pod
 
@@ -335,11 +335,11 @@ if the value provided is not a C<SCALAR> reference.
 
 =cut
 
-eval <<'EOP' if not defined &_SCALAR0;
+eval <<'END_PERL' unless defined &_SCALAR0;
 sub _SCALAR0 ($) {
 	ref $_[0] eq 'SCALAR' ? $_[0] : undef;
 }
-EOP
+END_PERL
 
 =pod
 
@@ -357,11 +357,11 @@ if the value provided is not an C<ARRAY> reference.
 
 =cut
 
-eval <<'EOP' if not defined &_ARRAY;
+eval <<'END_PERL' unless defined &_ARRAY;
 sub _ARRAY ($) {
 	(ref $_[0] eq 'ARRAY' and @{$_[0]}) ? $_[0] : undef;
 }
-EOP
+END_PERL
 
 =pod
 
@@ -380,11 +380,11 @@ if the value provided is not an C<ARRAY> reference.
 
 =cut
 
-eval <<'EOP' if not defined &_ARRAY0;
+eval <<'END_PERL' unless defined &_ARRAY0;
 sub _ARRAY0 ($) {
 	ref $_[0] eq 'ARRAY' ? $_[0] : undef;
 }
-EOP
+END_PERL
 
 =pod
 
@@ -396,7 +396,7 @@ C<_ARRAYLIKE> returns C<undef>.
 
 =cut
 
-eval <<'EOP' if not defined &_ARRAYLIKE;
+eval <<'END_PERL' unless defined &_ARRAYLIKE;
 sub _ARRAYLIKE {
 	(defined $_[0] and ref $_[0] and (
 		(Scalar::Util::reftype($_[0]) eq 'ARRAY')
@@ -404,7 +404,7 @@ sub _ARRAYLIKE {
 		overload::Method($_[0], '@{}')
 	)) ? $_[0] : undef;
 }
-EOP
+END_PERL
 
 =pod
 
@@ -422,11 +422,11 @@ if the value provided is not an C<HASH> reference.
 
 =cut
 
-eval <<'EOP' if not defined &_HASH;
+eval <<'END_PERL' unless defined &_HASH;
 sub _HASH ($) {
 	(ref $_[0] eq 'HASH' and scalar %{$_[0]}) ? $_[0] : undef;
 }
-EOP
+END_PERL
 
 =pod
 
@@ -444,11 +444,11 @@ if the value provided is not an C<HASH> reference.
 
 =cut
 
-eval <<'EOP' if not defined &_HASH0;
+eval <<'END_PERL' unless defined &_HASH0;
 sub _HASH0 ($) {
 	ref $_[0] eq 'HASH' ? $_[0] : undef;
 }
-EOP
+END_PERL
 
 =pod
 
@@ -460,7 +460,7 @@ C<_HASHLIKE> returns C<undef>.
 
 =cut
 
-eval <<'EOP' if not defined &_HASHLIKE;
+eval <<'END_PERL' unless defined &_HASHLIKE;
 sub _HASHLIKE {
 	(defined $_[0] and ref $_[0] and (
 		(Scalar::Util::reftype($_[0]) eq 'HASH')
@@ -468,7 +468,7 @@ sub _HASHLIKE {
 		overload::Method($_[0], '%{}')
 	)) ? $_[0] : undef;
 }
-EOP
+END_PERL
 
 =pod
 
@@ -483,11 +483,11 @@ if the value provided is not an C<CODE> reference.
 
 =cut
 
-eval <<'EOP' if not defined &_CODE;
+eval <<'END_PERL' unless defined &_CODE;
 sub _CODE ($) {
 	ref $_[0] eq 'CODE' ? $_[0] : undef;
 }
-EOP
+END_PERL
 
 =pod
 
@@ -504,7 +504,7 @@ almost always end up also testing it in 'bool' context at some stage.
 For example:
 
   sub foo {
-      my $coed1 = _CODELIKE(shift) or die "No code param provided";
+      my $code1 = _CODELIKE(shift) or die "No code param provided";
       my $code2 = _CODELIKE(shift);
       if ( $code2 ) {
            print "Got optional second code param";
@@ -531,7 +531,7 @@ I apologise for any inconvenience caused.
 
 =cut
 
-eval <<'EOP' if not defined &_CODELIKE;
+eval <<'END_PERL' unless defined &_CODELIKE;
 sub _CODELIKE($) {
 	(
 		(Scalar::Util::reftype($_[0])||'') eq 'CODE'
@@ -540,20 +540,21 @@ sub _CODELIKE($) {
 	)
 	? $_[0] : undef;
 }
-EOP
+END_PERL
 
 =pod
 
 =head2 _INVOCANT $value
 
-This routine tests whether the given value is a valid method invocant. This can
-be either an instance of an object, or a class name.
+This routine tests whether the given value is a valid method invocant.
+This can be either an instance of an object, or a class name.
 
-If so, the value itself is returned.  Otherwise, C<_INVOCANT> returns C<undef>.
+If so, the value itself is returned.  Otherwise, C<_INVOCANT>
+returns C<undef>.
 
 =cut
 
-eval <<'EOP' if not defined &_INVOCANT;
+eval <<'END_PERL' unless defined &_INVOCANT;
 sub _INVOCANT($) {
 	(defined $_[0] and
 		(defined Scalar::Util::blessed($_[0])
@@ -563,7 +564,7 @@ sub _INVOCANT($) {
 		Params::Util::_CLASS($_[0]))
 	) ? $_[0] : undef;
 }
-EOP
+END_PERL
 
 =pod
 
@@ -578,11 +579,11 @@ provided is not an object of that type.
 
 =cut
 
-eval <<'EOP' if not defined &_INSTANCE;
+eval <<'END_PERL' unless defined &_INSTANCE;
 sub _INSTANCE ($$) {
 	(Scalar::Util::blessed($_[0]) and $_[0]->isa($_[1])) ? $_[0] : undef;
 }
-EOP
+END_PERL
 
 =pod
 
@@ -596,11 +597,11 @@ provided is not a regular expression.
 
 =cut
 
-eval <<'EOP' if not defined &_REGEX;
-sub _INSTANCE ($$) {
+eval <<'END_PERL' unless defined &_REGEX;
+sub _REGEX ($) {
 	(defined $_[0] and 'Regexp' eq ref($_[0])) ? $_[0] : undef;
 }
-EOP
+END_PERL
 
 =pod
 
@@ -621,17 +622,16 @@ the value provided is not a set of that class.
 
 =cut
 
-eval <<'EOP' if not defined &_SET;
+eval <<'END_PERL' unless defined &_SET;
 sub _SET ($$) {
 	my $set = shift;
-#	ref $set eq 'ARRAY' and @$set or return undef;
 	_ARRAY($set) or return undef;
 	foreach my $item ( @$set ) {
 		_INSTANCE($item,$_[0]) or return undef;
 	}
 	$set;
 }
-EOP
+END_PERL
 
 =pod
 
@@ -652,23 +652,20 @@ the value provided is not a set of that class.
 
 =cut
 
-eval <<'EOP' if not defined &_SET0;
+eval <<'END_PERL' unless defined &_SET0;
 sub _SET0 ($$) {
 	my $set = shift;
-#	ref $set eq 'ARRAY' or return undef;
 	_ARRAY0($set) or return undef;
 	foreach my $item ( @$set ) {
 		_INSTANCE($item,$_[0]) or return undef;
 	}
 	$set;
 }
-EOP
+END_PERL
 
 =pod
 
 =head2 _HANDLE
-
-B<EXPERIMENTAL: SUBJECT TO CHANGE OR POSSIBLE REMOVAL>
 
 The C<_HANDLE> function is intended to be imported into your package,
 and provides a convenient way to test whether or not a single scalar
@@ -687,7 +684,7 @@ detectors in existance (and we stole from the best of them).
 # we'll compress this into something that compiles more efficiently.
 # Further, testing file handles is not something that is generally
 # done millions of times, so doing it slowly is not a big speed hit.
-eval <<'EOP' if not defined &_HANDLE;
+eval <<'END_PERL' unless defined &_HANDLE;
 sub _HANDLE {
 	my $it = shift;
 
@@ -738,7 +735,7 @@ sub _HANDLE {
 	# This is not any sort of object we know about
 	return undef;
 }
-EOP
+END_PERL
 
 =pod
 
@@ -748,8 +745,6 @@ EOP
     my $class = _DRIVER(shift, 'My::Driver::Base') or die "Bad driver";
     ...
   }
-
-B<EXPERIMENTAL: SUBJECT TO CHANGE OR POSSIBLE REMOVAL>
 
 The C<_DRIVER> function is intended to be imported into your
 package, and provides a convenient way to load and validate
@@ -766,11 +761,11 @@ or the class fails the isa test.
 
 =cut
 
-eval <<'EOP' if not defined &_DRIVER;
+eval <<'END_PERL' unless defined &_DRIVER;
 sub _DRIVER ($$) {
 	(defined _CLASS($_[0]) and eval "require $_[0];" and ! $@ and $_[0]->isa($_[1]) and $_[0] ne $_[1]) ? $_[0] : undef;
 }
-EOP
+END_PERL
 
 1;
 
@@ -779,8 +774,6 @@ EOP
 =head1 TO DO
 
 - Add _CAN to help resolve the UNIVERSAL::can debacle
-
-- More comprehensive tests for _SET and _SET0
 
 - Would be even nicer if someone would demonstrate how the hell to
 build a Module::Install dist of the ::Util dual Perl/XS type. :/
@@ -804,11 +797,11 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
-L<Params::Validate>, L<http://ali.as/>
+L<Params::Validate>
 
 =head1 COPYRIGHT
 
-Copyright 2005 - 2008 Adam Kennedy.
+Copyright 2005 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
