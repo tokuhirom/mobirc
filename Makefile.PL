@@ -66,8 +66,6 @@ features(
 tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t';
 test_requires 'Test::More';
 test_requires 'Text::Diff';
-test_requires 'Test::Exception';
-test_requires 'Sub::Uplevel'; # depended by Test::Exception
 author_tests('xt');
 install_script 'mobirc';
 use_test_base;
