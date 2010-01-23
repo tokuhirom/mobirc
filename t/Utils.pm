@@ -2,6 +2,7 @@ package t::Utils;
 use strict;
 use warnings;
 use lib 'extlib';
+use Test::More;
 use HTTP::Request;
 use App::Mobirc;
 use App::Mobirc::Web::Handler;
@@ -93,8 +94,11 @@ sub test_channel    () { server->get_channel(U '#test') }
 sub describe ($&) {
     my ($name, $code) = @_;
 
-    $code->();
-    keyword_channel->clear_unread();
+    subtest $name => sub {
+        $code->();
+        keyword_channel->clear_unread();
+        done_testing();
+    };
 }
 
 sub test_view {
