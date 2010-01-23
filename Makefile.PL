@@ -64,6 +64,7 @@ features(
 );
 
 tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t';
+requires 'Test::More' => 0.94;
 test_requires 'Test::More';
 test_requires 'Text::Diff';
 author_tests('xt');
