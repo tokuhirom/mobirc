@@ -1,5 +1,5 @@
 use t::Utils;
-use Test::More tests => 4;
+use Test::More tests => 3;
 use Encode;
 use App::Mobirc;
 use App::Mobirc::Util;

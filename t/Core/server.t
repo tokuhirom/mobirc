@@ -1,5 +1,5 @@
 use t::Utils;
-use Test::More tests => 4;
+use Test::More tests => 1;
 
 # create 2 channels.
 keyword_channel();
