@@ -1,6 +1,6 @@
 use t::Utils;
 use Test::More tests => 1;
-use App::Mobirc::Web::Base;
+require App::Mobirc::Web::Base;
 use Plack::Response;
 
 my $req = HTTP::Request->new('GET', '/?hoge=fuga', ['User-Agent' => 'MYPC']);
