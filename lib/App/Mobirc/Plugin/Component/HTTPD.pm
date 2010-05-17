@@ -65,7 +65,7 @@ hook run_component => sub {
 
     # load and run Server
     Plack::Loader->load(
-        'AnyEvent',
+        'Twiggy',
         port => $self->port,
         host => $self->address
     )->run($app);

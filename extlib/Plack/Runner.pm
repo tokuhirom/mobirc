@@ -1,15 +1,19 @@
 package Plack::Runner;
 use strict;
 use warnings;
-use File::Basename;
-use Getopt::Long;
-use Plack::Loader;
+use Carp ();
 use Plack::Util;
 use Try::Tiny;
 
 sub new {
     my $class = shift;
-    bless {}, $class;
+    bless {
+        env      => $ENV{PLACK_ENV},
+        loader   => 'Plack::Loader',
+        includes => [],
+        modules  => [],
+        @_,
+    }, $class;
 }
 
 # delay the build process for reloader
@@ -19,63 +23,39 @@ sub build(&;$) {
     return sub { $block->($app->()) };
 }
 
-sub run {
+sub parse_options {
     my $self = shift;
-    $self = $self->new unless ref $self;
 
     local @ARGV = @_;
-
-    my $psgi;
-    my $eval;
-    my $host;
-    my $port   = 5000;
-    my $env    = "development";
-    my $help   = 0;
-    my $backend;
-    my @reload;
-    my $reload;
-    my @includes;
-    my @modules;
 
     # From 'prove': Allow cuddling the paths with -I and -M
     @ARGV = map { /^(-[IM])(.+)/ ? ($1,$2) : $_ } @ARGV;
 
+    my($host, $port, $socket, @listen);
+
+    require Getopt::Long;
     Getopt::Long::Configure("no_ignore_case", "pass_through");
-    GetOptions(
-        "a|app=s"      => \$psgi,
+    Getopt::Long::GetOptions(
+        "a|app=s"      => \$self->{app},
         "o|host=s"     => \$host,
         "p|port=i"     => \$port,
-        "s|server=s"   => \$backend,
-        "i|impl=s"     => sub { warn "-i is deprecated. Use -s instead\n"; $backend = $_[1] },
-        "E|env=s"      => \$env,
-        "e=s"          => \$eval,
-        'I=s@'         => \@includes,
-        'M=s@'         => \@modules,
-        'r|reload'     => sub { $reload = 1 },
-        'R|Reload=s'   => sub { push @reload, split ",", $_[1] },
-        "h|help",      => \$help,
+        "s|server=s"   => \$self->{server},
+        "S|socket=s"   => \$socket,
+        'l|listen=s@'  => \@listen,
+        'D|daemonize'  => \$self->{daemonize},
+        "E|env=s"      => \$self->{env},
+        "e=s"          => \$self->{eval},
+        'I=s@'         => $self->{includes},
+        'M=s@'         => $self->{modules},
+        'r|reload'     => sub { $self->{loader} = "Restarter" },
+        'R|Reload=s'   => sub { $self->{loader} = "Restarter"; $self->loader->watch(split ",", $_[1]) },
+        'L|loader=s'   => \$self->{loader},
+        "h|help",      => \$self->{help},
     );
-
-    if ($help) {
-        require Pod::Usage;
-        Pod::Usage::pod2usage(0);
-    }
-
-    lib->import(@includes) if @includes;
-
-    if ($eval) {
-        push @modules, 'Plack::Builder';
-    }
-
-    for (@modules) {
-        my($module, @import) = split /[=,]/;
-        eval "require $module" or die $@;
-        $module->import(@import);
-    }
 
     my(@options, @argv);
     while (defined($_ = shift @ARGV)) {
-        if (s/^--//) {
+        if (s/^--?//) {
             my @v = split '=', $_, 2;
             $v[0] =~ tr/-/_/;
             if (@v == 2) {
@@ -88,36 +68,158 @@ sub run {
         }
     }
 
-    push @options, host => $host, port => $port;
+    push @options, $self->mangle_host_port_socket($host, $port, $socket, @listen);
+    push @options, daemonize => 1 if $self->{daemonize};
 
-    $psgi ||= $argv[0] || "app.psgi";
-    my $app = $eval               ? build { no strict; no warnings; eval $eval or die $@ }
-            : ref $psgi eq 'CODE' ? sub   { $psgi }
-            :                       build { Plack::Util::load_psgi $psgi };
+    $self->{options} = \@options;
+    $self->{argv}    = \@argv;
+}
 
-    if ($env eq 'development') {
-        require Plack::Middleware::StackTrace;
-        require Plack::Middleware::AccessLog;
-        $app = build { Plack::Middleware::StackTrace->wrap($_[0]) } $app;
+sub set_options {
+    my $self = shift;
+    push @{$self->{options}}, @_;
+}
+
+sub mangle_host_port_socket {
+    my($self, $host, $port, $socket, @listen) = @_;
+
+    for my $listen (reverse @listen) {
+        if ($listen =~ /:\d+$/) {
+            ($host, $port) = split /:/, $listen, 2;
+            $host = undef if $host eq '';
+        } else {
+            $socket ||= $listen;
+        }
+    }
+
+    unless (@listen) {
+        if ($socket) {
+            @listen = ($socket);
+        } else {
+            $port ||= 5000;
+            @listen = ($host ? "$host:$port" : ":$port");
+        }
+    }
+
+    return host => $host, port => $port, listen => \@listen, socket => $socket;
+}
+
+sub setup {
+    my $self = shift;
+
+    if ($self->{help}) {
+        require Pod::Usage;
+        Pod::Usage::pod2usage(0);
+    }
+
+    lib->import(@{$self->{includes}}) if @{$self->{includes}};
+
+    if ($self->{eval}) {
+        push @{$self->{modules}}, 'Plack::Builder';
+    }
+
+    for (@{$self->{modules}}) {
+        my($module, @import) = split /[=,]/;
+        eval "require $module" or die $@;
+        $module->import(@import);
+    }
+}
+
+sub locate_app {
+    my($self, @args) = @_;
+
+    my $psgi = $self->{app} || $args[0];
+
+    if (ref $psgi eq 'CODE') {
+        return sub { $psgi };
+    }
+
+    if ($self->{eval}) {
+        $self->loader->watch("lib");
+        return build {
+            no strict;
+            no warnings;
+            my $eval = "builder { $self->{eval};";
+            $eval .= "Plack::Util::load_psgi(\$psgi);" if $psgi;
+            $eval .= "}";
+            eval $eval or die $@;
+        };
+    }
+
+    $psgi ||= "app.psgi";
+
+    require File::Basename;
+    $self->loader->watch( File::Basename::dirname($psgi) . "/lib", $psgi );
+    build { Plack::Util::load_psgi $psgi };
+}
+
+sub watch {
+    my($self, @dir) = @_;
+
+    push @{$self->{watch}}, @dir
+        if $self->{loader} eq 'Restarter';
+}
+
+sub prepare_devel {
+    my($self, $app) = @_;
+
+    require Plack::Middleware::StackTrace;
+    require Plack::Middleware::AccessLog;
+    $app = build { Plack::Middleware::StackTrace->wrap($_[0]) } $app;
+    unless ($ENV{GATEWAY_INTERFACE}) {
         $app = build { Plack::Middleware::AccessLog->wrap($_[0], logger => sub { print STDERR @_ }) } $app;
     }
 
-    my $loader;
+    push @{$self->{options}}, server_ready => sub {
+        my($args) = @_;
+        my $name = $args->{server_software} || ref($args); # $args is $server
+        my $host = $args->{host} || 0;
+        print STDERR "$name: Accepting connections at http://$host:$args->{port}/\n";
+    };
 
-    if ($reload or @reload) {
-        if ($reload) {
-            push @reload, $eval ? "lib" : ( File::Basename::dirname($psgi) . "/lib", $psgi );
-        }
-        warn "plackup: Watching ", join(", ", @reload), " for changes\n";
-        require Plack::Loader::Reloadable;
-        $loader = Plack::Loader::Reloadable->new(\@reload);
+    $app;
+}
+
+sub loader {
+    my $self = shift;
+    $self->{_loader} ||= Plack::Util::load_class($self->{loader}, 'Plack::Loader')->new;
+}
+
+sub load_server {
+    my($self, $loader) = @_;
+
+    if ($self->{server}) {
+        return $loader->load($self->{server}, @{$self->{options}});
     } else {
-        $loader = 'Plack::Loader';
-        $app = $app->();
+        return $loader->auto(@{$self->{options}});
+    }
+}
+
+sub run {
+    my $self = shift;
+
+    unless (ref $self) {
+        $self = $self->new;
+        $self->parse_options(@_);
+        return $self->run;
     }
 
-    my $server = $backend ? $loader->load($backend, @options) : $loader->auto(@options);
-    $server->run($app);
+    my @args = @_ ? @_ : @{$self->{argv}};
+
+    $self->setup;
+
+    my $app = $self->locate_app(@args);
+
+    $ENV{PLACK_ENV} ||= $self->{env} || 'development';
+    if ($ENV{PLACK_ENV} eq 'development') {
+        $app = $self->prepare_devel($app);
+    }
+
+    my $loader = $self->loader;
+    $loader->preload_app($app);
+
+    my $server = $self->load_server($loader);
+    $loader->run($server);
 }
 
 1;
@@ -134,7 +236,9 @@ Plack::Runner - plackup core
   use Plack::Runner;
   my $app = sub { ... };
 
-  Plack::Runner->run('--app' => $app, @ARGV);
+  my $runner = Plack::Runner->new;
+  $runner->parse_options(@ARGV);
+  $runner->run($app);
 
 =head1 DESCRIPTION
 
@@ -154,8 +258,8 @@ automatically extracted from your own script using L<Pod::Usage>.
 =head1 NOTES
 
 Do not directly call this module from your C<.psgi>, since that makes
-your PSGI application unnecesarily depend on L<plackup> and won't run
-other backends like L<Plack::Server::Apache2> or mod_psgi.
+your PSGI application unnecessarily depend on L<plackup> and won't run
+other backends like L<Plack::Handler::Apache2> or mod_psgi.
 
 If you I<really> want to make your C<.psgi> runnable as a standalone
 script, you can do this:

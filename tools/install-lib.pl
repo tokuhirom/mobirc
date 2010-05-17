@@ -123,6 +123,10 @@ sub should_install {
         print "skip $pkg(test libs)\n";
         return 0;
     }
+    if ($pkg eq 'perl') {
+        print "skip perl itself\n";
+        return 0;
+    }
     unless ($overwrite) {
         my $path = $pkg;
         $path =~ s{::}{/}g;

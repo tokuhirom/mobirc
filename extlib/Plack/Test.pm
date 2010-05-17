@@ -11,7 +11,7 @@ sub test_psgi {
     eval "require Plack::Test::$Impl;";
     die $@ if $@;
     no strict 'refs';
-    if (@_ == 2) {
+    if (ref $_[0] && @_ == 2) {
         @_ = (app => $_[0], client => $_[1]);
     }
     &{"Plack::Test::$Impl\::test_psgi"}(@_);
@@ -59,7 +59,7 @@ Plack::Test is an unified interface to test PSGI applications using
 standard HTTP::Request and HTTP::Response objects. It also allows you
 to run PSGI applications in various ways, by default using C<MockHTTP>
 backend but can also use C<Server> backend, which uses one of
-L<Plack::Server> implementations to run the web server to do live HTTP
+L<Plack::Handler> implementations to run the web server to do live HTTP
 requests.
 
 =head1 FUNCTIONS
@@ -104,8 +104,14 @@ the PSGI application in-process and returns HTTP::Response.
 
 =item Server
 
-Runs one of Plack::Server backends (C<Standalone> by default) and
+Runs one of Plack::Handler backends (C<Standalone> by default) and
 sends live HTTP requests to test.
+
+=item ExternalServer
+
+Runs tests against an external server specified in the
+C<PLACK_TEST_EXTERNALSERVER_URI> environment variable instead of spawning the
+application in a server locally.
 
 =back
 
