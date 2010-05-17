@@ -44,9 +44,9 @@ requires 'Params::Validate'      => '0.91';
 requires 'Path::Class'           => '0.16';
 requires 'UNIVERSAL::require'    => '0.11';
 requires 'URI'                   => '1.36';
-requires 'URI::Find'             => '0.16';
+requires 'URI::Find'             => '20100505';
 requires 'YAML'                  => '0.68';
-requires 'String::IRC'           => '0.01';
+requires 'String::IRC'           => '0.04';
 requires 'CSS::Tiny'             => '1.15';
 requires 'Data::OptList'         => '0.105';
 
