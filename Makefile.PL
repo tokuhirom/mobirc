@@ -10,7 +10,7 @@ requires 'AnyEvent::IRC' => 0.95;
 
 # Plack
 requires 'Plack'                           => 0.9031;
-requires 'Plack::Server::AnyEvent'         => 0.03;
+requires 'Twiggy'                          => 0.1005;
 requires 'Plack::Request'                  => 0.09;
 requires 'Plack::Middleware::ReverseProxy' => 0.04;
 

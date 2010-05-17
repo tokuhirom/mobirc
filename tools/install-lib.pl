@@ -29,6 +29,7 @@ my %skip_packages = map { $_ => 1 } (
     'HTTP::Headers',  # ditto
     'HTTP::Response', # ditto
     'HTTP::Request',  # ditto
+    'HTTP::Status',   # ditto
     'DBI',            # ditto
     'HTTP::Date',     # ditto
     'WWW::MobileCarrierJP', # only for building
