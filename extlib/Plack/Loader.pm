@@ -2,18 +2,58 @@ package Plack::Loader;
 use strict;
 use Carp ();
 use Plack::Util;
+use Try::Tiny;
+
+sub new {
+    my $class = shift;
+    bless {}, $class;
+}
+
+sub watch {
+    # do nothing. Override in subclass
+}
 
 sub auto {
-    my($class, %args) = @_;
+    my($class, @args) = @_;
 
-    my $server = $class->guess
-        or Carp::croak("Couldn't auto-guess server serverementation. Set it with PLACK_SERVER");
-    Plack::Util::load_class($server, "Plack::Server")->new(%args);
+    my $backend = $class->guess
+        or Carp::croak("Couldn't auto-guess server server implementation. Set it with PLACK_SERVER");
+
+    my $server = try {
+        $class->load($backend, @args);
+    } catch {
+        warn "Autoloading '$backend' backend failed. Falling back to the Standalone. ",
+            "(You might need to install Plack::Handler::$backend from CPAN)\n"
+                if $ENV{PLACK_DEV} && $ENV{PLACK_DEV} eq 'development';
+        $class->load('Standalone' => @args);
+    };
+
+    return $server;
 }
 
 sub load {
     my($class, $server, @args) = @_;
-    Plack::Util::load_class($server, "Plack::Server")->new(@args);
+
+    my($server_class, $error);
+    for my $prefix (qw( Plack::Handler Plack::Server )) {
+        try {
+            $server_class = Plack::Util::load_class($server, $prefix);
+        } catch {
+            $error ||= $_;
+        };
+        last if $server_class;
+    }
+
+    if ($server_class) {
+        $server_class->new(@args);
+    } else {
+        die $error;
+    }
+}
+
+sub preload_app {
+    my($self, $builder) = @_;
+    $self->{app} = $builder->();
 }
 
 sub guess {
@@ -26,9 +66,9 @@ sub guess {
     } elsif ($ENV{GATEWAY_INTERFACE}) {
         return "CGI";
     } elsif (exists $INC{"AnyEvent.pm"}) {
-        return "AnyEvent";
+        return "Twiggy";
     } elsif (exists $INC{"Coro.pm"}) {
-        return "Coro";
+        return "Corona";
     } elsif (exists $INC{"POE.pm"}) {
         return "POE";
     } elsif (exists $INC{"Danga/Socket.pm"}) {
@@ -36,6 +76,11 @@ sub guess {
     } else {
         return "Standalone";
     }
+}
+
+sub run {
+    my($self, $server, $builder) = @_;
+    $server->run($self->{app});
 }
 
 1;
@@ -53,11 +98,11 @@ Plack::Loader - (auto)load Plack Servers
   Plack::Loader->auto(%args)->run($app);
 
   # specify the implementation with a name
-  Plack::Loader->load('Standalone::Prefork', %args)->run($app);
+  Plack::Loader->load('FCGI', %args)->run($app);
 
 =head1 DESCRIPTION
 
-Plack::Loader is a factory class to load one of Plack::Server subclasses based on the environment.
+Plack::Loader is a factory class to load one of Plack::Handler subclasses based on the environment.
 
 =head1 AUTOLOADING
 
@@ -81,8 +126,8 @@ use the corresponding server implementation.
 
 =item %INC
 
-If one of L<AnyEvent>, L<Coro> or L<Danga::Socket> is loaded, the
-relevant implementation will be loaded.
+If one of L<AnyEvent>, L<Coro>, L<POE> or L<Danga::Socket> is loaded,
+the relevant implementation will be loaded.
 
 =back
 

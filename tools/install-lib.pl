@@ -9,7 +9,7 @@ use Cwd;
 #use Data::Dumper;
 use Module::CoreList;
 use Getopt::Long;
-use IO::Prompt;
+# use IO::Prompt;
 
 my %installed;
 my %optional_args = (
@@ -24,6 +24,7 @@ my %skip_packages = map { $_ => 1 } (
     'Module::Build',  # only for building
     'LWP',            # maybe you have this.
     'LWP::UserAgent', # ditto
+    'HTTP::Status',   # ditto
     'HTML::Parser',   # ditto
     'HTML::Tagset',   # ditto
     'HTTP::Headers',  # ditto
@@ -34,6 +35,7 @@ my %skip_packages = map { $_ => 1 } (
     'WWW::MobileCarrierJP', # only for building
     'POE::Test::Loops',     # testing module
     'Digest::SHA1',   # たいていの場合、Digest::MD5 におきかえればインストール可能
+    'perl',
 );
 my $target_version = '5.008001';
 my $outdir;

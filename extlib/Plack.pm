@@ -3,37 +3,47 @@ package Plack;
 use strict;
 use warnings;
 use 5.008_001;
-our $VERSION = '0.9031';
+our $VERSION = '0.9938';
+$VERSION = eval $VERSION;
 
 1;
 __END__
 
 =head1 NAME
 
-Plack - PSGI toolkit and servers
+Plack - Perl Superglue for Web frameworks and Web Servers (PSGI toolkit)
 
 =head1 DESCRIPTION
 
-Plack is a set of PSGI reference server implementations and helper
-utilities for Web application frameworks, exactly like Ruby's Rack.
+Plack is a set of tools for using PSGI stack. It contains middleware
+components, a reference server and utilities for Web application
+frameworks. Plack is like Ruby's Rack or Python's Paste for WSGI.
 
 See L<PSGI> for the PSGI specification and L<PSGI::FAQ> to know what
 PSGI and Plack are and why we need them.
 
 =head1 MODULES AND UTILITIES
 
-=head2 Plack::Server
+=head2 Plack::Handler
 
-L<Plack::Server> is a namespace for PSGI server implementations. We
-have Standalone, CGI, FCGI, Apache, AnyEvent, Coro, Danga::Socket and
-many server environments that you can run PSGI applications on.
+L<Plack::Handler> and its subclasses contains adapters for web
+servers. We have adapters for the built-in standalone web server
+L<HTTP::Server::PSGI>, L<CGI|Plack::Handler::CGI>,
+L<FCGI|Plack::Handler::FCGI>, L<Apache1|Plack::Handler::Apache1>,
+L<Apache2|Plack::Handler::Apache2>,
+L<Net::FastCGI|Plack::Handler::Net::FastCGI> and
+L<HTTP::Server::Simple|Plack::Handler::HTTP::Server::Simple> included
+in the core Plack distribution.
 
-See L<Plack::Server> how to write your own server implementation.
+There are also many HTTP server implementations on CPAN that has Plack
+handlers.
+
+See L<Plack::Handler> how to write your own adapters.
 
 =head2 Plack::Loader
 
-L<Plack::Loader> is a loader to load one of Plack::Server backends and
-run PSGI application code reference with it.
+L<Plack::Loader> is a loader to load one of L<Plack::Handler> adapters
+and run PSGI application code reference with it.
 
 =head2 Plack::Util
 
@@ -46,8 +56,26 @@ PSGI application is a code reference but it's not easy to pass code
 reference in the command line or configuration files, so Plack uses a
 convention that you need a file named C<app.psgi> or alike, which
 would be loaded (via perl's core function C<do>) to return the PSGI
-application code reference. See eg/dot-psgi directory for the example
-C<.psgi> files.
+application code reference.
+
+  # Hello.psgi
+  my $app = sub {
+      my $env = shift;
+      # ...
+      return [ $status, $headers, $body ];
+  };
+
+If you use a web framework, chances are that they provide a helper
+utility to automatically generate these C<.psgi> files for you, such
+as:
+
+  # MyApp.psgi
+  use MyApp;
+  my $app = sub { MyApp->run_psgi(@_) };
+
+It's important that the return value of C<.psgi> file is the code
+reference. See eg/dot-psgi directory for more examples of C<.psgi>
+files.
 
 =head2 plackup, Plack::Runner
 
@@ -99,8 +127,13 @@ L<Plack::Test::Suite> is a test suite to test a new PSGI server backend.
 =head2 Patches and Bug Fixes
 
 Small patches and bug fixes can be either submitted via nopaste on IRC
-L<irc://irc.perl.org/#plack> or email. You could also fork on github
-(http://github.com/miyagawa/Plack) to make larger fixes.
+L<irc://irc.perl.org/#plack> or L<the github issue
+tracker|http://github.com/miyagawa/Plack/issues>.  Forking on
+L<github|http://github.com/miyagawa/Plack> is another good way if you
+intend to make larger fixes.
+
+See also L<http://contributing.appspot.com/plack> when you think this
+document is terribly outdated.
 
 =head2 Module Namespaces
 
@@ -127,21 +160,53 @@ framework. It's like naming your application under CGI:: namespace if
 it's supposed to run on CGI and that is a really bad choice and
 confuse people.
 
-=head1 COPYRIGHT
-
-Copyright 2009- Tatsuhiko Miyagawa
-
-=head1 AUTHORS
+=head1 AUTHOR
 
 Tatsuhiko Miyagawa
 
-Yuval Kogman
+=head1 COPYRIGHT
 
-Tokuhiro Matsuno
+The following copyright notice applies to all the files provided in
+this distribution, including binary files, unless explicitly noted
+otherwise.
 
-Kazuhiro Osawa
+Copyright 2009-2010 Tatsuhiko Miyagawa
+
+=head1 CONTRIBUTORS
+
+Yuval Kogman (nothingmuch)
+
+Tokuhiro Matsuno (tokuhirom)
+
+Kazuhiro Osawa (Yappo)
 
 Kazuho Oku
+
+Florian Ragwitz (rafl)
+
+Chia-liang Kao (clkao)
+
+Masahiro Honma (hiratara)
+
+Daisuke Murase (typester)
+
+John Beppu
+
+Matt S Trout (mst)
+
+Shawn M Moore (Sartak)
+
+Stevan Little
+
+Hans Dieter Pearcey (confound)
+
+Tomas Doran (t0m)
+
+mala
+
+Mark Stosberg
+
+Aaron Trevena
 
 =head1 SEE ALSO
 

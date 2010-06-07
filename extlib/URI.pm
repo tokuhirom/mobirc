@@ -2,7 +2,7 @@ package URI;
 
 use strict;
 use vars qw($VERSION);
-$VERSION = "1.52";
+$VERSION = "1.54";
 
 use vars qw($ABS_REMOTE_LEADING_DOTS $ABS_ALLOW_RELATIVE_SCHEME $DEFAULT_QUERY_FORM_DELIMITER);
 
@@ -321,6 +321,8 @@ sub eq {
 sub abs { $_[0]; }
 sub rel { $_[0]; }
 
+sub secure { 0 }
+
 # help out Storable
 sub STORABLE_freeze {
        my($self, $cloning) = @_;
@@ -568,6 +570,11 @@ $uri and the $base_uri, and returned.
 Returns a relative URI reference if it is possible to
 make one that denotes the same resource relative to $base_uri.
 If not, then $uri is simply returned.
+
+=item $uri->secure
+
+Returns a TRUE value if the URI is considered to point to a resource on
+a secure channel, such as an SSL or TLS encrypted one.
 
 =back
 
@@ -867,12 +874,12 @@ methods and the generic query methods.  In addition, they support the
 following mailto-specific methods: $uri->to, $uri->headers.
 
 Note that the "foo@example.com" part of a mailto is I<not> the
-C<userinfo> and C<host> but instead the C<path>.  This allowed a
-mailto to contain multiple comma-seperated email addresses.
+C<userinfo> and C<host> but instead the C<path>.  This allows a
+mailto URI to contain multiple comma separated email addresses.
 
 =item B<mms>:
 
-The I<mms> URL specification can be found at L<http://sdp.ppona.com/>
+The I<mms> URL specification can be found at L<http://sdp.ppona.com/>.
 C<URI> objects belonging to the mms scheme support the common,
 generic, and server methods, with the exception of userinfo and
 query-related sub-components.
@@ -920,7 +927,7 @@ instead of TCP.  The syntax is the same as rtsp.
 
 =item B<rsync>:
 
-Information about rsync is available from http://rsync.samba.org.
+Information about rsync is available from L<http://rsync.samba.org/>.
 C<URI> objects belonging to the rsync scheme support the common,
 generic and server methods.  In addition, they provide methods to
 access the userinfo sub-components: $uri->user and $uri->password.
@@ -957,7 +964,7 @@ common, generic and server methods.
 
 =item B<ssh>:
 
-Information about ssh is available at http://www.openssh.com/.
+Information about ssh is available at L<http://www.openssh.com/>.
 C<URI> objects belonging to the ssh scheme support the common,
 generic and server methods. In addition, they provide methods to
 access the userinfo sub-components: $uri->user and $uri->password.
@@ -972,7 +979,7 @@ and the Namespace-Specific String respectively.
 The Namespace Identifier basically works like the Scheme identifier of
 URIs, and further divides the URN namespace.  Namespace Identifier
 assignments are maintained at
-<http://www.iana.org/assignments/urn-namespaces>.
+L<http://www.iana.org/assignments/urn-namespaces>.
 
 Letter case is not significant for the Namespace Identifier.  It is
 always returned in lower case by the $uri->nid method.  The $uri->_nid
@@ -1070,11 +1077,11 @@ L<URI::Split>, L<URI::Heuristic>
 RFC 2396: "Uniform Resource Identifiers (URI): Generic Syntax",
 Berners-Lee, Fielding, Masinter, August 1998.
 
-http://www.iana.org/assignments/uri-schemes
+L<http://www.iana.org/assignments/uri-schemes>
 
-http://www.iana.org/assignments/urn-namespaces
+L<http://www.iana.org/assignments/urn-namespaces>
 
-http://www.w3.org/Addressing/
+L<http://www.w3.org/Addressing/>
 
 =head1 COPYRIGHT
 

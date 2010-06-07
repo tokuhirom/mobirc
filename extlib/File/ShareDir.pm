@@ -111,12 +111,11 @@ use Carp             'croak';
 use Config           ();
 use Exporter         ();
 use File::Spec       ();
-use Params::Util     '_CLASS';
 use Class::Inspector ();
 
 use vars qw{$VERSION @ISA @EXPORT_OK %EXPORT_TAGS};
 BEGIN {
-	$VERSION     = '1.01';
+	$VERSION     = '1.02';
 	@ISA         = qw{ Exporter };
 	@EXPORT_OK   = qw{
 		dist_dir dist_file
@@ -498,6 +497,11 @@ sub _dist_packfile {
 	die "CODE INCOMPLETE";
 }
 
+# Inlined from Params::Util pure perl version
+sub _CLASS {
+    (defined $_[0] and ! ref $_[0] and $_[0] =~ m/^[^\W\d]\w*(?:::\w+)*\z/s) ? $_[0] : undef;
+}
+
 # Matches a valid distribution name
 ### This is a total guess at this point
 sub _DIST {
@@ -551,7 +555,7 @@ L<File::ShareDir::PAR>
 
 =head1 COPYRIGHT
 
-Copyright 2005 - 2009 Adam Kennedy.
+Copyright 2005 - 2010 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

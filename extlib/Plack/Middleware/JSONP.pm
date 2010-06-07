@@ -9,7 +9,7 @@ sub call {
     my $res = $self->app->($env);
     $self->response_cb($res, sub {
         my $res = shift;
-        if (defined $res->[2] && ref $res->[2] eq 'ARRAY') {
+        if (defined $res->[2] && ref $res->[2] eq 'ARRAY' && @{$res->[2]} == 1) {
             my $h = Plack::Util::headers($res->[1]);
             if ($h->get('Content-Type') =~ m!/(?:json|javascript)! &&
                 $env->{QUERY_STRING} =~ /(?:^|&)callback=([^&]+)/) {
@@ -39,6 +39,10 @@ Plack::Middleware::JSONP - Wraps JSON response in JSONP if callback parameter is
 Plack::Middleware::JSONP wraps JSON response, which has Content-Type
 value either C<text/javascript> or C<application/json> as a JSONP
 response which is specified with the C<callback> query parameter.
+
+This middleware only works with an application response with content
+body set as a single element array ref and doesn't touch the response
+otherwise.
 
 =head1 AUTHOR
 

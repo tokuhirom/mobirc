@@ -2,20 +2,28 @@ package Devel::StackTrace::AsHTML;
 
 use strict;
 use 5.008_001;
-our $VERSION = '0.05';
+our $VERSION = '0.09';
 
 use Data::Dumper;
 use Devel::StackTrace;
 use Scalar::Util;
 
+no warnings 'qw';
+my %enc = qw( & &amp; > &gt; < &lt; " &quot; ' &#39; );
+
+# NOTE: because we don't know which encoding $str is in, or even if
+# $str is a wide character (decoded strings), we just leave the low
+# bits, including latin-1 range and encode everything higher as HTML
+# entities. I know this is NOT always correct, but should mostly work
+# in case $str is encoded in utf-8 bytes or wide chars. This is a
+# necessary workaround since we're rendering someone else's code which
+# we can't enforce string encodings.
+
 sub encode_html {
     my $str = shift;
-    $str =~ s/&/&amp;/g;
-    $str =~ s/>/&gt;/g;
-    $str =~ s/</&lt;/g;
-    $str =~ s/"/&quot;/g;
-    $str =~ s/'/&#39;/g;
-    return $str;
+    $str =~ s/([^\x00-\x21\x23-\x25\x28-\x3b\x3d\x3f-\xff])/$enc{$1} || '&#' . ord($1) . ';' /ge;
+    utf8::downgrade($str);
+    $str;
 }
 
 sub Devel::StackTrace::as_html {
@@ -34,7 +42,7 @@ sub render {
 a.toggle { color: #444 }
 body { margin: 0; padding: 0; background: #fff; color: #000; }
 h1 { margin: 0 0 .5em; padding: .25em .5em .1em 1.5em; border-bottom: thick solid #002; background: #444; color: #eee; font-size: x-large; }
-p.message { margin: .5em 1em; }
+pre.message { margin: .5em 1em; }
 li.frame { font-size: small; margin-top: 3em }
 li.frame:nth-child(1) { margin-top: 0 }
 pre.context { border: 1px solid #aaa; padding: 0.2em 0; background: #fff; color: #444; font-size: medium; }
@@ -77,7 +85,7 @@ function toggleLexicals(ref) {
 </script>
 </head>
 <body>
-<h1>Error trace</h1><p class="message">$msg</p><ol>
+<h1>Error trace</h1><pre class="message">$msg</pre><ol>
 HEAD
 
     $trace->next_frame; # ignore the head
@@ -101,10 +109,6 @@ HEAD
         );
     }
     $out .= qq{</ol>};
-
-    $out .= qq{<p class="message">Install <a target="_blank" href="http://search.cpan.org/perldoc?Devel::StackTrace::WithLexicals">Devel::StackTrace::WithLexicals</a> to see the lexical variables of each frame.</p>}
-        unless $trace->frame(0)->can('lexicals');
-
     $out .= "</body></html>";
 
     $out;

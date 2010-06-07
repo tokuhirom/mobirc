@@ -3,7 +3,7 @@ use strict;
 use Carp ();
 use Scalar::Util;
 use IO::Handle;
-use Try::Tiny;
+use overload ();
 
 sub TRUE()  { 1==1 }
 sub FALSE() { !TRUE }
@@ -99,31 +99,43 @@ sub class_to_file {
     $class . ".pm";
 }
 
+sub _load_sandbox {
+    my $_file = shift;
+
+    my $_package = $_file;
+    $_package =~ s/([^A-Za-z0-9_])/sprintf("_%2x", unpack("C", $1))/eg;
+
+    return eval sprintf <<'END_EVAL', $_package;
+package Plack::Sandbox::%s;
+{
+    my $app = do $_file;
+    if ( !$app && ( my $error = $@ || $! )) { die $error; }
+    $app;
+}
+END_EVAL
+}
+
 sub load_psgi {
     my $stuff = shift;
 
-    my $file = $stuff =~ /^[a-zA-Z0-9\_\:]+$/ ? class_to_file($stuff) : $stuff;
-    my $app = require $file;
-    return $app->to_app if $app and Scalar::Util::blessed($app) and $app->can('to_app');
-    return $app if $app and (ref $app eq 'CODE' or overload::Method($app, '&{}'));
+    local $ENV{PLACK_ENV} = $ENV{PLACK_ENV} || 'development';
 
-    if (my $e = $@ || $!) {
-        die "Can't load $file: $e";
-    } else {
-        Carp::croak("$file doesn't return PSGI app handler: " . ($app || undef));
-    }
+    my $file = $stuff =~ /^[a-zA-Z0-9\_\:]+$/ ? class_to_file($stuff) : $stuff;
+    my $app = _load_sandbox($file);
+    die "Error while loading $file: $@" if $@;
+
+    return $app->to_app if $app and Scalar::Util::blessed($app) and $app->can('to_app');
+    return $app;
 }
 
 sub run_app($$) {
     my($app, $env) = @_;
 
-    return try {
-        $app->($env);
-    } catch {
+    return eval { $app->($env) } || do {
         my $body = "Internal Server Error";
-        $env->{'psgi.errors'}->print($_);
-        return [ 500, [ 'Content-Type' => 'text/plain', 'Content-Length' => length($body) ], [ $body ] ];
-    }
+        $env->{'psgi.errors'}->print($@);
+        [ 500, [ 'Content-Type' => 'text/plain', 'Content-Length' => length($body) ], [ $body ] ];
+    };
 }
 
 sub headers {
@@ -232,11 +244,11 @@ sub can {
 }
 
 sub AUTOLOAD {
-    my ($self, @args) = @_;
+    my $self = shift;
     my $attr = $AUTOLOAD;
     $attr =~ s/.*://;
     if (ref($self->{$attr}) eq 'CODE') {
-        $self->{$attr}->(@args);
+        $self->{$attr}->(@_);
     } else {
         Carp::croak(qq/Can't locate object method "$attr" via package "Plack::Util::Prototype"/);
     }
@@ -354,7 +366,7 @@ considered very insecure. But if you really want to do that, be sure
 to validate the argument passed to this function. Also, if you do not
 want to accept an arbitrary class name but only load from a file path,
 make sure that the argument C<$psgi_file_or_class> begins with C</> so
-that Perl's built-in require function won't search the include path.
+that Perl's built-in do function won't search the include path.
 
 =item run_app
 

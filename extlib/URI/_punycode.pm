@@ -1,7 +1,7 @@
 package URI::_punycode;
 
 use strict;
-our $VERSION = 0.02;
+our $VERSION = "0.03";
 
 require Exporter;
 our @ISA    = qw(Exporter);
@@ -185,7 +185,7 @@ takes Punycode encoding and returns original Unicode string.
 
 =back
 
-These functions throws exceptionsn on failure. You can catch 'em via
+These functions throw exceptions on failure. You can catch 'em via
 C<eval>.
 
 =head1 AUTHOR
