@@ -51,6 +51,7 @@ requires 'YAML'                  => '0.68';
 requires 'String::IRC'           => '0.04';
 requires 'CSS::Tiny'             => '1.15';
 requires 'Data::OptList'         => '0.105';
+requires 'Params::Util'; # for Data::OptList
 requires 'Data::Recursive::Encode';
 
 features(
