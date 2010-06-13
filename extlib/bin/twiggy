@@ -1,0 +1,31 @@
+#!/usr/bin/env perl
+use strict;
+use lib "lib";
+use Plack::Runner;
+
+sub version {
+    require Twiggy;
+    print "Twiggy $Twiggy::VERSION\n";
+}
+
+my $runner = Plack::Runner->new(server => 'Twiggy', env => 'deployment', version_cb => \&version);
+$runner->parse_options(@ARGV);
+$runner->run;
+
+__END__
+
+=head1 NAME
+
+twiggy - Twiggy launcher
+
+=head1 SYNOPSIS
+
+  twiggy --listen :9090
+
+Run C<plackup -h> for more options.
+
+=head1 SEE ALSO
+
+L<Twiggy>
+
+=cut

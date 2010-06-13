@@ -21,6 +21,7 @@ requires 'Any::Moose'    => 0.11;
 
 # session
 requires 'HTTP::Session' => '0.29';
+requires 'HTTP::Session::State::GUID' => '0.29';
 
 # mobile stuff
 requires 'HTTP::MobileAttribute' => '0.13';
@@ -29,6 +30,7 @@ requires 'HTTP::MobileAttribute' => '0.13';
 requires 'Text::MicroTemplate' => '0.05';
 
 # utilities
+requires 'parent'            => 0.223;
 requires 'Config::Tiny'      => 2.12;
 requires 'String::CamelCase' => '0.01';
 requires 'Exporter' => '5.62';    # recent version supports "use Exporter 'import'" style
@@ -49,6 +51,7 @@ requires 'YAML'                  => '0.68';
 requires 'String::IRC'           => '0.01';
 requires 'CSS::Tiny'             => '1.15';
 requires 'Data::OptList'         => '0.105';
+requires 'Data::Recursive::Encode';
 
 features(
     'Irssi' => [

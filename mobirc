@@ -2,14 +2,17 @@
 use strict;
 use warnings;
 use utf8;
-use Encode;
 use File::Spec::Functions;
 use FindBin;
+use Config;
+
+use lib File::Spec->catfile( $FindBin::Bin, 'lib');
+use lib File::Spec->catfile( $FindBin::Bin, 'extlib/lib/perl5/');
+use lib File::Spec->catfile( $FindBin::Bin, "extlib/lib/perl5/$Config{archname}");
+
+use Encode;
 use Carp;
 use Getopt::Long;
-
-use lib catfile( $FindBin::Bin, 'lib');
-use lib catfile( $FindBin::Bin, 'extlib');
 
 use App::Mobirc;
 use App::Mobirc::Util;
