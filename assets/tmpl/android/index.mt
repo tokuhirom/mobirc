@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-? use Text::VisualWidth::UTF8;
 <html>
     <head>
         <meta http-equiv="Content-Type"  content="text/html; charset=UTF-8" />
@@ -21,7 +20,7 @@
                 <? my $i = 0; for my $channel (@$channels) { next if (!$channel->name || !param('all') && !$channel->unread_lines && $i > 10); ?>
                 <li class="<?= $i % 2 ? 'even' : 'odd' ?>">
                     <a class='channel' href="/android/channel?channel=<?= $channel->name_urlsafe_encoded ?>">
-                        <?= Text::VisualWidth::UTF8::width($channel->name) > 23 ? decode_utf8(Text::VisualWidth::UTF8::trim($channel->name, 22)) . '…': $channel->name?>
+                        <?= visual_width($channel->name) > 23 ? visual_trim($channel->name, 22) . '…': $channel->name ?>
                         <span class='unread'><?= $channel->unread_lines ?></span>
                     </a>
                 </li>

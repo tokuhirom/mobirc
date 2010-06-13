@@ -53,6 +53,7 @@ requires 'CSS::Tiny'             => '1.15';
 requires 'Data::OptList'         => '0.105';
 requires 'Params::Util'; # for Data::OptList
 requires 'Data::Recursive::Encode';
+requires 'Unicode::EastAsianWidth' => 1.30;
 
 features(
     'Irssi' => [
@@ -61,16 +62,13 @@ features(
         recommends('Glib', '0.4'),
         recommends('POE::Loop::Glib', '0.0034'),
     ],
-    'Android' => [
-        -default => 0,
-        recommends('Text::VisualWidth::UTF8' => '0.02'),
-    ],
 );
 
 tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t';
 requires 'Test::More' => 0.94;
 test_requires 'Test::More';
 test_requires 'Text::Diff';
+test_requires 'Test::Requires';
 author_tests('xt');
 install_script 'mobirc';
 use_test_base;
