@@ -4,8 +4,7 @@ use Scalar::Util qw/blessed/;
 use HTTP::Session;
 use HTTP::Session::Store::OnMemory;
 use HTTP::Session::State::Cookie;
-use HTTP::Session::State::GUID;
-use HTTP::Session::State::MobileAttributeID;
+use HTTP::Session::State::URI;
 use Module::Find;
 use URI::Escape;
 use Plack::Response;
@@ -65,13 +64,11 @@ sub _create_session {
     HTTP::Session->new(
         store   => $session_store,
         state   => sub {
-            if ($ma->is_docomo) {
-                HTTP::Session::State::GUID->new(
-                    mobile_attribute => $ma,
-                );
-            } elsif ($ma->can('user_id') && $ma->user_id) {
-                HTTP::Session::State::MobileAttributeID->new(
-                    mobile_attribute => $ma,
+            if ($ma->is_docomo && $ma->cache_size < 500) {
+                # i-mode browser 1.0 does not supports cookie.
+                # $ma->cache_size < 500 means 'i-mode browser 1.0'.
+                HTTP::Session::State::URI->new(
+                    session_id_name => 'sid',
                 );
             } else {
                 HTTP::Session::State::Cookie->new(

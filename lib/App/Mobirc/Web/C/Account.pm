@@ -25,25 +25,6 @@ sub post_dispatch_login_password {
     }
 }
 
-sub post_dispatch_login_mobileid {
-    die "missing password in config.global.mobileid" unless config->{global}->{mobileid};
-    my $ma = mobile_attribute;
-    if ($ma->can('user_id') && (my $user_id = $ma->user_id)) {
-        if ($user_id eq config->{global}->{mobileid}) {
-            if ($ma->isa_cidr(req->address)) {
-                session->set('authorized', 1);
-                return redirect('/');
-            } else {
-                return redirect('/account/login?invalid_cidr=1');
-            }
-        } else {
-            return redirect('/account/login?invalid_mobileid=1');
-        }
-    } else {
-        return redirect('/account/login');
-    }
-}
-
 sub post_dispatch_logout {
     session->expire();
 
