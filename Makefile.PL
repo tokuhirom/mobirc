@@ -5,7 +5,7 @@ all_from 'lib/App/Mobirc.pm';
 license  'gpl';
 
 # AnyEvent
-requires 'AnyEvent' => 5.24;
+requires 'AnyEvent' => 5.271;
 requires 'AnyEvent::IRC' => 0.95;
 
 # Plack
@@ -15,19 +15,19 @@ requires 'Plack::Request'                  => 0.09;
 requires 'Plack::Middleware::ReverseProxy' => 0.04;
 
 # Mouse.
-requires 'Mouse'         => 0.47;
-requires 'MouseX::Types' => 0.04;
-requires 'Any::Moose'    => 0.11;
+requires 'Mouse'         => 0.60;
+requires 'MouseX::Types' => 0.05;
+requires 'Any::Moose'    => 0.13;
 
 # session
-requires 'HTTP::Session' => '0.29';
-requires 'HTTP::Session::State::GUID' => '0.29';
+requires 'HTTP::Session' => '0.38';
+requires 'HTTP::Session::State::MobileAttributeID' => '0.37';
 
 # mobile stuff
-requires 'HTTP::MobileAttribute' => '0.13';
+requires 'HTTP::MobileAttribute' => '0.21';
 
 # template engine
-requires 'Text::MicroTemplate' => '0.05';
+requires 'Text::MicroTemplate' => '0.13';
 
 # utilities
 requires 'parent'            => 0.223;
@@ -43,7 +43,7 @@ requires 'List::MoreUtils'       => '0.22';
 requires 'MIME::Base64::URLSafe' => '0.01';
 requires 'Module::Find'          => '0.06';
 requires 'Params::Validate'      => '0.91';
-requires 'Path::Class'           => '0.16';
+requires 'Path::Class'           => '0.19';
 requires 'UNIVERSAL::require'    => '0.11';
 requires 'URI'                   => '1.36';
 requires 'URI::Find'             => '20100505';
