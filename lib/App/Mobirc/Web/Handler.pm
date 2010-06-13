@@ -114,7 +114,7 @@ sub process_request_noauth {
     my ($req, $session) = @_;
 
     if (my $rule = App::Mobirc::Web::Router->match($req->uri->path)) {
-        if ($rule->{controller} eq 'Account') {
+        if ($rule->{controller} eq 'Account' || $rule->{controller} eq 'Static') {
             return do_dispatch($rule, $req, $session);
         } else {
             return Plack::Response->new(
