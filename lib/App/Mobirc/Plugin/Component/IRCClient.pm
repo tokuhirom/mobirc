@@ -302,7 +302,7 @@ hook 'run_component' => sub {
         # handle error.
         'error' => sub {
             my ($self, $command, $message) = @_;
-            print STDERR "ERROR: $command($message)";
+            print STDERR "ERROR: $command($message)\n";
         },
         debug_recv => sub {
             my ($irc, $raw) = @_;
