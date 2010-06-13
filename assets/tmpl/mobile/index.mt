@@ -24,7 +24,7 @@
 ? if (server->has_unread_message) {
     <span>*</span><a href="/mobile/recent" accesskey="*">recent</a><br />
 ? }
-<? # TODO: use pictogram for '#' & '*' ?>
+? # TODO: use pictogram for '#' & '*'
 <span>#</span><a href="/mobile/topics" accesskey="#">topics</a><br />
 <span>!</span><a href="/mobile/keyword" accesskey="!">keyword</a><br />
 <span><?= pictogram('9') ?></span><a href="/mobile/clear_all_unread" accesskey="9">clear_all_unread</a><br />
