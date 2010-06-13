@@ -28,7 +28,11 @@ our $CONTEXT;
 sub web_context () { $CONTEXT } ## no critic
 
 sub handler {
-    my $req = Plack::Request->new(shift);
+    my $env = shift;
+
+    global_context->run_hook('env_filter', $env);
+
+    my $req = Plack::Request->new($env);
 
     my $session = _create_session($req);
 
@@ -96,7 +100,7 @@ sub authorize {
 sub process_request_authorized {
     my ($req, $session) = @_;
 
-    if (my $rule = App::Mobirc::Web::Router->match($req->uri->path)) {
+    if (my $rule = App::Mobirc::Web::Router->match($req->path_info)) {
         return do_dispatch($rule, $req, $session);
     } else {
         # hook by plugins
@@ -113,7 +117,7 @@ sub process_request_authorized {
 sub process_request_noauth {
     my ($req, $session) = @_;
 
-    if (my $rule = App::Mobirc::Web::Router->match($req->uri->path)) {
+    if (my $rule = App::Mobirc::Web::Router->match($req->path_info)) {
         if ($rule->{controller} eq 'Account' || $rule->{controller} eq 'Static') {
             return do_dispatch($rule, $req, $session);
         } else {
@@ -149,8 +153,8 @@ sub do_dispatch {
 sub res_404 {
     my ($req, ) = @_;
 
-    my $uri = $req->uri->path;
-    warn "dan the 404 not found: $uri" if $uri ne '/favicon.ico';
+    my $uri = $req->path_info;
+    warn "dan the 404 not found: $uri\n" if $uri ne '/favicon.ico';
     return Plack::Response->new(
         404,
         ['Content-Type' => 'text/plain'],
