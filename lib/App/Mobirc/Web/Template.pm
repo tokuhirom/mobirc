@@ -8,7 +8,7 @@ use App::Mobirc::Pictogram ();
 use Path::Class;
 use URI::Escape qw/uri_escape/;
 use App::Mobirc::Web::Base;
-use Unicode::EastAsianWidth;
+use Text::VisualWidth::PP;
 
 *encoded_string = *Text::MicroTemplate::encoded_string;
 sub pictogram { encoded_string(App::Mobirc::Pictogram::pictogram(@_)) }
@@ -50,40 +50,7 @@ sub strip_nl (&) {
     })->($code);
 }
 
-sub visual_width {
-    local $_ = shift;
-
-    my $ret = 0;
-    while (/(?:(\p{InFullwidth}+)|(\p{InHalfwidth}+))/g) {
-        $ret += $1 ? length($1) * 2 : length($2)
-    }
-    $ret;
-}
-
-sub visual_trim {
-    local $_ = shift;
-    my $limit = shift;
-
-    my $cnt = 0;
-    my $ret = '';
-    while (/(?:(\p{InFullwidth})|(\p{InHalfwidth}))/g) {
-        if ($1) {
-            if ($cnt+2 <= $limit) {
-                $ret .= $1;
-                $cnt += 2;
-            } else {
-                last;
-            }
-        } else {
-            if ($cnt+1 <= $limit) {
-                $ret .= $2;
-                $cnt += 1;
-            } else {
-                last;
-            }
-        }
-    }
-    $ret;
-}
+sub visual_width { Text::VisualWidth::PP::width(@_) }
+sub visual_trim { Text::VisualWidth::PP::trim(@_) }
 
 1;
