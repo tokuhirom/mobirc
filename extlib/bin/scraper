@@ -1,0 +1,110 @@
+#!/usr/bin/perl
+
+eval 'exec /usr/bin/perl  -S $0 ${1+"$@"}'
+    if 0; # not running under some shell
+use strict;
+use warnings;
+
+use Config;
+use Term::ReadLine;
+use Data::Dumper;
+use HTML::Entities;
+use URI;
+use Web::Scraper;
+use YAML;
+
+sub WARN() {
+    return sub {
+        warn $_->isTextNode
+            ? HTML::Entities::encode($_->as_XML, q("'<>&))
+            : $_->as_HTML(q('"&<>), "", {});
+    };
+}
+
+my $print = sub {
+    if ($ENV{PAGER}) {
+        open my $pager, "|$ENV{PAGER}";
+        print $pager @_;
+    } else {
+        print @_;
+
+    }
+};
+
+my(@stack, $source);
+
+my $stuff   = process_args($ARGV[0])
+    or die "Usage: scraper [URI-or-filename]\n";
+
+my $term    = Term::ReadLine->new("Web::Scraper");
+my $scraper = scraper { run_loop($_[0], $term) };
+   $scraper->user_agent->env_proxy;
+
+my $result  = $scraper->scrape($stuff);
+
+sub process_args {
+    my $uri = shift;
+
+    if (!-t STDIN and my $content = join "", <STDIN>) {
+        $source = [ 'stdin' ];
+        return \$content;
+    } elsif ($uri && $uri =~ m!^https?://!) {
+        $source = [ "URI", $uri ];
+        return URI->new($uri);
+    } elsif ($uri && -e $uri) {
+        $source = [ 'file', $uri ];
+        open my $fh, "<", $uri or die "$uri: $!";
+        return join "", <$fh>;
+    }
+
+    return;
+}
+
+sub run_loop {
+    my($tree, $term) = @_;
+    while (defined(my $in = $term->readline("scraper> "))) {
+        if ($in eq 'd') {
+            $Data::Dumper::Indent = 1;
+            warn Dumper result;
+        } elsif ($in eq 'y') {
+            warn Dump result;
+        } elsif ($in eq 's') {
+            $print->($tree->as_HTML(q('"&<>), "  ", {}));
+        } elsif ($in eq 'q') {
+            return;
+        } elsif ($in eq 'c') {
+            print generate_code($source, $stack[-1]);
+        } elsif ($in =~ /^c\s+all\s*$/) {
+            print generate_code($source, @stack);
+        } else {
+            my $res = eval $in;
+            warn $@ if $@;
+            push @stack, $in unless $@;
+        }
+    }
+}
+
+sub generate_code {
+    my($source, @stack) = @_;
+
+    my $code_stack = join "\n", map { "    $_" . (/;$/ ? "" : ";") } @stack;
+    my($var, $stuff) =
+        $source->[0] eq 'stdin'         ? ('$input', '\join "", <STDIN>') :
+        $source->[0] eq 'URI'           ? ('$uri',   qq(URI->new("$source->[1]"))) :
+        $source->[0] eq 'file'          ? ('$file',  qq(\\do { my \$file = "$source->[1]"; open my \$fh, \$file or die "\$file: \$!"; join '', <\$fh> })) :
+                                          '...';
+
+return <<CODE;
+#!$Config{perlpath}
+use strict;
+use Web::Scraper;
+use URI;
+
+my $var = $stuff;
+my \$scraper = scraper {
+$code_stack
+};
+my \$result = \$scraper->scrape($var);
+CODE
+
+}
