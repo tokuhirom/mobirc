@@ -99,7 +99,7 @@ sub authorize {
 sub process_request_authorized {
     my ($req, $session) = @_;
 
-    if (my $rule = App::Mobirc::Web::Router->match($req)) {
+    if (my $rule = App::Mobirc::Web::Router->match($req->uri->path)) {
         return do_dispatch($rule, $req, $session);
     } else {
         # hook by plugins
@@ -116,7 +116,7 @@ sub process_request_authorized {
 sub process_request_noauth {
     my ($req, $session) = @_;
 
-    if (my $rule = App::Mobirc::Web::Router->match($req)) {
+    if (my $rule = App::Mobirc::Web::Router->match($req->uri->path)) {
         if ($rule->{controller} eq 'Account') {
             return do_dispatch($rule, $req, $session);
         } else {
@@ -138,7 +138,7 @@ sub do_dispatch {
     my $meth = $rule->{action};
     my $post_meth = "post_dispatch_$meth";
     my $get_meth  = "dispatch_$meth";
-    my $args = $rule->{args};
+    my $args = $rule;
     $args->{session} = $session;
     $CONTEXT->action( $rule->{action} );
     $CONTEXT->controller( $rule->{controller} );

@@ -1,0 +1,110 @@
+=head1 NAME
+
+Router::Simple::Cookbook - The Router::Simple Cookbook
+
+=head1 FAQ
+
+=head2 How to create Sinatra-ish framework with Router::Simple?
+
+Please read the following example code.
+
+    package MySinatraish;
+    use Router::Simple;
+    use Plack::Request;
+    
+    sub import {
+        my $pkg = caller(0);
+        my $router = Router::Simple->new();
+        my $any = sub ($$;$) {
+            my ($pattern, $dest, $opt) = do {
+                if (@_ == 3) {
+                    my ($methods, $pattern, $code) = @_;
+                    ($pattern, {code => $code}, +{method => [ map { uc $_ } @$methods ]});
+                } else {
+                    my ($pattern, $code) = @_;
+                    ($pattern, {code => $code}, +{});
+                }
+            };
+            $router->connect(
+                $pattern,
+                $dest,
+                $opt,
+            );
+        };
+        no strict 'refs';
+        # any [qw/get post delete/] => '/bye' => sub { ... };
+        # any '/bye' => sub { ... };
+        *{"${pkg}::any"} = $any;
+        *{"${pkg}::get"} = sub {
+            $any->([qw/GET HEAD/], $_[0], $_[1]);
+        };
+        *{"${pkg}::post"} = sub {
+            $any->([qw/POST/], $_[0], $_[1]);
+        };
+        *{"${pkg}::as_psgi_app"} = sub {
+            return sub {
+                if (my $p = $router->match($_[0])) {
+                    [200, [], [$p->{code}->()]];
+                } else {
+                    [404, [], ['not found']];
+                }
+            }
+        };
+    }
+
+    package MyApp;
+    use MySinatraish;
+    get '/' => sub {
+        'top';
+    };
+    post '/new' => sub {
+        'posted';
+    };
+    as_psgi_app;
+
+=head2 How to switch from HTTPx::Dispatcher?
+
+L<HTTPx::Dispatcher> is class specific declararative router.
+
+    package MyApp::Dispatcher;
+    use HTTPx::Dspatcher;
+    connect '/', {controller => 'foo', action => 'bar'};
+    1;
+
+The following script is same as above.
+
+    package MyApp::Dispatcher;
+    use Router::Simple::Declare;
+
+    my $router = router {
+        connect '/', {controller => 'foo', action => 'bar'};
+    };
+    sub match { $router->match() }
+
+=head2 How to use Router::Simple with non-strictly-MVC application?
+
+    use Router::Simple::Declare;
+    my $router = router {
+        connect '/foo/bar/' => { 'target' => '/foobar.asp' };
+        connect '/topics/:topic' => { target => '/my-topic.asp' };
+        connect '/products/{Category:.*}' => { target => '/products.asp', Category => 'All' };
+        connect '/zipcode/{zip:[0-9]{5,5}}' => {target => '/zipcode.asp' };
+    };
+
+You can pass the target path as destination.
+
+=head1 AUTHOR
+
+Tokuhiro Matsuno E<lt>tokuhirom AAJKLFJEF GMAIL COME<gt>
+
+=head1 LICENSE
+
+Copyright (C) Tokuhiro Matsuno
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=head1 SEE ALSO
+
+L<Router::Simple>
+
