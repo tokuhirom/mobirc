@@ -13,7 +13,7 @@ use App::Mobirc::Types 'Config';
 use Text::MicroTemplate::File;
 use App::Mobirc::Web::Template;
 
-our $VERSION = '2.00';
+our $VERSION = '3.00';
 
 has server => (
     is      => 'ro',
@@ -98,4 +98,4 @@ Tokuhiro Matsuno and Mobirc AUTHORS.
 
 =head1 LICENSE
 
-GPL 2.0 or later.
+same as perl itself
