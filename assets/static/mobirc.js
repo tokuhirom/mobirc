@@ -23,30 +23,7 @@ function send_message() {
 function load_menu () {
     $('#ChannelContainer').load(
         docroot + 'ajax/menu?time=' + ts(),
-        '',
-        function () {
-            $('#ChannelContainer .channel a').click(function () {
-                var channel_name = $(this).text();
-                contents_load(docroot + 'ajax/channel?channel=' + encodeURIComponent($(this).text()), $(this).text());
-                $.getJSON(docroot + 'api/members', {"channel": channel_name}, function (json) {
-                    var container = $('#NickContainer');
-                    container.empty();
-                    for (var i=0; i<json.length; i++) {
-                        container.append(
-                            $(document.createElement('span')).text(json[i])
-                        ).append(document.createElement('br'));
-                    }
-                });
-                $(this).parent().removeClass('unread');
-                return false;
-            });
-
-            var keyword_cb = function () {
-                contents_load(docroot + 'ajax/keyword')
-                $(this).parent().remove();
-            };
-            $('#ChannelContainer .keyword_recent_notice a').click(keyword_cb).keypress(keyword_cb);
-        }
+        ''
     );
 }
 
@@ -58,6 +35,29 @@ $(function () {
         load_menu();
         setInterval(load_menu, 4*1000);
     })();
+
+    $('#ChannelContainer .channel a').live('click', function () {
+        var channel_name = $(this).text();
+        contents_load(docroot + 'ajax/channel?channel=' + encodeURIComponent($(this).text()), $(this).text());
+        $.getJSON(docroot + 'api/members', {"channel": channel_name}, function (json) {
+            var container = $('#NickContainer');
+            container.empty();
+            for (var i=0; i<json.length; i++) {
+                container.append(
+                    $(document.createElement('span')).text(json[i])
+                ).append(document.createElement('br'));
+            }
+        });
+        $(this).parent().removeClass('unread');
+        return false;
+    });
+
+    // keyword
+    var keyword_cb = function () {
+        contents_load(docroot + 'ajax/keyword')
+        $(this).parent().remove();
+    };
+    $('#ChannelContainer .keyword_recent_notice a').live('click', keyword_cb).live('keypress', keyword_cb);
 
     // $('#menu').resizable();
 
