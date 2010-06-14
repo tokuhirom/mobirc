@@ -1,6 +1,7 @@
 ? wrap {
 
-<h1>mobirc</h1>
+<h1 class="title"><img src="/static/logo.gif" alt="mobirc" /></h1>
+
 <div class="TopMenu">
     <ul>
         <? for (qw/mobile ajax mobile-ajax iphone android iphone2/) { ?>
