@@ -22,6 +22,13 @@ has recent_log => (
     auto_deref => 1,
 );
 
+has members => (
+    is      => 'rw',
+    isa     => 'ArrayRef',
+    default => sub { +[] },
+    auto_deref => 1,
+);
+
 has topic => (
     is      => 'rw',
     isa     => 'Str',
@@ -33,6 +40,16 @@ has name => (
     isa      => 'Str',
     required => 1,
 );
+
+sub join_member {
+    my ($self, $nick) = @_;
+    push @{$self->members}, $nick;
+}
+
+sub part_member {
+    my ($self, $nick) = @_;
+    $self->members( [ grep { $_ ne $nick } $self->members ] );
+}
 
 sub add_message {
     my $self = shift;

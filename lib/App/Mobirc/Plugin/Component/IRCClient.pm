@@ -160,6 +160,26 @@ hook 'run_component' => sub {
 
             $disconnect_msg = true;
         },
+        irc_353 => sub { # RPL_NAMREPLY
+            my ($irc, $args) = @_;
+            my ($user, $op, $channel_name, $nicks) = @{$args->{params}};
+            # {
+            #     'params' => [
+            #         'tokuhirom',
+            #         '@',
+            #         '#plack@perl',
+            # 'gphat dhossf go|dfish miyagawa dann jamesw walf443 fhelmberger omega Grrrr hachi Caelum dormando patspam chiba beppu jnap thepler tokuhirom yusukebe konobi seven saorge obra Bender2 LeoNerd zamolxes Haarg sri nperez ziguzaway otsune leedo zakame rafl ggoebel lestrrat aristotle ka2u jfluhmann sunnavy doy drew kentaro stevan t0m cosimo mala maluco yann arcanez dragon3_away Yappo confound @mst hanekomu'
+            #     ],
+            #     'prefix'  => 'tiarra',
+            #     'command' => '353'
+            # }
+
+            my $channel = $global_context->get_channel($channel_name);
+            my @nicks = map { my $x = $_; $x =~ s!^@!!; $x } split /\s+/, $nicks;
+            for my $nick (@nicks) {
+                $channel->join_member($nick);
+            }
+        },
         'registered' => sub {
             DEBUG 'registered event';
             $irc->enable_ping(
@@ -187,6 +207,7 @@ hook 'run_component' => sub {
                     class => 'join',
                 );
             }
+            $channel->join_member($who);
             $disconnect_msg = true;
         },
         'part' => sub {
@@ -211,6 +232,7 @@ hook 'run_component' => sub {
                     body  => $message,
                     class => 'leave',
                 );
+                $channel->part_member($who);
             }
             $disconnect_msg = true;
         },
@@ -222,11 +244,13 @@ hook 'run_component' => sub {
 
             $kicker = prefix_nick($kicker);
 
-            $global_context->get_channel($channel_name)->add_message(
+            my $channel = $global_context->get_channel($channel_name);
+            $channel->add_message(
                 who   => undef,
                 body  => "$kicker has kicked $kickee($msg)",
                 class => 'kick',
             );
+            $channel->part_member($kickee);
 
             $disconnect_msg = true;
         },

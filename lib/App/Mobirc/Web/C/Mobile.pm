@@ -99,4 +99,11 @@ sub post_dispatch_channel {
     redirect(req->uri->path . "?channel=" . $channel->name_urlsafe_encoded . '&t=' . time());
 }
 
+sub dispatch_members {
+    my $channel_name = decode_urlsafe_encoded('channel') || die;
+
+    my @members = server->get_channel($channel_name)->members;
+    render( $channel_name, \@members );
+}
+
 1;

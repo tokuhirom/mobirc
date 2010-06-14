@@ -29,6 +29,8 @@
 ?    } else {
         <p>no message here</p>
 ?    }
+    <hr />
+    <a href="/mobile/members?channel=<?= $channel->name_urlsafe_encoded ?>">members</a>
 ? } else {
     <p>no such channel.</p>
 ? }
