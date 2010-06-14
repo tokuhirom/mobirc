@@ -2,7 +2,7 @@ use inc::Module::Install;
 name 'mobirc';
 all_from 'lib/App/Mobirc.pm';
 
-license  'gpl';
+license  'perl';
 
 # AnyEvent
 requires 'AnyEvent' => 5.271;
@@ -21,7 +21,6 @@ requires 'Any::Moose'    => 0.13;
 
 # session
 requires 'HTTP::Session' => '0.38';
-requires 'HTTP::Session::State::MobileAttributeID' => '0.37';
 
 # mobile stuff
 requires 'HTTP::MobileAttribute' => '0.21';
@@ -36,7 +35,6 @@ requires 'String::CamelCase' => '0.01';
 requires 'Exporter' => '5.62';    # recent version supports "use Exporter 'import'" style
 requires 'HTML::Entities'        => '1.35';
 requires 'HTML::StickyQuery'     => '0.12';
-requires 'HTML::StickyQuery::DoCoMoGUID'    => '0.01';
 requires 'Router::Simple'        => '0.05';
 requires 'JSON'                  => '2.09';
 requires 'List::MoreUtils'       => '0.22';

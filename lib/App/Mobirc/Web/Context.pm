@@ -1,6 +1,6 @@
 package App::Mobirc::Web::Context;
 use Mouse;
-use HTTP::MobileAttribute;
+use HTTP::MobileAttribute plugins => [qw/IS Core/];
 
 has session => (
     is       => 'rw',

@@ -1,3 +1,11 @@
+3.00
+
+    - switch to plack based.
+    - switch to AnyEvent instead of POE.
+    - do not use 'mobile phone id' for security reason.
+    - use Router::Simple, instead of HTTPx::Dispatcher
+    - rebuilt extlib/ with cpanm
+
 1.99_02
 
     2.00 RC2

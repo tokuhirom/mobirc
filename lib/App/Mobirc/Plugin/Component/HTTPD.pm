@@ -58,7 +58,8 @@ hook run_component => sub {
 
     # apply middleares by user's configuration
     my $middlewares = Data::OptList::mkopt($self->middlewares);
-    while (my ($module, $conf) = splice @$middlewares, 0, 2) {
+    for my $row (@$middlewares) {
+        my ($module, $conf) = @$row;
         $module = Plack::Util::load_class($module, 'Plack::Middleware');
         $app = $module->wrap($app, %$conf);
     }

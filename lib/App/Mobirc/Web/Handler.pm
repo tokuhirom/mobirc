@@ -4,8 +4,7 @@ use Scalar::Util qw/blessed/;
 use HTTP::Session;
 use HTTP::Session::Store::OnMemory;
 use HTTP::Session::State::Cookie;
-use HTTP::Session::State::GUID;
-use HTTP::Session::State::MobileAttributeID;
+use HTTP::Session::State::URI;
 use Module::Find;
 use URI::Escape;
 use Plack::Response;
@@ -29,7 +28,11 @@ our $CONTEXT;
 sub web_context () { $CONTEXT } ## no critic
 
 sub handler {
-    my $req = Plack::Request->new(shift);
+    my $env = shift;
+
+    global_context->run_hook('env_filter', $env);
+
+    my $req = Plack::Request->new($env);
 
     my $session = _create_session($req);
 
@@ -65,13 +68,11 @@ sub _create_session {
     HTTP::Session->new(
         store   => $session_store,
         state   => sub {
-            if ($ma->is_docomo) {
-                HTTP::Session::State::GUID->new(
-                    mobile_attribute => $ma,
-                );
-            } elsif ($ma->can('user_id') && $ma->user_id) {
-                HTTP::Session::State::MobileAttributeID->new(
-                    mobile_attribute => $ma,
+            if ($ma->is_docomo && $ma->cache_size < 500) {
+                # i-mode browser 1.0 does not supports cookie.
+                # $ma->cache_size < 500 means 'i-mode browser 1.0'.
+                HTTP::Session::State::URI->new(
+                    session_id_name => 'sid',
                 );
             } else {
                 HTTP::Session::State::Cookie->new(
@@ -99,7 +100,7 @@ sub authorize {
 sub process_request_authorized {
     my ($req, $session) = @_;
 
-    if (my $rule = App::Mobirc::Web::Router->match($req->uri->path)) {
+    if (my $rule = App::Mobirc::Web::Router->match($req->path_info)) {
         return do_dispatch($rule, $req, $session);
     } else {
         # hook by plugins
@@ -116,8 +117,8 @@ sub process_request_authorized {
 sub process_request_noauth {
     my ($req, $session) = @_;
 
-    if (my $rule = App::Mobirc::Web::Router->match($req->uri->path)) {
-        if ($rule->{controller} eq 'Account') {
+    if (my $rule = App::Mobirc::Web::Router->match($req->path_info)) {
+        if ($rule->{controller} eq 'Account' || $rule->{controller} eq 'Static') {
             return do_dispatch($rule, $req, $session);
         } else {
             return Plack::Response->new(
@@ -152,8 +153,8 @@ sub do_dispatch {
 sub res_404 {
     my ($req, ) = @_;
 
-    my $uri = $req->uri->path;
-    warn "dan the 404 not found: $uri" if $uri ne '/favicon.ico';
+    my $uri = $req->path_info;
+    warn "dan the 404 not found: $uri\n" if $uri ne '/favicon.ico';
     return Plack::Response->new(
         404,
         ['Content-Type' => 'text/plain'],

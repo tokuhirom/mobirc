@@ -21,3 +21,6 @@ incode=utf-8
 port=5678
 
 [MessageBodyFilter::Clickable]
+
+# [DocRoot]
+# root=/mobirc/

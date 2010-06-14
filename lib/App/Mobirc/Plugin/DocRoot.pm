@@ -13,31 +13,14 @@ has root => (
     required => 1,
 );
 
-hook request_filter => sub {
-    my ($self, $global_context, $req) = validate_hook('request_filter', @_);
+hook env_filter => sub {
+    my ($self, $global_context, $env) = @_;
 
     my $root = $self->root;
     $root =~ s!/$!!;
 
-    my $path = $req->uri->path;
-    $path =~ s!^$root!!;
-    $req->uri->path($path);
-};
-
-hook response_filter => sub {
-    my ($self, $global_context, $res) = validate_hook('response_filter', @_);
-
-    if (my $loc = $res->header('Location')) {
-        DEBUG "REWRITE REDIRECT : $loc";
-
-        my $root = $self->root;
-        $root =~ s!/$!!;
-        $loc = "$root$loc";
-
-        $res->header( Location => $loc );
-
-        DEBUG "FINISHED: $loc";
-    }
+    $env->{PATH_INFO} =~ s!^$root!!;
+    $env->{SCRIPT_NAME} = $root;
 };
 
 hook html_filter => sub {
@@ -95,9 +78,9 @@ App::Mobirc::Plugin::DocRoot - rewrite document root
 
 =head1 SYNOPSIS
 
-    - module: App::Mobirc::Plugin::DocRoot
-      config:
-        root: /foo/
+    # in your config.ini
+    [DocRoot]
+    root=/mobirc/
 
 =head1 DESCRIPTION
 
