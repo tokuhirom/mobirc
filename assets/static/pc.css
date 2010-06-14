@@ -10,6 +10,5 @@ body { width : 100% ; }
 
 #main #menu div { margin-bottom: 2px; }
 #main #menu div.unread { background-color: #99ffff; }
-#main #menu div.KeywordChannel { background-color: #ff99ff; }
 #main #menu hr { margin-bottom: 3px }
 

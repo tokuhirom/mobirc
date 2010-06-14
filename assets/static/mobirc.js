@@ -1,17 +1,25 @@
 function ts() { return (new Date()).getTime(); }
 
-var load_url;
+var current_channel;
 
-function contents_load(url) {
-    var joinner = (url.indexOf('?') == -1) ? '?' : '&';
-    $('#contents').load(url+joinner+'time='+ts());
-    load_url = url;
+function escapeHTML(str) {
+    return str.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function reload_log() {
+    if (!current_channel) { return; }
+
+    $.get(docroot + 'ajax/channel', {channel: current_channel}, function (data) {
+        $('#contents').html(data);
+    });
     $('#msg').focus();
 }
 
 function send_message() {
-    $.post(load_url, {"msg":($('#msg').get())[0].value}, function (html) {
-        setTimeout( function () { if (load_url) { contents_load(load_url) } }, 1*1000 );
+    if (!current_channel) { return; }
+
+    $.post(docroot + 'api/send_cmd', {"channel":current_channel, "msg":($('#msg').get())[0].value}, function (html) {
+        setTimeout( function () { reload_log(); }, 1*1000 );
 
         $('#contents br:last').focus();
 
@@ -20,25 +28,28 @@ function send_message() {
     });
 }
 
-function load_menu () {
-    $('#ChannelContainer').load(
-        docroot + 'ajax/menu?time=' + ts(),
-        ''
-    );
-}
-
 // onload
 $(function () {
     $('#msg').focus();
 
     (function () {
-        load_menu();
-        setInterval(load_menu, 4*1000);
+        var reload_menu = function () {
+            $('#ChannelContainer').load(
+                docroot + 'ajax/menu?time=' + ts(),
+                ''
+            );
+        }
+
+        reload_menu();
+        setInterval(reload_menu, 4*1000);
     })();
 
     $('#ChannelContainer .channel a').live('click', function () {
         var channel_name = $(this).text();
-        contents_load(docroot + 'ajax/channel?channel=' + encodeURIComponent($(this).text()), $(this).text());
+
+        current_channel = channel_name;
+        reload_log();
+
         $.getJSON(docroot + 'api/members', {"channel": channel_name}, function (json) {
             var container = $('#NickContainer');
             container.empty();
@@ -52,15 +63,23 @@ $(function () {
         return false;
     });
 
-    // keyword
-    var keyword_cb = function () {
-        contents_load(docroot + 'ajax/keyword')
-        $(this).parent().remove();
-    };
-    $('#ChannelContainer .keyword_recent_notice a').live('click', keyword_cb).live('keypress', keyword_cb);
-
     // $('#menu').resizable();
 
-    setInterval(function(){ if(load_url){ contents_load(load_url); } }, 5*1000);
+    // reload log periodically
+    setInterval(function(){ reload_log(); }, 5*1000);
+
+    // check keyword
+    setInterval(function(){
+        $.getJSON(docroot + 'api/keyword', {}, function (json) {
+            for (var i=0; i<json.length; i++) {
+                (function () {
+                    var row = json[i];
+                    var msg = escapeHTML("" + row.channel.name + " <" + row.who + "> " + row.body);
+                    var h = "<a onclick='" + row.channel.name
+                    $.jGrowl(msg, { sticky: true });
+                })();
+            }
+        });
+    }, 5*1000);
 });
 

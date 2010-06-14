@@ -10,8 +10,10 @@
         <link rel="stylesheet" href="/static/mobirc.css" type="text/css" />
         <title>mobirc</title>
         <link type="text/css" href="/static/css/ui-lightness/jquery-ui-1.8.2.custom.css" rel="stylesheet" />
+        <link type="text/css" href="/static/css/jquery.jgrowl.css" rel="stylesheet" />
         <script type="text/javascript" src="/static/js/jquery-1.4.2.min.js"></script>
         <script type="text/javascript" src="/static/js/jquery-ui-1.8.2.custom.min.js"></script>
+        <script type="text/javascript" src="/static/js/jquery.jgrowl_minimized.js"></script>
         <script src="/static/mobirc.js" type="text/javascript"></script>
 ? if (is_iphone) {
         <meta name="viewport" content="width=device-width" />
