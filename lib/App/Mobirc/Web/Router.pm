@@ -21,6 +21,7 @@ my $router = router {
     connect('/iphone2/:action'           => { controller => 'IPhone2', });
     connect('/ajax/:action'             => { controller => 'Ajax' });
     connect('/mobile/:action'           => { controller => 'Mobile' });
+    connect('/api/:action'             => { controller => 'API' });
 };
 
 sub match {

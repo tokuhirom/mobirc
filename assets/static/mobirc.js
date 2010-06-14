@@ -21,12 +21,22 @@ function send_message() {
 }
 
 function load_menu () {
-    $('#menu').load(
+    $('#ChannelContainer').load(
         docroot + 'ajax/menu?time=' + ts(),
         '',
         function () {
-            $('#menu .channel a').click(function () {
+            $('#ChannelContainer .channel a').click(function () {
+                var channel_name = $(this).text();
                 contents_load(docroot + 'ajax/channel?channel=' + encodeURIComponent($(this).text()), $(this).text());
+                $.getJSON(docroot + 'api/members', {"channel": channel_name}, function (json) {
+                    var container = $('#NickContainer');
+                    container.empty();
+                    for (var i=0; i<json.length; i++) {
+                        container.append(
+                            $(document.createElement('span')).text(json[i])
+                        ).append(document.createElement('br'));
+                    }
+                });
                 $(this).parent().removeClass('unread');
                 return false;
             });
@@ -35,7 +45,7 @@ function load_menu () {
                 contents_load(docroot + 'ajax/keyword')
                 $(this).parent().remove();
             };
-            $('#menu .keyword_recent_notice a').click(keyword_cb).keypress(keyword_cb);
+            $('#ChannelContainer .keyword_recent_notice a').click(keyword_cb).keypress(keyword_cb);
         }
     );
 }

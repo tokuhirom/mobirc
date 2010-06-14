@@ -21,7 +21,11 @@
     <body>
         <div id="body">
             <div id="main">
-                <div id="menu"></div>
+                <div id="menu">
+                    <div id="ChannelContainer">&nbsp;</div>
+                    <hr />
+                    <div id="NickContainer">&nbsp;</div>
+                </div>
                 <div id="contents"></div>
             </div>
             <div id="footer">
