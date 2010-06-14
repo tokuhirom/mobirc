@@ -49,6 +49,8 @@ $(function () {
         setInterval(load_menu, 4*1000);
     })();
 
+    // $('#menu').resizable();
+
     setInterval(function(){ if(load_url){ contents_load(load_url); } }, 5*1000);
 });
 

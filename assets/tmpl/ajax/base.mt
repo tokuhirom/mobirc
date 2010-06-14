@@ -9,7 +9,9 @@
         <link rel="stylesheet" href="/static/pc.css" type="text/css" />
         <link rel="stylesheet" href="/static/mobirc.css" type="text/css" />
         <title>mobirc</title>
-        <script src="/static/jquery.js" type="text/javascript"></script>
+        <link type="text/css" href="/static/css/ui-lightness/jquery-ui-1.8.2.custom.css" rel="stylesheet" />
+        <script type="text/javascript" src="/static/js/jquery-1.4.2.min.js"></script>
+        <script type="text/javascript" src="/static/js/jquery-ui-1.8.2.custom.min.js"></script>
         <script src="/static/mobirc.js" type="text/javascript"></script>
 ? if (is_iphone) {
         <meta name="viewport" content="width=device-width" />
@@ -19,8 +21,8 @@
     <body>
         <div id="body">
             <div id="main">
-                <div id="menu"></div>
                 <div id="contents"></div>
+                <div id="menu"></div>
             </div>
             <div id="footer">
                 <form onsubmit="send_message(); return false;">
