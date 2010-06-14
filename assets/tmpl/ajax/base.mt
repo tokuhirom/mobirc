@@ -21,8 +21,8 @@
     <body>
         <div id="body">
             <div id="main">
-                <div id="contents"></div>
                 <div id="menu"></div>
+                <div id="contents"></div>
             </div>
             <div id="footer">
                 <form onsubmit="send_message(); return false;">
