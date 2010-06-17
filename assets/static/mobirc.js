@@ -166,7 +166,7 @@
                 $('#Side #ChannelContainer').height($('#Side').height() * 0.70);
             };
             rebuild_window();
-            if (Mobirc.is_ie) {
+            if (Mobirc.is_ie) { // bad knowhow
                 setTimeout(rebuild_window, 100);
             }
             $(window).resize(rebuild_window);
