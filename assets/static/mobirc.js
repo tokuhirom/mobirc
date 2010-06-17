@@ -20,6 +20,7 @@
             var self = this;
             $.getJSON(docroot + 'api/channel_log', {channel: Mobirc.current_channel}, function (data) {
                 var container = $('#ChannelLog');
+                container.empty();
                 for (var i=0; i<data.length; i++) {
                     container.append(self.format_html(data[i]));
                 }
