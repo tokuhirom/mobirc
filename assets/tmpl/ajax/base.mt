@@ -14,6 +14,7 @@
         <script type="text/javascript" src="/static/js/jquery-1.4.2.min.js"></script>
         <script type="text/javascript" src="/static/js/jquery-ui-1.8.2.custom.min.js"></script>
         <script type="text/javascript" src="/static/js/jquery.jgrowl_minimized.js"></script>
+        <script type="text/javascript" src="/static/js/jquery.ev.js"></script>
         <script src="/static/mobirc.js?v=2" type="text/javascript"></script>
 ? if (is_iphone) {
         <meta name="viewport" content="width=device-width" />
@@ -24,11 +25,12 @@
         <div id="BodyWrapper">
             <div id="PageBody">
                 <div id="Main">
-                    <div id="Log">log pain</div>
+                    <div id="ChannelLog">log pain</div>
                     <form onsubmit=" return false;" id="CommandForm">
                         <input type="text" id="msg" name="msg" size="30" autocomplete="off" />
                         <input type="button" value="send" id="SendButton" />
                     </form>
+                    <div id="CombinedLog">combined log pain</div>
                 </div>
                 <div id="Side">
                     <div id="NickContainer">&nbsp;</div>

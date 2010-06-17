@@ -67,4 +67,14 @@ sub dispatch_channels {
     return _render_json($channels);
 }
 
+
+sub dispatch_channel_log {
+    my $channel_name = param('channel') or die "missing channel name";
+
+    my $channel = server->get_channel($channel_name);
+    my $res = [map { $_->as_hashref } $channel->message_log];
+    $channel->clear_unread();
+    return _render_json($res);
+}
+
 1;

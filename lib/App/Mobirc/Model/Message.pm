@@ -64,5 +64,20 @@ has html_body => (
     }
 );
 
+sub as_hashref {
+    my $message = shift;
+
+    return +{
+        body         => $message->body,
+        html_body    => $message->html_body,
+        class        => $message->class,
+        who_class    => $message->who_class,
+        who          => $message->who ? $message->who : undef,
+        hour         => $message->hour,
+        minute       => $message->minute,
+        channel_name => $message->channel->name,
+    };
+}
+
 __PACKAGE__->meta->make_immutable;
 1;

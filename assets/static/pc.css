@@ -38,10 +38,11 @@ abbr,acronym { border:0;
 #BodyWrapper {  }
 #PageBody { overflow: hidden; } 
 #PageBody #Main { float: left; overflow: hidden; } 
-#PageBody #Main #Log { overflow: auto; width: 100%; margin-bottom: 10px; } 
+#PageBody #Main #ChannelLog { overflow: auto; width: 100%; margin-bottom: 10px; } 
 #PageBody #Main #CommandForm { width: 100%; }
 #PageBody #Main #CommandForm #msg { width: 90%; }
 #PageBody #Main #CommandForm #SendButton { width: 9%; }
+#PageBody #Main #CombinedLog { overflow: auto; width: 100%; } 
 #PageBody #Side { padding-left: 5px; width : 25%; float: right; border-left: 1px solid #cccccc; margin-bottom: 3px; }
 #PageBody #Side #NickContainer { overflow: auto; border-bottom: 1px solid #cccccc; }
 #PageBody #Side #ChannelContainer { overflow: auto; }
@@ -50,6 +51,11 @@ abbr,acronym { border:0;
 
 #PageBody #Side .channel { margin-bottom: 2px; width: 100%; }
 #PageBody #Side .unread  { background-color: #99ffff; }
-#PageBody #Side .current { background-color: #ff99ff; }
+#PageBody #Side .current { background-color: #ccffff; }
+#PageBody #Side .keyword { background-color: #ff99ff; }
 #PageBody #Side hr { margin-bottom: 3px }
+
+.log .time { margin-right: 2px; }
+.log .message { margin-left: 2px; }
+.log .channel { margin-left: 2px; margin-right: 2px; }
 

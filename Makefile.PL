@@ -2,6 +2,8 @@ use inc::Module::Install;
 name 'mobirc';
 all_from 'lib/App/Mobirc.pm';
 
+# ~/perl5/perlbrew/perls/perl-5.8.1/bin/perl -I extlib/lib/perl5/ tools/cpanm -nv -L extlib --installdeps .
+
 license  'perl';
 
 # AnyEvent
@@ -13,6 +15,7 @@ requires 'Plack'                           => 0.9938;
 requires 'Twiggy'                          => 0.1005;
 requires 'Plack::Request'                  => 0.09;
 requires 'Plack::Middleware::ReverseProxy' => 0.04;
+requires 'Tatsumaki'                       => 0.1010;
 
 # Mouse.
 requires 'Mouse'         => 0.60;

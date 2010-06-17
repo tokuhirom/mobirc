@@ -71,6 +71,15 @@ sub add_message {
             App::Mobirc::Model::Channel->update_keyword_buffer($message);
         }
     }
+
+    # send to tatsumaki queue
+    Tatsumaki::MessageQueue->instance('mobirc')->publish(
+        {
+            %{ $message->as_hashref },
+            type         => 'message',
+            is_keyword   => $self->name eq '*keyword*' ? 1 : 0,
+        }
+    );
 }
 
 sub _add_to_log {

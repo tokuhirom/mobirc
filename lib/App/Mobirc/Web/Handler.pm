@@ -14,6 +14,7 @@ use App::Mobirc;
 use App::Mobirc::Util;
 use App::Mobirc::Web::Router;
 use App::Mobirc::Web::Context;
+use App::Mobirc::Web::Tatsumaki;
 useall 'App::Mobirc::Web::C';
 
 my $session_store = HTTP::Session::Store::OnMemory->new(data => {});
@@ -39,10 +40,12 @@ sub handler {
     local $CONTEXT = App::Mobirc::Web::Context->new(req => $req, session => $session);
     my $res = _handler($req, $session);
     global_context->run_hook('response_filter', $res);
-    $session->response_filter( $res );
+    if (ref $res ne 'CODE') { # long poll cannot accept finalizer
+        $session->response_filter( $res );
+    }
     $session->finalize();
     
-    DEBUG sprintf("%03d: %s", $res->status, $req->uri->path);
+    # DEBUG sprintf("%03d: %s", $res->status, $req->uri->path);
     if (blessed($res)) {
         $res = $res->finalize();
     }
@@ -99,6 +102,10 @@ sub authorize {
 
 sub process_request_authorized {
     my ($req, $session) = @_;
+
+    if ($req->path_info =~ m{^/tatsumaki/}) {
+        return App::Mobirc::Web::Tatsumaki->handler->($req->env);
+    }
 
     if (my $rule = App::Mobirc::Web::Router->match($req->path_info)) {
         return do_dispatch($rule, $req, $session);
