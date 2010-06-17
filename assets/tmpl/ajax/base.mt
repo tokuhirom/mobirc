@@ -14,28 +14,30 @@
         <script type="text/javascript" src="/static/js/jquery-1.4.2.min.js"></script>
         <script type="text/javascript" src="/static/js/jquery-ui-1.8.2.custom.min.js"></script>
         <script type="text/javascript" src="/static/js/jquery.jgrowl_minimized.js"></script>
-        <script src="/static/mobirc.js" type="text/javascript"></script>
+        <script src="/static/mobirc.js?v=2" type="text/javascript"></script>
 ? if (is_iphone) {
         <meta name="viewport" content="width=device-width" />
         <meta name="viewport" content="initial-scale=1.0, user-scalable=yes" />
 ? }
     </head>
     <body>
-        <div id="body">
-            <div id="main">
-                <div id="menu">
-                    <div id="ChannelContainer">&nbsp;</div>
-                    <hr />
-                    <div id="NickContainer">&nbsp;</div>
+        <div id="BodyWrapper">
+            <div id="PageBody">
+                <div id="Main">
+                    <div id="Log">log pain</div>
+                    <form onsubmit="send_message(); return false;" id="CommandForm">
+                        <input type="text" id="msg" name="msg" size="30" autocomplete="off" />
+                        <input type="button" value="send" onclick="send_message()" id="SendButton" />
+                    </form>
                 </div>
-                <div id="contents"></div>
+                <div id="Side">
+                    <div id="NickContainer">&nbsp;</div>
+                    <div id="ChannelContainer">&nbsp;</div>
+                </div>
             </div>
-            <div id="footer">
-                <form onsubmit="send_message(); return false;">
-                    <input type="text" id="msg" name="msg" size="30" />
-                    <input type="button" value="send" onclick="send_message()" />
-                </form>
-                <div><span>mobirc - </span><span class="version"><?= $App::Mobirc::VERSION ?></span></div>
+            <div class="clear-both"></div>
+            <div id="Footer">
+                <div id="FooterBody"><span>mobirc - </span><span class="version"><?= $App::Mobirc::VERSION ?></span></div>
             </div>
         </div>
 

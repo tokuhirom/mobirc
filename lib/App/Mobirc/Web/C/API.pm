@@ -54,4 +54,17 @@ sub post_dispatch_send_msg {
     );
 }
 
+sub dispatch_channels {
+    my $channels = [
+        map {
+            +{
+                unread_lines => $_->unread_lines,
+                name         => $_->name,
+            }
+        } server->channels()
+    ];
+
+    return _render_json($channels);
+}
+
 1;
