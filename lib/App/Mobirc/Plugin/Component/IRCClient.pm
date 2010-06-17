@@ -212,7 +212,7 @@ hook 'run_component' => sub {
         },
         'part' => sub {
             my ( $irc, $who, $channel_name, $is_myself, $msg ) = @_;
-            DEBUG("PART($who, $channel_name, $is_myself, $msg)");
+            # DEBUG("PART($who, $channel_name, $is_myself, $msg)");
             $who = prefix_nick($who);
             # chop off after the gap (bug workaround of POE::Filter::IRC)
             $channel_name =~ s/ .*//;
