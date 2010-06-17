@@ -18,16 +18,6 @@
         $('#msg').focus();
     }
 
-    function send_message() {
-        if (!current_channel) { return; }
-
-        $.post(docroot + 'api/send_msg', {"channel":current_channel, "msg":($('#msg').get())[0].value}, function (html) {
-            setTimeout( function () { reload_log(); }, 1*1000 );
-
-            $('#msg').val('');
-            $('#msg').focus();
-        });
-    }
 
     // onload
     $(function () {
@@ -35,6 +25,17 @@
 
         current_channel = '*server*';
         reload_log();
+
+        $('#CommandForm').submit(function () {
+            if (!current_channel) { return; }
+
+            $.post(docroot + 'api/send_msg', {"channel":current_channel, "msg":($('#msg').get())[0].value}, function (html) {
+                setTimeout( function () { reload_log(); }, 1*1000 );
+
+                $('#msg').val('');
+                $('#msg').focus();
+            });
+        });
 
         // rebuild ChannelContaier
         (function () {

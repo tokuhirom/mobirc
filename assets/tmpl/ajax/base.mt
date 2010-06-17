@@ -25,9 +25,9 @@
             <div id="PageBody">
                 <div id="Main">
                     <div id="Log">log pain</div>
-                    <form onsubmit="send_message(); return false;" id="CommandForm">
+                    <form onsubmit=" return false;" id="CommandForm">
                         <input type="text" id="msg" name="msg" size="30" autocomplete="off" />
-                        <input type="button" value="send" onclick="send_message()" id="SendButton" />
+                        <input type="button" value="send" id="SendButton" />
                     </form>
                 </div>
                 <div id="Side">
