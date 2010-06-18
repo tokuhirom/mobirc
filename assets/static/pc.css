@@ -44,9 +44,9 @@ abbr,acronym { border:0;
 #PageBody #Main #CommandForm #SendButton { width: 9%; }
 #PageBody #Main #CombinedLog { overflow: auto; width: 100%; } 
 #PageBody #Side { padding-left: 5px; width : 25%; float: right; border-left: 1px solid #cccccc; margin-bottom: 3px; }
-#PageBody #Side #NickContainer { overflow: auto; border-bottom: 1px solid #cccccc; }
-#PageBody #Side #ChannelContainer { overflow: auto; }
-#Footer { height: 20px; width:100% ; text-align: right; font-size: xx-small; border-top: 1px solid #cccccc; }
+#PageBody #Side #NickContainer { overflow: auto; border-bottom: 1px solid #cccccc; cursor: default; -moz-user-select: none; user-select: none; -webkit-user-select: none; }
+#PageBody #Side #ChannelContainer { overflow: auto; cursor: default; -moz-user-select: none; user-select: none; -webkit-user-select: none; }
+#Footer { height: 20px; width:100% ; text-align: right; font-size: xx-small; border-top: 1px solid #cccccc; -moz-user-select: none; user-select: none; -webkit-user-select: none; }
 #Footer #FooterBody { padding-right: 10px; }
 
 #PageBody #Side .channel { margin-bottom: 2px; width: 100%; }

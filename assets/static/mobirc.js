@@ -22,7 +22,7 @@
                 var container = $('#ChannelLog');
                 container.empty();
                 for (var i=0; i<data.length; i++) {
-                    container.append(self.format_html(data[i]));
+                    container.append('<div class="log">' + self.format_html(data[i]) + '</div>');
                 }
                 $('#ChannelLog').scrollTop(10000000);
             });
@@ -31,14 +31,14 @@
         format_html: function (log, display_channel_name) {
             var keta = function (x) { x = ''+x; return x.length == 1 ? '0'+x : x; };
 
-            var html = '<div class="log"><span class="time"><span class="hour">' + keta(log.hour) + '</span><span class="colon">:</span><span class="minute">' + keta(log.minute) + '</span></span>';
+            var html = '<span class="time"><span class="hour">' + keta(log.hour) + '</span><span class="colon">:</span><span class="minute">' + keta(log.minute) + '</span></span>';
             if (display_channel_name) {
                 html += '<span class="channel">' + log.channel_name + '</span>';
             }
             if (log.who) {
                 html += '<span class="' + log.who_class + '">(' + log.who + ')</span>';
             }
-            html += '<span class="message ' + log['class'] + '">' + log.html_body + "</span></div>";
+            html += '<span class="message ' + log['class'] + '">' + log.html_body + "</span>";
             return html;
         },
         add_message: function (log) {
@@ -49,7 +49,7 @@
                 (function () {
                     var container = $('#ChannelLog');
                     self.truncate_log_pain(container, 100);
-                    container.append(self.format_html(log));
+                    container.append('<div class="log">' + self.format_html(log) + '</div>');
                     $('#ChannelLog').scrollTop(10000000);
                 })();
             } else {
@@ -57,7 +57,12 @@
                 (function() {
                     var container = $('#CombinedLog');
                     self.truncate_log_pain(container, 30);
-                    container.append(self.format_html(log, true));
+                    var channel_name = log.channel_name;
+                    var div = $(document.createElement('div')).addClass('log').append(self.format_html(log, true)).dblclick(function () {
+                        Mobirc.show_channel(channel_name);
+                    });
+
+                    container.append(div);
                     $('#CombinedLog').scrollTop(10000000);
 
                     if (log.channel_name == '*keyword*') { return; }
@@ -78,11 +83,7 @@
             if (!Mobirc.channels[name]) {
                 var div = $(document.createElement('div'))
                             .addClass('channel')
-                            .append(
-                                $(document.createElement('a'))
-                                    .attr('href', '#')
-                                    .text(name)
-                            );
+                            .text(name);
                 if (name == Mobirc.current_channel) {
                     div.addClass('current');
                 }
@@ -92,6 +93,10 @@
             if (name != Mobirc.current_channel && is_unread) {
                 Mobirc.channels[name].addClass('unread');
             }
+        },
+        show_channel: function (name) {
+            var div = Mobirc.channels[name];
+            if (div) { div.click(); }
         }
     };
 
@@ -124,12 +129,12 @@
         });
 
         // add live event
-        $('#ChannelContainer .channel a').live('click', function () {
+        $('#ChannelContainer .channel').live('click', function () {
             var channel_name = $(this).text();
 
             $('#ChannelContainer .current').removeClass('current');
-            $(this).parent().addClass('current');
-            $(this).parent().removeClass('unread').removeClass('keyword');
+            $(this).addClass('current');
+            $(this).removeClass('unread').removeClass('keyword');
 
             Mobirc.current_channel = channel_name;
             Mobirc.load_log();
