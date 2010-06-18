@@ -41,7 +41,7 @@
             html += '<span class="message ' + log['class'] + '">' + log.html_body + "</span>";
             return html;
         },
-        add_message: function (log) {
+        add_message: function (log, unread_fg) {
             var self = this;
 
             if (self.current_channel == log.channel_name) {
@@ -66,7 +66,9 @@
                     $('#CombinedLog').scrollTop(10000000);
 
                     if (log.channel_name == '*keyword*') { return; }
-                    var unread_fg = log['class'] != 'join' && log['class'] != 'part';
+                    if (log['class'] == 'join' || log['class'] == 'part') {
+                        unread_fg = false;
+                    }
                     Mobirc.update_channel_elem(log.channel_name, unread_fg);
                     if (log.is_keyword == 1) {
                         Mobirc.channels[log.channel_name].addClass('keyword');
@@ -179,11 +181,18 @@
         })();
 
         // polling
-        $.ev.loop('/tatsumaki/poll?client_id=' + Math.random(), {
-            message: function (x) {
-                Mobirc.add_message(x);
-            }
-        });
+        (function () {
+            var first_time = true;
+            $.ev.loop('/tatsumaki/poll?client_id=' + Math.random(), function (messages) {
+                for (var i = 0; i < messages.length; i++) {
+                    var m = messages[i];
+                    if (!m) continue;
+                    var unread_fg = !first_time;
+                    Mobirc.add_message(m, unread_fg);
+                }
+                first_time = false;
+            });
+        })();
     });
 
 })();
