@@ -31,12 +31,12 @@
         format_html: function (log, display_channel_name) {
             var keta = function (x) { x = ''+x; return x.length == 1 ? '0'+x : x; };
 
-            var html = '<span class="time"><span class="hour">' + keta(log.hour) + '</span><span class="colon">:</span><span class="minute">' + keta(log.minute) + '</span></span>';
+            var html = '<span class="time"><span class="hour">' + keta(log.hour) + '</span><span class="colon">:</span><span class="minute">' + keta(log.minute) + '</span></span> ';
             if (display_channel_name) {
-                html += '<span class="channel">' + log.channel_name + '</span>';
+                html += '<span class="channel">' + log.channel_name + '</span> ';
             }
             if (log.who) {
-                html += '<span class="' + log.who_class + '">(' + log.who + ')</span>';
+                html += '<span class="' + log.who_class + '">(' + log.who + ')</span> ';
             }
             html += '<span class="message ' + log['class'] + '">' + log.html_body + "</span>";
             return html;
