@@ -38,7 +38,7 @@ abbr,acronym { border:0;
 #BodyWrapper {  }
 #PageBody { overflow: hidden; } 
 #PageBody #Main { float: left; overflow: hidden; } 
-#PageBody #Main #ChannelLog { overflow: auto; width: 100%; margin-bottom: 10px; } 
+#PageBody #Main #ChannelLog { overflow: auto; width: 100%; margin-bottom: 10px; font-size: 120%; } 
 #PageBody #Main #CommandForm { width: 100%; }
 #PageBody #Main #CommandForm #msg { width: 90%; }
 #PageBody #Main #CommandForm #SendButton { width: 9%; }
@@ -58,4 +58,5 @@ abbr,acronym { border:0;
 .log .time { margin-right: 2px; }
 .log .message { margin-left: 2px; }
 .log .channel { margin-left: 2px; margin-right: 2px; }
+.log:nth-child(even) { background-color: #eeeeee; }
 
