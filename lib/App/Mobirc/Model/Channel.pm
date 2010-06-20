@@ -2,7 +2,7 @@ package App::Mobirc::Model::Channel;
 use Mouse;
 use Scalar::Util qw/blessed/;
 use Carp;
-use List::MoreUtils qw/any all/;
+use List::MoreUtils qw/any all uniq/;
 use App::Mobirc::Util;
 use App::Mobirc::Model::Message;
 use MIME::Base64::URLSafe;
@@ -44,6 +44,7 @@ has name => (
 sub join_member {
     my ($self, $nick) = @_;
     push @{$self->members}, $nick;
+    $self->members([uniq @{$self->members}]);
 }
 
 sub part_member {
