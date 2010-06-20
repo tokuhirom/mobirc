@@ -28,14 +28,12 @@
     <body>
         <div id="BodyWrapper">
             <ul id="nav">
-                <!--
                 <li>
                     <a href="#">Server</a>
                     <ul>
-                        <li><a href="#">clear all unread</a></li>
+                        <li><a href="#" id="MenuBtnClearAllUnread">clear all unread</a></li>
                     </ul>
                 </li>
-                -->
                 <li>
                     <a href="#">Help</a>
                     <ul>

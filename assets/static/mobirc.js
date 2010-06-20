@@ -200,6 +200,12 @@
             });
             return false;
         });
+        $('#MenuBtnClearAllUnread').click(function () {
+            $.post(docroot + 'api/clear_all_unread', function () {
+                $('.unread').removeClass('unread');
+            });
+            return false;
+        });
 
         // polling
         (function () {

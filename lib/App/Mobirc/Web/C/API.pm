@@ -77,4 +77,12 @@ sub dispatch_channel_log {
     return _render_json($res);
 }
 
+sub dispatch_clear_all_unread {
+    for my $channel (server->channels) {
+        $channel->clear_unread;
+    }
+
+    return _render_json([]);
+}
+
 1;
