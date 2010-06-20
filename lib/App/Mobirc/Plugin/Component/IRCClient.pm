@@ -105,7 +105,7 @@ hook process_command => sub {
               map { encode( $irc_incode, $_ ) } split /\s+/,
               $command;
 
-            $self->conn->send_srv(@_);
+            $self->conn->send_srv(@args);
         }
         else {
             DEBUG "NORMAL PRIVMSG";
