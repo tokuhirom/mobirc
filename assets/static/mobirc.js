@@ -155,29 +155,36 @@
             return false;
         });
 
-        // $('#menu').resizable();
 
         // adjust widget size
         (function () {
-            var rebuild_window = function () {
-                var win = $(window);
-                var footer = $('#Footer');
-
-                $('#Main').width($('#PageBody').width()*0.79);
-                $('#Side').width($('#PageBody').width()*0.20);
-
-                $('#PageBody').height($(document).height() - footer.height() - 3);
-                $('#ChannelLog').height(($('#PageBody').height() - $('#CommandForm').height() - 10) * 0.7);
-                $('#CombinedLog').height(($('#PageBody').height() - $('#CommandForm').height() - 10) * 0.3);
-                $('#Side').height($('#PageBody').height() - footer.height()-10);
-                $('#Side #NickContainer').height($('#Side').height() * 0.30);
-                $('#Side #ChannelContainer').height($('#Side').height() * 0.70);
+            var adjust_channel_log_pane = function () {
+                $('#ChannelLog').height($('#ChannelPane').height() - $('#CommandForm').height() - 10);
             };
-            rebuild_window();
+            var adjust_page_body_height = function () {
+                $('#PageBody').height($(document).height() - $('#Footer').height()-10);
+            };
+            adjust_page_body_height();
+            $('#PageBody').layout({
+                applyDefaultStyles: true
+                , closable: false
+            })
+            $('#Main').layout({
+                closable: false
+                , south__size: $('#PageBody').height() * 0.2
+                , onresize: function () {
+                    adjust_channel_log_pane();
+                }
+            });
+            adjust_channel_log_pane();
+            $('#Side').layout({
+                closable: false
+                , south__size: $('#PageBody').height() * 0.4
+            });
             if (Mobirc.is_ie) { // bad knowhow
-                setTimeout(rebuild_window, 100);
+                setTimeout(adjust_page_body_height, 100);
             }
-            $(window).resize(rebuild_window);
+            $(window).resize(adjust_page_body_height);
         })();
 
         // polling
@@ -193,6 +200,6 @@
                 first_time = false;
             });
         })();
+        
     });
-
 })();

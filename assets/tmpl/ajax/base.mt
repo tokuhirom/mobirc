@@ -15,7 +15,8 @@
         <script type="text/javascript" src="/static/js/jquery-ui-1.8.2.custom.min.js"></script>
         <script type="text/javascript" src="/static/js/jquery.jgrowl_minimized.js"></script>
         <script type="text/javascript" src="/static/js/jquery.ev.js"></script>
-        <script src="/static/mobirc.js?v=2" type="text/javascript"></script>
+        <script type="text/javascript" src="/static/js/jquery.layout-latest.js"></script>
+        <script src="/static/mobirc.js?v=5" type="text/javascript"></script>
 ? if (is_iphone) {
         <meta name="viewport" content="width=device-width" />
         <meta name="viewport" content="initial-scale=1.0, user-scalable=yes" />
@@ -24,17 +25,19 @@
     <body>
         <div id="BodyWrapper">
             <div id="PageBody">
-                <div id="Main">
-                    <div id="ChannelLog">log pain</div>
-                    <form onsubmit=" return false;" id="CommandForm">
-                        <input type="text" id="msg" name="msg" size="30" autocomplete="off" />
-                        <input type="button" value="send" id="SendButton" />
-                    </form>
-                    <div id="CombinedLog">combined log pain</div>
+                <div id="Main" class="ui-layout-center">
+                    <div id="ChannelPane" class="ui-layout-center">
+                        <div id="ChannelLog">log pain</div>
+                        <form onsubmit=" return false;" id="CommandForm">
+                            <input type="text" id="msg" name="msg" size="30" autocomplete="off" />
+                            <input type="button" value="send" id="SendButton" />
+                        </form>
+                    </div>
+                    <div id="CombinedLog" class="ui-layout-south">combined log pain</div>
                 </div>
-                <div id="Side">
-                    <div id="NickContainer">&nbsp;</div>
-                    <div id="ChannelContainer">&nbsp;</div>
+                <div id="Side" class="ui-layout-east">
+                    <div id="NickContainer" class="ui-layout-center">&nbsp;</div>
+                    <div id="ChannelContainer" class="ui-layout-south">&nbsp;</div>
                 </div>
             </div>
             <div class="clear-both"></div>
