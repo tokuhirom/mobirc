@@ -106,7 +106,7 @@ sub unread_lines {
     my $self = shift;
 
     return
-      scalar grep { $_->class eq "public" || $_->class eq "notice" }
+      scalar grep { ($_->class eq "public" || $_->class eq "notice") && ($_->who ne 'tiarra') }
       @{ $self->{recent_log} };
 }
 
