@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Tatsumaki;
+use Tatsumaki 0.1010;
 use Tatsumaki::Error;
 use Tatsumaki::Application;
 use Tatsumaki::MessageQueue;
