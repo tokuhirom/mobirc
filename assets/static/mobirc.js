@@ -162,7 +162,7 @@
                 $('#ChannelLog').height($('#ChannelPane').height() - $('#CommandForm').height() - 10);
             };
             var adjust_page_body_height = function () {
-                $('#PageBody').height($(document).height() - $('#Footer').height()-10);
+                $('#PageBody').height($(document).height() - $('#nav').height()-10);
             };
             adjust_page_body_height();
             $('#PageBody').layout({
@@ -186,6 +186,20 @@
             }
             $(window).resize(adjust_page_body_height);
         })();
+
+        $('#nav').droppy();
+
+        $('#MenuBtnAbout').click(function () {
+            $('#DialogAbout').dialog({
+                bgiframe: true,
+                autoOpen: true,
+                modal: true,
+                buttons: {
+                    "OK" : function () { $(this).dialog('close') }
+                }
+            });
+            return false;
+        });
 
         // polling
         (function () {
