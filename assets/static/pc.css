@@ -1,10 +1,9 @@
-
 /* page layout */
 
 .clear-both { clear: both; }
 
 #BodyWrapper { }
-#PageBody { overflow: hidden; } 
+#PageBody { overflow: hidden; clear: both; } 
 #PageBody #Main { overflow: hidden; } 
 #PageBody #Main #ChannelPane { overflow: hidden; }
 #PageBody #Main #ChannelLog { overflow: auto; width: 100%; font-size: 120%; } 
