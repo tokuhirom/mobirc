@@ -29,6 +29,12 @@
         <div id="BodyWrapper">
             <ul id="nav">
                 <li>
+                    <a href="#">Channel</a>
+                    <ul>
+                        <li><a href="#" id="MenuBtnChannelShowTopic">show topic</a></li>
+                    </ul>
+                </li>
+                <li>
                     <a href="#">Server</a>
                     <ul>
                         <li><a href="#" id="MenuBtnClearAllUnread">clear all unread</a></li>

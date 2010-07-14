@@ -85,4 +85,11 @@ sub dispatch_clear_all_unread {
     return _render_json([]);
 }
 
+sub dispatch_channel_topic {
+    my $channel_name = param('channel') or die "missing channel name";
+
+    my $channel = server->get_channel($channel_name);
+    return _render_json({topic => $channel->topic});
+}
+
 1;

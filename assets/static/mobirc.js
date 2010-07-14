@@ -162,14 +162,14 @@
                 $('#ChannelLog').height($('#ChannelPane').height() - $('#CommandForm').height() - 10);
             };
             var adjust_page_body_height = function () {
-                $('#PageBody').height($(document).height() - $('#nav').height()-10);
+                $('#PageBody').height($(document).height() - $('#nav').height() - 2);
             };
             adjust_page_body_height();
-            $('#PageBody').layout({
+            var pbLayout = $('#PageBody').layout({
                 applyDefaultStyles: true
                 , closable: false
             })
-            $('#Main').layout({
+            var mLayout = $('#Main').layout({
                 closable: false
                 , south__size: $('#PageBody').height() * 0.2
                 , onresize: function () {
@@ -177,14 +177,19 @@
                 }
             });
             adjust_channel_log_pane();
-            $('#Side').layout({
+            var sLayout = $('#Side').layout({
                 closable: false
                 , south__size: $('#PageBody').height() * 0.4
             });
             if (Mobirc.is_ie) { // bad knowhow
                 setTimeout(adjust_page_body_height, 100);
             }
-            $(window).resize(adjust_page_body_height);
+            $(window).resize(function () {
+                adjust_page_body_height();
+                setInterval(function () { pbLayout.resizeAll() }, 300);
+                setInterval(function () { sLayout.resizeAll() }, 300);
+                setInterval(function () { mLayout.resizeAll() }, 300);
+            });
         })();
 
         $('#nav').droppy();
@@ -199,6 +204,14 @@
                 }
             });
             return false;
+        });
+        $('#MenuBtnChannelShowTopic').click(function () {
+            $.getJSON(docroot + 'api/channel_topic', {
+                channel: Mobirc.current_channel
+            }, function (x) {
+                var container = $('#ChannelLog');
+                container.append('<div class="log">' + escapeHTML(x.topic) + '</div>');
+            });
         });
         $('#MenuBtnClearAllUnread').click(function () {
             $.post(docroot + 'api/clear_all_unread', function () {
