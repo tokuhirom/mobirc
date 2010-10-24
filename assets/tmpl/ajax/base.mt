@@ -13,7 +13,7 @@
         <link type="text/css" href="/static/css/ui-lightness/jquery-ui-1.8.2.custom.css" rel="stylesheet" />
         <link type="text/css" href="/static/css/jquery.jgrowl.css" rel="stylesheet" />
         <link type="text/css" href="/static/droppy/droppy.css" rel="stylesheet" />
-        <script type="text/javascript" src="/static/js/jquery-1.4.2.min.js"></script>
+        <script type="text/javascript" src="/static/js/jquery-1.4.3.min.js"></script>
         <script type="text/javascript" src="/static/js/jquery-ui-1.8.2.custom.min.js"></script>
         <script type="text/javascript" src="/static/js/jquery.jgrowl_minimized.js"></script>
         <script type="text/javascript" src="/static/js/jquery.ev.js"></script>
