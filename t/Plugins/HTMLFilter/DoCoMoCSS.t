@@ -20,6 +20,7 @@ test_he_filter {
 my $expected = <<'...';
 <html><head></head><body><a class="time" href="/" style="color:#004080;">foo</a></body></html>
 ...
+$expected =~ s/\n$//;
 
 is $got, $expected;
 
