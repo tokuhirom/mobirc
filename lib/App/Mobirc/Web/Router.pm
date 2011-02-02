@@ -18,7 +18,7 @@ my $router = router {
     connect('/iphone/'                  => { controller => 'IPhone', action => 'base' });
     connect('/iphone/:action'           => { controller => 'IPhone', });
     connect('/iphone2/'                  => { controller => 'IPhone2', action => 'base' });
-    connect('/iphone2/:action'           => { controller => 'IPhone2', });
+    connect('/iphone2/*'                 => { controller => 'IPhone2', action => 'base' });
     connect('/ajax/:action'             => { controller => 'Ajax' });
     connect('/mobile/:action'           => { controller => 'Mobile' });
     connect('/api/:action'             => { controller => 'API' });

@@ -3,6 +3,7 @@ use App::Mobirc::Web::C;
 use App::Mobirc::Util;
 use Encode;
 use JSON qw/encode_json/;
+use List::MoreUtils qw(any);
 
 sub _render_json {
     my $stuff = shift;
@@ -43,7 +44,7 @@ sub post_dispatch_send_msg {
     my $channel = param('channel') || die "missing channel";
     my $message = param('msg');
 
-    DEBUG "POST MESSAGE $message";
+    DEBUG "POST MESSAGE '$message'";
 
     server->get_channel($channel)->post_command($message);
 
@@ -55,16 +56,19 @@ sub post_dispatch_send_msg {
 }
 
 sub dispatch_channels {
-    my $channels = [
+    my $favorites = ' ' . join(' ', split /\s*,\s*/, lc(config->{global}->{favorites} || '')) . ' ';
+    my $channels  = [ sort { -($favorites =~ quotemeta(lc $a->name)) <=> -($favorites =~ quotemeta(lc $b->name)) } server->channels_sorted ];
+
+    my $mangled = [
         map {
             +{
                 unread_lines => $_->unread_lines,
                 name         => $_->name,
             }
-        } server->channels()
+        } grep { $_ } @$channels
     ];
 
-    return _render_json($channels);
+    return _render_json($mangled);
 }
 
 
@@ -73,6 +77,15 @@ sub dispatch_channel_log {
 
     my $channel = server->get_channel($channel_name);
     my $res = [map { $_->as_hashref } $channel->message_log];
+    for my $row (@$res) {
+        if (any { $row->{message} eq $_ } $channel->recent_log) {
+            DEBUG "FRESH";
+            $row->{is_new} = 1;
+        } else {
+            $row->{is_new} = 0;
+        }
+    }
+    DEBUG "channel log: @$res";
     $channel->clear_unread();
     return _render_json($res);
 }
