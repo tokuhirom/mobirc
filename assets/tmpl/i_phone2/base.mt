@@ -7,7 +7,7 @@
         <meta name="robots" content="noindex,nofollow" />
         <!-- <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" /> -->
         <title>mobirc</title>
-        <script src="/static/jquery.js" type="text/javascript"></script>
+        <script src="/static/jquery-1.5.min.js" type="text/javascript"></script>
         <script src="/static/jquery.form.js" type="text/javascript"></script>
         <script src="/static/jqtouch/jqtouch.min.js" type="application/x-javascript" charset="utf-8"></script>
         <link rel="stylesheet" type="text/css" media="screen" href="/static/jqtouch/jqtouch.min.css" />
