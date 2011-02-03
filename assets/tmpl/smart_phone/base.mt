@@ -8,10 +8,10 @@
         <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
         <title>mobirc</title>
         <link rel="stylesheet" href="/static/jquery.mobile-1.0a1.min.css" />
-        <link rel="stylesheet" href="/static/iphon2.css" />
+        <link rel="stylesheet" href="/static/iphone2.css" />
         <script src="/static/jquery-1.5.min.js" type="text/javascript"></script>
         <script src="/static/jquery.mobile-1.0a2.min.js" type="application/x-javascript" charset="utf-8"></script>
-        <script src="/static/iphone2.js" type="application/x-javascript" charset="utf-8"></script>
+        <script src="/static/iphone2.js?v=4" type="application/x-javascript" charset="utf-8"></script>
     </head>
     <body>
         <!-- This view only supports latest webkit, especially iPhone -->

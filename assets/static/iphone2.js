@@ -42,26 +42,26 @@
         $.ajax({
             url: docroot + 'api/channels',
             cache: false,
-            error: function () { alert("ERROR") },
+            error: function () { alert("ERROR"); },
             success: function (x) {
                 var container = $('#ChannelList');
                 container.find('li.channel').remove();
                 for (var i=0; i<x.length; i++) {
-                    var name = x[i].name;
-                    var a = $('<a />').text(x[i].name).click(function () {
-                        $.mobile.changePage({
-                            url: '#channel',
-                            data: encodeURIComponent(name),
-                            type: "get",
-                        }, 'slide', false, true);
-                        return false;
-                    });
-                    var span = $('<span />', {
-                        class: 'ui-li-count',
-                    }).text(x[i].unread_lines);
-                    container.append(
-                        $('<li />', {class: "channel"}).append(a).append(span)
-                    );
+                    (function () {
+                        var name = x[i].name;
+                        var a = $('<a />').text(x[i].name).click(function () {
+                            $.mobile.changePage({
+                                url: '#channel',
+                                data: encodeURIComponent(name),
+                                type: "get"
+                            }, 'slide', false, true);
+                            return false;
+                        });
+                        var span = $('<span class="ui-li-count" />').text(x[i].unread_lines);
+                        container.append(
+                            $('<li class="channel" />').append(a).append(span)
+                        );
+                    })();
                 }
                 container.listview('refresh');
             }
@@ -95,14 +95,13 @@
                 data: $(this).serialize(),
                 url: docroot + 'api/send_msg',
                 success: function () {
-                    console.log("OK");
                     $.mobile.pageLoading(true);
                     elem.find('input[type="text"]').val('');
                     update_channel_log(elem.find('input[type="hidden"]').val());
                     return false;
                 },
                 error: function () {
-                    console.log("fail");
+                    alert("fail");
                 },
             });
             return false;
@@ -115,7 +114,6 @@
                 cache: false,
                 type: 'post',
                 success: function (data) {
-                    console.log(data);
                     data = data.reverse();
                     var show_log = tmpl("tmpl_channel_log"), html = "";
                     for ( var i = 0; i < data.length; i++ ) {
@@ -130,18 +128,19 @@
         var change = function () {
             var x = location.hash.split(/\?/)
             if (x[0] == '#channel') {
-                var channel_name = x[1];
-                console.log("CHANNEL NAME IS: " + channel_name);
-                $('#channel h1').text(channel_name)
-                $('#channel input[type="hidden"]').val(channel_name);
-                update_channel_log(channel_name);
+                var channel_name = decodeURIComponent(x[1]);
+                if (channel_name.length > 0) {
+                    $('#channel h1').text(channel_name)
+                    $('#channel input[type="hidden"]').val(channel_name);
+                    update_channel_log(channel_name);
+                } else {
+                    updateChannelList();
+                }
             } else {
-                console.log('update channel list');
                 updateChannelList();
             }
         };
         $('div').live('pageshow',function(event, ui){
-            console.log("pageshow event");
             change();
             return true;
         });
