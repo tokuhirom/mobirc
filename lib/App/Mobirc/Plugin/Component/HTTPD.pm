@@ -56,6 +56,14 @@ hook run_component => sub {
         builder => sub { Plack::Middleware::ReverseProxy->wrap( $_[0] ) }
     );
 
+    # logging
+    if ($ENV{DEBUG}) {
+        require Plack::Middleware::AccessLog;
+        $app = Plack::Middleware::AccessLog->wrap(
+            $app,
+        );
+    }
+
     # apply middleares by user's configuration
     my $middlewares = Data::OptList::mkopt($self->middlewares);
     for my $row (@$middlewares) {
