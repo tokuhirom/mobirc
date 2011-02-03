@@ -4,7 +4,7 @@
 
 <div class="TopMenu">
     <ul>
-        <? for (qw/mobile ajax mobile-ajax iphone android iphone2/) { ?>
+        <? for (qw/mobile ajax smartphone/) { ?>
             <li><a href="/<?= $_ ?>/"><?= $_ ?></a></li>
         <? } ?>
     </ul>

@@ -1,5 +1,5 @@
-?= xml_header()
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!doctype html>
+<html>
     <head>
         <meta http-equiv="Content-Type"  content="text/html; charset=UTF-8" />
         <meta http-equiv="Cache-Control" content="max-age=0" />
@@ -20,10 +20,6 @@
         <script type="text/javascript" src="/static/js/jquery.layout-latest.js"></script>
         <script type="text/javascript" src="/static/droppy/jquery.droppy.js"></script>
         <script src="/static/mobirc.js?v=5" type="text/javascript"></script>
-? if (is_iphone) {
-        <meta name="viewport" content="width=device-width" />
-        <meta name="viewport" content="initial-scale=1.0, user-scalable=yes" />
-? }
     </head>
     <body>
         <div id="BodyWrapper">

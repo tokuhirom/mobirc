@@ -1,4 +1,4 @@
-package App::Mobirc::Web::C::IPhone2;
+package App::Mobirc::Web::C::SmartPhone;
 use App::Mobirc::Web::C;
 use App::Mobirc::Util;
 

@@ -55,6 +55,7 @@
             } else {
                 // insert to combined-log pain
                 (function() {
+                    console.log("update combined-log pain");
                     var container = $('#CombinedLog');
                     self.truncate_log_pain(container, 30);
                     var channel_name = log.channel_name;
