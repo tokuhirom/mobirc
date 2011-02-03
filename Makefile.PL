@@ -55,7 +55,6 @@ requires 'CSS::Tiny'             => '1.15';
 requires 'Data::OptList'         => '0.105';
 requires 'Params::Util'; # for Data::OptList
 requires 'Data::Recursive::Encode';
-requires 'Text::VisualWidth::PP' => 0.01;
 
 features(
     'Irssi' => [

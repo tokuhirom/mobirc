@@ -8,7 +8,6 @@ use App::Mobirc::Pictogram ();
 use Path::Class;
 use URI::Escape qw/uri_escape/;
 use App::Mobirc::Web::Base;
-use Text::VisualWidth::PP;
 
 *encoded_string = *Text::MicroTemplate::encoded_string;
 sub pictogram { encoded_string(App::Mobirc::Pictogram::pictogram(@_)) }
@@ -49,8 +48,5 @@ sub strip_nl (&) {
         s/[\r\n]//g;
     })->($code);
 }
-
-sub visual_width { Text::VisualWidth::PP::width(@_) }
-sub visual_trim { Text::VisualWidth::PP::trim(@_) }
 
 1;
