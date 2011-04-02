@@ -2762,6 +2762,7 @@ $.widget( "mobile.page", $.mobile.widget, {
 
 		//if listening is disabled (either globally or temporarily), or it's a dialog hash
 		if( !$.mobile.hashListeningEnabled || !urlHistory.ignoreNextHashChange ){
+            console.log("HHHHHH");
 			if( !urlHistory.ignoreNextHashChange ){
 				urlHistory.ignoreNextHashChange = true;
 			}
@@ -5093,6 +5094,7 @@ $.fn.grid = function(options){
 			$.mobile.pageLoading();
 
 			// if hashchange listening is disabled or there's no hash deeplink, change to the first page in the DOM
+            /* COMMENT OUTED BY tokuhirom
 			if( !$.mobile.hashListeningEnabled || !$.mobile.path.stripHash( location.hash ) ){
 				$.mobile.changePage( $.mobile.firstPage, false, true, false, true );
 			}
@@ -5100,6 +5102,8 @@ $.fn.grid = function(options){
 			else {
 				$window.trigger( "hashchange", [ true ] );
 			}
+            */
+            $window.trigger( "hashchange", [ true ] );
 		}
 	});
 

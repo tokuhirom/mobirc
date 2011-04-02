@@ -44,7 +44,7 @@ sub post_dispatch_send_msg {
     my $channel = param('channel') || die "missing channel";
     my $message = param('msg');
 
-    DEBUG "POST MESSAGE '$message'";
+    DEBUG "POST MESSAGE '$message' for '$channel'";
 
     server->get_channel($channel)->post_command($message);
 

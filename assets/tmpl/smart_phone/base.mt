@@ -7,17 +7,17 @@
         <meta name="robots" content="noindex,nofollow" />
         <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
         <title>mobirc</title>
-        <link rel="stylesheet" href="/static/jquery.mobile-1.0a1.min.css" />
+        <link rel="stylesheet" href="/static/jquery.mobile-1.0a4.css" />
         <link rel="stylesheet" href="/static/iphone2.css" />
         <script src="/static/jquery-1.5.min.js" type="text/javascript"></script>
-        <script src="/static/jquery.mobile-1.0a2.min.js" type="application/x-javascript" charset="utf-8"></script>
         <script src="/static/iphone2.js?v=4" type="application/x-javascript" charset="utf-8"></script>
+        <script src="/static/jquery.mobile-1.0a4.js" type="application/x-javascript" charset="utf-8"></script>
     </head>
     <body>
         <!-- This view only supports latest webkit, especially iPhone -->
 
         <div data-role="page" id="index">
-            <div data-role="header">
+            <div data-role="header" data-backbtn="false">
                 <h1>Menu</h1>
                 <a href="#about" class="ui-btn-right ui-btn ui-btn-icon-right ui-btn-corner-all ui-shadow ui-btn-down-b ui-btn-up-b" data-theme="b"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">about</span></span></a>
             </div>
@@ -42,7 +42,8 @@
         </div>
 
         <div data-role="page" id="channel">
-            <div data-role="header">
+            <div data-role="header" data-backbtn="false">
+                <a href="#index" data-icon="arrow-l">Back</a>
                 <h1 id="ChannelName" class="ChannelName">channel name here</h1>
             </div>
             <div data-role="content">
