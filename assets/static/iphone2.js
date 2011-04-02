@@ -119,14 +119,26 @@ ChannelListViewController.setup = function () {
         console.log("loaded channels");
         var container = $('ul#ChannelList');
         var removed_elements = container.find('li.channel').remove(); // remove last channe list
-        for (var i=0, max=x.length; i<max; i++) {
+        var i=0,
+            max=x.length;
+        setTimeout(
+            function () {
+                push_elem(i);
+                ++i;
+                if (i==max) {
+                    container.listview('refresh');
+                } else {
+                    setTimeout(arguments.callee, 1);
+                }
+            }, 0
+        );
+        function push_elem(i) {
             var a = $('<a />').text(x[i].name).attr('href', '#channel?' + encodeURIComponent(x[i].name));
             var span = $('<span class="ui-li-count" />').text(x[i].unread_lines);
             container.append(
                 $('<li class="channel" />').append(a).append(span)
             );
         }
-        container.listview('refresh');
     }).error(function () {
         alert("ERROR");
     });
