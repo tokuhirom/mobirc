@@ -9,7 +9,7 @@
         <title>mobirc</title>
         <link rel="stylesheet" href="/static/jquery.mobile-1.0a4.css" />
         <link rel="stylesheet" href="/static/iphone2.css" />
-        <script src="/static/jquery-1.5.min.js" type="text/javascript"></script>
+        <script src="/static/jquery-1.5.2.min.js" type="text/javascript"></script>
         <script src="/static/iphone2.js?v=4" type="application/x-javascript" charset="utf-8"></script>
         <script src="/static/jquery.mobile-1.0a4.js" type="application/x-javascript" charset="utf-8"></script>
     </head>
