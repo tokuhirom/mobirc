@@ -1,4 +1,5 @@
 package HTTP::Session::State::Cookie;
+use strict;
 use HTTP::Session::State::Base;
 use Carp ();
 use Scalar::Util ();

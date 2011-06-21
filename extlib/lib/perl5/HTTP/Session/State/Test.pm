@@ -1,4 +1,5 @@
 package HTTP::Session::State::Test;
+use strict;
 use HTTP::Session::State::Base;
 
 __PACKAGE__->mk_ro_accessors(qw/session_id/);

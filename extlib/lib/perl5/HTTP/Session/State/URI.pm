@@ -1,4 +1,5 @@
 package HTTP::Session::State::URI;
+use strict;
 use HTTP::Session::State::Base;
 use HTML::StickyQuery;
 use HTTP::Session::State::Mixin::ResponseFilter qw/response_filter/;

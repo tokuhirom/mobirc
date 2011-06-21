@@ -1,4 +1,5 @@
 package HTTP::Session::State::Null;
+use strict;
 use HTTP::Session::State::Base;
 
 sub get_session_id  { }
