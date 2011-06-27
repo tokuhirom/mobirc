@@ -7,7 +7,7 @@
 
         <meta name="robots" content="noindex,nofollow" />
         <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-        <script src="/static/jquery-1.5.min.js" type="text/javascript"></script>
+        <script src="/static/js/jquery-1.6.1.min.js" type="text/javascript"></script>
         <link rel="stylesheet" href="/static/android.css" type="text/css" />
         <title>Mobirc</title>
     </head>
