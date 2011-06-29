@@ -1,6 +1,6 @@
 ? wrap {
 
-<h1 class="title"><img src="/static/logo.gif" alt="mobirc" /></h1>
+<h1 class="title"><img src="/static/logo.gif" alt="mobirc" width="164" height="51" /></h1>
 
 <div class="TopMenu">
     <ul>
