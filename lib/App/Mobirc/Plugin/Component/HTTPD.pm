@@ -64,14 +64,14 @@ hook run_component => sub {
         $app = $module->wrap($app, %$conf);
     }
 
+    print "running your httpd at http://localhost:@{[ $self->port ]}/\n";
+
     # load and run Server
     Plack::Loader->load(
         'Twiggy',
         port => $self->port,
         host => $self->address
     )->run($app);
-
-    print "running your httpd at http://localhost:@{[ $self->port ]}/\n";
 };
 
 no Mouse;
