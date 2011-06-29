@@ -1,14 +1,4 @@
 (function () {
-    $.jQTouch({
-        icon: 'jqtouch.png',
-        statusBar: 'black-translucent',
-        preloadImages: [
-            '/static/jqtouch/themes/jqt/img/chevron.png',
-            '/static/jqtouch/themes/jqt/img/back_button_clicked.png',
-            '/static/jqtouch/themes/jqt/img/button_clicked.png'
-        ]
-    });
-
     function ts() { return (new Date()).getTime(); }
     Mobirc = {
         "bind" : function (selector, callback) {
@@ -62,8 +52,36 @@
                 }
             );
         },
-        "initialize": function () {
-            Mobirc.updateChannelList();
+        showPage: function (id) { // id includes header '#'
+            $('body > div').hide();
+            $(id).show();
+
+            Mobirc.dispatch(id);
+        },
+        initialize: function () {
+            var page = '#menu';
+            if (location.hash.match(/^#[a-z0-9_-]+$/)) {
+                page = location.hash;
+            }
+            Mobirc.showPage(page);
+
+            $('a').live('click', function () {
+                var href = $(this).attr('href');
+                Mobirc.showPage(href);
+                location.href=href;
+                return false;
+            });
+        },
+        dispatch: function (id) {
+            var code = Mobirc.dispatchMap[id.replace(/^#/, '')];
+            if (code) {
+                code();
+            }
+        },
+        dispatchMap: {
+            menu: function () {
+                Mobirc.updateChannelList();
+            }
         }
     };
     $(function () {
