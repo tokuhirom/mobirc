@@ -1,12 +1,19 @@
 (function () {
     function ts() { return (new Date()).getTime(); }
     Mobirc = {
+        showLoading: function () {
+            $('#loading').show();
+        },
+        hideLoading: function () {
+            $('#loading').hide();
+        },
         "bind" : function (selector, callback) {
             $(selector).bind("click", callback);
             $(selector).bind("tap",   callback);
         },
         "updateChannelList": function () {
             $('#contents').hide();
+            Mobirc.showLoading();
             $('#menu').load(
                 docroot + 'iphone2/menu?t=' + ts(),
                 '',
@@ -14,7 +21,6 @@
                     Mobirc.bind('#menu .channel a', function () {
                         var elem = $(this);
                         elem.addClass('active');
-                        $('#loading').show();
                         Mobirc.loadContent(elem.text());
                         return false;
                     });
@@ -22,6 +28,7 @@
                         Mobirc.updateChannelList();
                     });
                     Mobirc.bind('#ClearAllUnread', function() {
+                        Mobirc.showLoading();
                         $.post(
                             '/iphone2/clear_all_unread',
                             '',
@@ -30,10 +37,13 @@
                             }
                         );
                     });
+
+                    Mobirc.hideLoading();
                 }
             );
         },
         "loadContent": function (channel) {
+            Mobirc.showLoading();
             $('#contents').load(
                 docroot + 'iphone2/channel?channel=' + encodeURIComponent(channel) + '&t=' + ts(),
                 '',
@@ -51,7 +61,8 @@
                         Mobirc.updateChannelList();
                         return false;
                     });
-                    $('#loading').hide();
+
+                    Mobirc.hideLoading();
                 }
             );
         },
