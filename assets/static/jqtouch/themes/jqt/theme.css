@@ -172,7 +172,7 @@ ul li a.active, ul li a.button {
     color: #fff;
 }
 ul li a.active.loading {
-    background-image: url(img/loading.gif);
+    background-image: url(/static/jqtouch/themes/jqt/img/loading.gif);
     background-position: 95% center;
     background-repeat: no-repeat;
 }

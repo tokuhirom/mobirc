@@ -9,7 +9,7 @@
         <title>mobirc</title>
         <script src="/static/js/jquery-1.6.1.min.js" type="text/javascript"></script>
         <link rel="stylesheet" type="text/css" media="screen" href="/static/jqtouch/jqtouch.min.css" />
-        <link rel="stylesheet" type="text/css" media="screen" href="/static/jqtouch/themes/jqt/theme.min.css" />
+        <link rel="stylesheet" type="text/css" media="screen" href="/static/jqtouch/themes/jqt/theme.css" />
         <link rel="stylesheet" type="text/css" media="screen" href="/static/iphone2.css" />
         <script src="/static/jquery.form.js" type="text/javascript" charset="utf-8"></script>
         <script src="/static/iphone2.js" type="text/javascript" charset="utf-8"></script>
@@ -36,6 +36,10 @@
             </div>
             <span>mobirc version </span><span class="version"><?= $App::Mobirc::VERSION ?></span><br />
             Maintained by tokuhirom<br />
+        </div>
+
+        <div style="display:none" id="loading">
+            <img class="ui-icon-loading" src="/static/ajax-loader.png" width="40" height="40" />
         </div>
 
         <?# TODO: move this part to Plugin::DocRoot ?>

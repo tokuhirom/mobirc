@@ -13,6 +13,8 @@
                 function () {
                     Mobirc.bind('#menu .channel a', function () {
                         var elem = $(this);
+                        elem.addClass('active');
+                        $('#loading').show();
                         Mobirc.loadContent(elem.text());
                         return false;
                     });
@@ -49,6 +51,7 @@
                         Mobirc.updateChannelList();
                         return false;
                     });
+                    $('#loading').hide();
                 }
             );
         },

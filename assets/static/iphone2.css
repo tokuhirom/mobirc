@@ -202,35 +202,35 @@ img.loading {
 	color: #fff;
 }
 
-/* HatenaStar4Android */
-.hatena-star-star-container {
-	cursor: pointer;
-}
-
-.hatena-star-star {
-	display: inline-block !important;
-	width: 11px !important;
-	height: 10px !important;
-	background: url('http://s.hatena.ne.jp/images/star.gif') !important;
-}
-
-.hatena-star-star.temp {
-	background: url('http://s.hatena.ne.jp/images/star-temp.gif') !important;
-}
-.hatena-star-star.green {
-	background: url('http://s.hatena.ne.jp/images/star-green.gif') !important;
-}
-.hatena-star-star.red {
-	background: url('http://s.hatena.ne.jp/images/star-red.gif') !important;
-}
-.hatena-star-star.blue {
-	background: url('http://s.hatena.ne.jp/images/star-blue.gif') !important;
-}
-.hatena-star-star.purple {
-	background: url('http://s.hatena.ne.jp/images/star-purple.gif') !important;
-}
-
 #RefreshMenuContainer {
     margin: 5px;
+}
+
+#loading {
+    border: 1px solid       #2A2A2A;
+    background-color: #666;
+
+    -moz-border-radius: 9px;
+    -webkit-border-radius: 9px;
+    border-radius: 9px;
+
+    top: 20px;
+    width: 100px;
+    height: 80px;
+    right: 100px;
+
+    text-align: center;
+
+    margin: auto;
+    text-align: center;
+    position: absolute;
+
+    -moz-opacity: 0.95;
+    -webkit-opacity: 0.95;
+    opacity: 0.95;
+}
+
+#loading .ui-icon-loading {
+    padding-top: 20px;
 }
 
