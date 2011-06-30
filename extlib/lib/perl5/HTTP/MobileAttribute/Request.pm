@@ -19,7 +19,7 @@ sub new {
         $impl_class = join("::", __PACKAGE__, "Env");
     } elsif (blessed($stuff)) {
         # or, if it's blessed, check if they are of appropriate types
-        foreach my $pkg qw(Apache HTTP::Headers APR::Table) {
+        for my $pkg (qw(Apache HTTP::Headers APR::Table)) {
             if ($stuff->isa($pkg)) {
                 $impl_class = join("::", __PACKAGE__, $pkg);
                  # XXX Hack. Will only work for HTTPHeaders & APRTable
