@@ -7,11 +7,11 @@
         hideLoading: function () {
             $('#loading').hide();
         },
-        "bind" : function (selector, callback) {
+        bind: function (selector, callback) {
             $(selector).bind("click", callback);
             $(selector).bind("tap",   callback);
         },
-        "updateChannelList": function () {
+        updateChannelList: function () {
             $('#contents').hide();
             Mobirc.showLoading();
             $('#menu').load(
@@ -41,7 +41,7 @@
                 }
             );
         },
-        "loadContent": function (channel) {
+        loadContent: function (channel) {
             Mobirc.showLoading();
             $('#contents').load(
                 docroot + 'iphone2/channel?channel=' + encodeURIComponent(channel) + '&t=' + ts(),
