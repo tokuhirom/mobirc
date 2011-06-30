@@ -28,7 +28,6 @@
                         Mobirc.updateChannelList();
                     });
                     Mobirc.bind('#ClearAllUnread', function() {
-                        Mobirc.showLoading();
                         $.post(
                             '/iphone2/clear_all_unread',
                             '',
