@@ -43,7 +43,7 @@
                 <li class="arrow channel">
                     <a href="#">{{html $value.name }}</a>
                     {{if $value.unread_lines}}
-                        <small class="counter">{{$value.unread_lines}}</small>
+                        <small class="counter">${$value.unread_lines}</small>
                     {{/if}}
                 </li>
                 {{/each}}
