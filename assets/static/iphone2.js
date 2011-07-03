@@ -1,5 +1,6 @@
 (function () {
-    function ts() { return (new Date()).getTime(); }
+    $.ajaxSetup({cache: false});
+
     Mobirc = {
         showLoading: function () {
             $('#loading').show();
@@ -15,7 +16,7 @@
             $('#contents').hide();
 
             Mobirc.showLoading();
-            var url = docroot + 'api/channels?t=' + ts();
+            var url = docroot + 'api/channels';
             $.ajax({
                 url: url,
             }).error(function () {
@@ -38,7 +39,7 @@
         loadContent: function (channel) {
             Mobirc.showLoading();
             $('#contents').load(
-                docroot + 'iphone2/channel?channel=' + encodeURIComponent(channel) + '&t=' + ts(),
+                docroot + 'iphone2/channel?channel=' + encodeURIComponent(channel),
                 '',
                 function() {
                     Mobirc.showPage('#contents');
