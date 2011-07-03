@@ -56,7 +56,7 @@
         <div id="about" style="display:none">
             <div class="toolbar">
                 <h1>about mobirc</h1>
-                <a class="button slideup" id="goMenuButton" href="#menu">Menu</a>
+                <a class="button slideup" href="#menu">Menu</a>
             </div>
             <span>mobirc version </span><span class="version"><?= $App::Mobirc::VERSION ?></span><br />
             Maintained by tokuhirom<br />

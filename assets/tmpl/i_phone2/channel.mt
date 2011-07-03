@@ -8,10 +8,9 @@
     <a class="button slideup" id="goMenuButton" href="#menu">Menu</a>
 </div>
 
-<form action='/iphone2/channel' method='post' id="input">
+<form id="input">
     <div class="input">
-        <input type="hidden" name="channel" value="<?= $channel->name ?>" />
-        <input value="<?= $msg ?>" type="text" name="msg" size="10" class="text" />
+        <input id="MessageBox" value="<?= $msg ?>" type="text" name="msg" size="10" class="text" />
     </div>
 </form>
 

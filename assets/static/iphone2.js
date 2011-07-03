@@ -1,7 +1,25 @@
+// http://d.hatena.ne.jp/amachang/20100917/1284700700
+function assert(condition, opt_message) {
+    if (!condition) {
+
+        if (window.console) {
+
+            console.log('Assertion Failure');
+            if (opt_message) console.log('Message: ' + opt_message);
+
+            if (console.trace) console.trace();
+            if (Error().stack) console.log(Error().stack);
+        }
+
+        debugger;
+    }
+}
+
 (function () {
     $.ajaxSetup({cache: false});
 
     Mobirc = {
+        latestPost: '',
         showLoading: function () {
             $('#loading').show();
         },
@@ -29,7 +47,7 @@
                 Mobirc.bind('#menu .channel a', function () {
                     var elem = $(this);
                     elem.addClass('active');
-                    Mobirc.loadContent(elem.text());
+                    Mobirc.showPage('#channel/' + encodeURIComponent(elem.text()));
                     return false;
                 });
 
@@ -42,22 +60,26 @@
                 docroot + 'iphone2/channel?channel=' + encodeURIComponent(channel),
                 '',
                 function() {
-                    Mobirc.showPage('#contents');
+                    $('#input').bind('submit', function() {
+                        var msgbox = $('#MessageBox');
+                        var msg = msgbox.val();
+                        var posthash = channel + "\0" + msg;
+                        if (Mobirc.latestPost != posthash) {
+                            $.ajax({
+                                type: 'POST',
+                                url: docroot + 'api/send_msg',
+                                data: {
+                                    channel: channel,
+                                    msg:     msg
+                                }
+                            }).success(function () {
+                                Mobirc.loadContent(channel); // reload
+                            });
 
-                    $('#input').ajaxForm(function () {
-                        Mobirc.loadContent(channel);
-                    });
-                    Mobirc.bind('#goMenuButton', function() {
-                        Mobirc.showPage('#menu');
-
-                        Mobirc.updateChannelList();
-                        return false;
-                    });
-                    Mobirc.bind('#showChannelList', function() {
-                        Mobirc.showPage('#menu');
-
-                        Mobirc.updateChannelList();
-                        return false;
+                            Mobirc.latestPost = posthash;
+                        }
+                        msgbox.val('');
+                        return false; // <-- important!
                     });
 
                     Mobirc.hideLoading();
@@ -65,10 +87,23 @@
             );
         },
         showPage: function (id) { // id includes header '#'
-            $('body > div').hide();
-            $(id).show();
-
-            Mobirc.dispatch(id);
+            // dispatch code
+            if (id == '#menu') {
+                $('body > div').hide();
+                Mobirc.updateChannelList();
+                $(id).show();
+            } else if (id == '#about') {
+                $('body > div').hide();
+                $('#about').show();
+            } else if (id.match(/^#channel\/(.+)$/)) {
+                var channel = id.match(/^#channel\/(.+)$/)[1];
+                $('body > div').hide();
+                $('#contents').show();
+                Mobirc.loadContent(decodeURIComponent(channel));
+            } else {
+                console.debug('Unknown page id: ' + id);
+            }
+            location.hash=id;
         },
         initialize: function () {
             Mobirc.bind('#RefreshMenu', function() {
@@ -76,7 +111,7 @@
             });
             Mobirc.bind('#ClearAllUnread', function() {
                 $.post(
-                    '/iphone2/clear_all_unread',
+                    docroot + 'iphone2/clear_all_unread',
                     '',
                     function () {
                         Mobirc.updateChannelList();
@@ -85,7 +120,7 @@
             });
 
             var page = '#menu';
-            if (location.hash.match(/^#[a-z0-9_-]+$/)) {
+            if (location.hash.match(/^#.+$/)) {
                 page = location.hash;
             }
             Mobirc.showPage(page);
@@ -96,17 +131,6 @@
                 location.href=href;
                 return false;
             });
-        },
-        dispatch: function (id) {
-            var code = Mobirc.dispatchMap[id.replace(/^#/, '')];
-            if (code) {
-                code();
-            }
-        },
-        dispatchMap: {
-            menu: function () {
-                Mobirc.updateChannelList();
-            }
         }
     };
     $(function () {
