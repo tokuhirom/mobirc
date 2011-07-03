@@ -11,7 +11,6 @@
         <link rel="stylesheet" type="text/css" media="screen" href="/static/jqtouch/jqtouch.min.css" />
         <link rel="stylesheet" type="text/css" media="screen" href="/static/jqtouch/themes/jqt/theme.css" />
         <link rel="stylesheet" type="text/css" media="screen" href="/static/iphone2.css" />
-        <script src="/static/jquery.form.js" type="text/javascript" charset="utf-8"></script>
         <script src="/static/js/jquery.tmpl.min.js" type="text/javascript" charset="utf-8"></script>
         <script src="/static/iphone2.js" type="text/javascript" charset="utf-8"></script>
         <style type="text/css" media="screen">
