@@ -30,20 +30,6 @@ sub dispatch_channel {
     return $res;
 }
 
-sub post_dispatch_channel {
-    my $channel = param('channel');
-    my $message = param('msg');
-    DEBUG "post '$channel' '$message'";
-
-    server->get_channel($channel)->post_command($message);
-
-    Plack::Response->new(
-        200,
-        ['Content-Type' => 'text/plain'],
-        'ok',
-    );
-}
-
 sub dispatch_menu {
     render();
 }
@@ -52,18 +38,6 @@ sub dispatch_keyword {
     my $res = render();
     server->keyword_channel->clear_unread();
     return $res;
-}
-
-sub dispatch_clear_all_unread {
-    for my $channel (server->channels) {
-        $channel->clear_unread;
-    }
-
-    Plack::Response->new(
-        200,
-        ['Content-Type' => 'text/plain'],
-        'ok',
-    );
 }
 
 1;

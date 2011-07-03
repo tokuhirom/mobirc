@@ -111,7 +111,7 @@ function assert(condition, opt_message) {
             });
             Mobirc.bind('#ClearAllUnread', function() {
                 $.post(
-                    docroot + 'iphone2/clear_all_unread',
+                    docroot + 'api/clear_all_unread',
                     '',
                     function () {
                         Mobirc.updateChannelList();
