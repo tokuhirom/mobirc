@@ -41,6 +41,13 @@ function assert(condition, opt_message) {
                 alert("AJAX error");
             }).success(function (dat) {
                 console.log(dat);
+                dat.sort(function (a, b) {
+                    if (a.unread_lines < b.unread_lines)
+                        return -1;
+                    if (a.unread_lines > b.unread_lines)
+                        return -1;
+                    return 0;
+                });
                 $('#ChannelList').empty();
                 $('#ChannelListTmpl').tmpl({channels:dat}).appendTo('#ChannelList');
 
