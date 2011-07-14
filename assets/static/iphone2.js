@@ -135,9 +135,13 @@ function assert(condition, opt_message) {
 
             $('a').live('click', function () {
                 var href = $(this).attr('href');
-                Mobirc.showPage(href);
-                location.href=href;
-                return false;
+                if (href.match(/^https?:/)) {
+                    return true;
+                } else {
+                    Mobirc.showPage(href);
+                    location.href=href;
+                    return false;
+                }
             });
         }
     };
