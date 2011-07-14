@@ -63,6 +63,7 @@ function assert(condition, opt_message) {
         },
         loadContent: function (channel) {
             Mobirc.showLoading();
+            $('#contents').html('Now loading ' + $(document.createElement('span')).text(channel).html());
             $('#contents').load(
                 docroot + 'iphone2/channel?channel=' + encodeURIComponent(channel),
                 '',
