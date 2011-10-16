@@ -41,6 +41,13 @@ has name => (
     required => 1,
 );
 
+# last updated time
+has mtime => (
+    is => 'rw',
+    isa => 'Int',
+    default => sub { 0 },
+);
+
 sub join_member {
     my ($self, $nick) = @_;
     push @{$self->members}, $nick;
@@ -71,6 +78,7 @@ sub add_message {
          && (all { $message->body !~ /$_/i } @{global_context->config->{global}->{stopwords} || ["\0"]})) {
             App::Mobirc::Model::Channel->update_keyword_buffer($message);
         }
+        $self->mtime(time());
     }
 
     # send to tatsumaki queue

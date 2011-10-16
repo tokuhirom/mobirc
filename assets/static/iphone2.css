@@ -37,6 +37,10 @@ a:link {
 	color: #fff;
 }
 
+#ChannelList {
+    padding-bottom: 30px;
+}
+
 ol.channels {
 	margin: 0;
 	padding: 0;

@@ -44,6 +44,7 @@
                     {{if $value.unread_lines}}
                         <small class="counter">${$value.unread_lines}</small>
                     {{/if}}
+                        ${$value.mtime}
                 </li>
                 {{/each}}
             </ul>

@@ -40,12 +40,19 @@ function assert(condition, opt_message) {
             }).error(function () {
                 alert("AJAX error");
             }).success(function (dat) {
-                console.log(dat);
                 dat.sort(function (a, b) {
-                    if (a.unread_lines < b.unread_lines)
+                    if (a.unread_lines!=0 && b.unread_lines!=0) {
+                        return b.mtime-a.mtime;
+                    }
+                    if (a.unread_lines==0 && b.unread_lines!=0) {
+                        return 1;
+                    }
+                    if (a.unread_lines!=0 && b.unread_lines==0) {
                         return -1;
-                    if (a.unread_lines > b.unread_lines)
-                        return -1;
+                    }
+                    if (a.unread_lines==0 && b.unread_lines==0) {
+                        return b.mtime-a.mtime;
+                    }
                     return 0;
                 });
                 $('#ChannelList').empty();

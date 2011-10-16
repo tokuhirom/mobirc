@@ -58,6 +58,7 @@ sub dispatch_channels {
     my $channels = [
         map {
             +{
+                mtime        => $_->mtime,
                 unread_lines => $_->unread_lines,
                 name         => $_->name,
             }
