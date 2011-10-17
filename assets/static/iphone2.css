@@ -132,7 +132,6 @@ div.message.leave {
 
 div.message.notice,
 div.message.public {
-	font-weight: normal;
 	padding: 10px;
 	background: #000;
 	color: #fff;
@@ -172,6 +171,11 @@ div.message.public div.body ,
 div.message.notice div.body {
 	min-height: 32px;
 	margin: 5px 0 0 0;
+}
+
+div.message.notice {
+    color: #777777;
+    font-style: italic;
 }
 
 select {
