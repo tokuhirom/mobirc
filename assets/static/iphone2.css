@@ -243,3 +243,9 @@ img.loading {
     padding-top: 20px;
 }
 
+footer {
+    border-top: #cccccc 1px solid;
+    margin-top: 10px;
+    text-align: right;
+    padding-right: 10px;
+}

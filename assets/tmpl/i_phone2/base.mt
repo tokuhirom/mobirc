@@ -1,4 +1,4 @@
-?= xml_header()
+<!doctype html>
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta http-equiv="Content-Type"  content="text/html; charset=UTF-8" />
@@ -23,7 +23,6 @@
         <div id="menu">
             <div class="toolbar">
                 <h1>mobirc</h1>
-                <a class="button slideup" href="#about">About</a>
             </div>
             <div>
                 <div id="MiscMenuContainer">
@@ -33,6 +32,9 @@
                 <div id="ChannelList">
                     Now Loading...
                 </div>
+                <footer>
+                <a href="#about">About</a>
+                </footer>
             </div>
         </div>
 
