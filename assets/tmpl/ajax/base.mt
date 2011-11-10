@@ -13,17 +13,13 @@
         <title>mobirc</title>
         <link type="text/css" href="/static/css/ui-lightness/jquery-ui-1.8.2.custom.css" rel="stylesheet" />
         <link type="text/css" href="/static/css/jquery.jgrowl.css" rel="stylesheet" />
-        <script type="text/javascript" src="/static/js/jquery-1.6.1.min.js"></script>
+        <script type="text/javascript" src="/static/js/jquery-1.7.min.js"></script>
         <script type="text/javascript" src="/static/js/jquery-ui-1.8.2.custom.min.js"></script>
         <script type="text/javascript" src="/static/js/jquery.jgrowl_minimized.js"></script>
         <script type="text/javascript" src="/static/js/jquery.ev.js"></script>
         <script type="text/javascript" src="/static/js/jquery.layout-latest.js"></script>
         <script type="text/javascript" src="/static/droppy/jquery.droppy.js"></script>
         <script src="/static/mobirc.js?v=5" type="text/javascript"></script>
-? if (is_iphone) {
-        <meta name="viewport" content="width=device-width" />
-        <meta name="viewport" content="initial-scale=1.0, user-scalable=yes" />
-? }
     </head>
     <body>
         <div id="BodyWrapper">
