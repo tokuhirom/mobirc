@@ -6,13 +6,13 @@
         <meta http-equiv="content-script-type" content="text/javascript" />
         <meta name="robots" content="noindex,nofollow" />
         <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
-        <link rel="stylesheet" href="/static/reset.css" type="text/css" />
+        <link rel="stylesheet" href="/static/bootstrap.min.css" type="text/css" />
+        <link type="text/css" href="/static/droppy/droppy.css" rel="stylesheet" />
         <link rel="stylesheet" href="/static/pc.css" type="text/css" />
         <link rel="stylesheet" href="/static/mobirc.css" type="text/css" />
         <title>mobirc</title>
         <link type="text/css" href="/static/css/ui-lightness/jquery-ui-1.8.2.custom.css" rel="stylesheet" />
         <link type="text/css" href="/static/css/jquery.jgrowl.css" rel="stylesheet" />
-        <link type="text/css" href="/static/droppy/droppy.css" rel="stylesheet" />
         <script type="text/javascript" src="/static/js/jquery-1.6.1.min.js"></script>
         <script type="text/javascript" src="/static/js/jquery-ui-1.8.2.custom.min.js"></script>
         <script type="text/javascript" src="/static/js/jquery.jgrowl_minimized.js"></script>
@@ -54,14 +54,14 @@
                         <div id="ChannelLog">log pain</div>
                         <form onsubmit=" return false;" id="CommandForm">
                             <input type="text" id="msg" name="msg" size="30" autocomplete="off" />
-                            <input type="button" value="send" id="SendButton" />
+                            <input type="button" value="send" id="SendButton" class="btn" />
                         </form>
                     </div>
                     <div id="CombinedLog" class="ui-layout-south">combined log pain</div>
                 </div>
                 <div id="Side" class="ui-layout-east">
                     <div id="NickContainer" class="ui-layout-center">&nbsp;</div>
-                    <div id="ChannelContainer" class="ui-layout-south">&nbsp;</div>
+                    <div id="ChannelContainer" class="ui-layout-south"></div>
                 </div>
             </div>
         </div>

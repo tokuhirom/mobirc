@@ -1,15 +1,15 @@
 /* page layout */
 
-.clear-both { clear: both; }
+#nav { background-color: #2B2E2E }
 
 #BodyWrapper { }
 #PageBody { overflow: hidden; clear: both; } 
 #PageBody #Main { overflow: hidden; } 
 #PageBody #Main #ChannelPane { overflow: hidden; }
 #PageBody #Main #ChannelLog { overflow: auto; width: 100%; font-size: 120%; } 
-#PageBody #Main #CommandForm { width: 100%;  margin-top: 10px; }
+#PageBody #Main #CommandForm { width: 100%;  margin-top: 10px; margin-bottom: 20px; }
 #PageBody #Main #CommandForm #msg { width: 90%; }
-#PageBody #Main #CommandForm #SendButton { width: 9%; }
+#PageBody #Main #CommandForm #SendButton { width: 8%; }
 #PageBody #Main #CombinedLog { overflow: auto; width: 100%; margin-top: 4px; } 
 #PageBody #Side { overflow: hidden; height: 100%; padding-left: 5px; }
 #PageBody #Side #NickContainer { overflow: auto; border-bottom: 1px solid #cccccc; cursor: default; -moz-user-select: none; user-select: none; -webkit-user-select: none; }
@@ -17,7 +17,7 @@
 
 #PageBody #Side .channel { margin-bottom: 2px; width: 100%; }
 #PageBody #Side .unread  { background-color: #99ffff; }
-#PageBody #Side .current { background-color: #ccffff; }
+#PageBody #Side .current { background-color: #CAE6E8; }
 #PageBody #Side .keyword { background-color: #ff99ff; }
 
 .log .time { margin-right: 2px; }
