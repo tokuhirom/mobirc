@@ -24,7 +24,6 @@ requires 'Any::Moose'    => 0.13;
 
 # session
 requires 'HTTP::Session' => '0.44';
-requires 'HTTP::Session' => '0.41';
 
 # mobile stuff
 requires 'HTTP::MobileAttribute' => '0.21';
