@@ -23,7 +23,7 @@ body {
 }
 
 a:link {
-	color: #1176ae;
+	color: #cccccc;
 	text-decoration: none;
 }
 
@@ -211,36 +211,13 @@ img.loading {
 	color: #fff;
 }
 
+#MiscMenuContainer {
+    margin-left: 8px;
+    margin-top: 4px;
+}
+
 #RefreshMenuContainer {
     margin: 5px;
-}
-
-#loading {
-    border: 1px solid       #2A2A2A;
-    background-color: #666;
-
-    -moz-border-radius: 9px;
-    -webkit-border-radius: 9px;
-    border-radius: 9px;
-
-    top: 20px;
-    width: 100px;
-    height: 80px;
-    right: 100px;
-
-    text-align: center;
-
-    margin: auto;
-    text-align: center;
-    position: absolute;
-
-    -moz-opacity: 0.95;
-    -webkit-opacity: 0.95;
-    opacity: 0.95;
-}
-
-#loading .ui-icon-loading {
-    padding-top: 20px;
 }
 
 footer {

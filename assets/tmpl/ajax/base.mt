@@ -1,5 +1,5 @@
-?= xml_header()
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!doctype html>
+<html>
     <head>
         <meta http-equiv="Content-Type"  content="text/html; charset=UTF-8" />
         <meta http-equiv="Cache-Control" content="max-age=0" />
@@ -13,13 +13,16 @@
         <title>mobirc</title>
         <link type="text/css" href="/static/css/ui-lightness/jquery-ui-1.8.2.custom.css" rel="stylesheet" />
         <link type="text/css" href="/static/css/jquery.jgrowl.css" rel="stylesheet" />
-        <script type="text/javascript" src="/static/js/jquery-1.7.min.js"></script>
+        <script type="text/javascript" src="/static/js/jquery-1.7.2.min.js"></script>
         <script type="text/javascript" src="/static/js/jquery-ui-1.8.2.custom.min.js"></script>
         <script type="text/javascript" src="/static/js/jquery.jgrowl_minimized.js"></script>
         <script type="text/javascript" src="/static/js/jquery.ev.js"></script>
         <script type="text/javascript" src="/static/js/jquery.layout-latest.js"></script>
         <script type="text/javascript" src="/static/droppy/jquery.droppy.js"></script>
-        <script src="/static/mobirc.js?v=5" type="text/javascript"></script>
+        <script type="text/javascript">
+            window.mobircDefaultServer = '<?= javascript_value_escape global_context->servers->[0]->id ?>';
+        </script>
+        <script src="/static/mobirc.js?v=6" type="text/javascript"></script>
     </head>
     <body>
         <div id="BodyWrapper">

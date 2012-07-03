@@ -32,7 +32,8 @@ has 'time' => (
 sub who_class {
     my $self = shift;
     my $who = $self->who;
-    if ($who && $who eq App::Mobirc->context->current_nick()) {
+    
+    if ($who && App::Mobirc->context->is_my_nick($who)) {
         return 'nick_myself';
     } else {
         return 'nick_normal';
@@ -76,6 +77,8 @@ sub as_hashref {
         hour         => $message->hour,
         minute       => $message->minute,
         channel_name => $message->channel->name,
+        channel_fullname => $message->channel->fullname,
+        server       => $message->channel->server->id,
     };
 }
 

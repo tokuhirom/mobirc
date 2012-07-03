@@ -2,14 +2,17 @@
 ? my ($channel, $channel_page_option) = @_;
 ? my $msg     = param('msg') || '';
 ? my $page    = param('page') || 1;
+? global_context->mt->wrapper_file('i_phone2/_wrap.mt')->(sub {
 
 <div class="toolbar">
     <h1><?= $channel->name ?></h1>
-    <a class="button slideup" id="goMenuButton" href="#menu">Menu</a>
+    <a class="button slideup" id="goMenuButton" href="/iphone2/">Menu</a>
 </div>
 
-<form id="input">
+<form action='/iphone2/channel' method='post' id="postForm">
     <div class="input">
+        <input type="hidden" name="server" value="<?= $channel->server->id ?>" />
+        <input type="hidden" name="channel" value="<?= $channel->name_urlsafe_encoded?>" />
         <input id="MessageBox" value="<?= $msg ?>" type="text" name="msg" size="10" class="text" />
     </div>
 </form>
@@ -58,6 +61,4 @@
 <p>No such channel.</p>
 <? } ?>
 
-<script type="text/javascript">
-    var docroot = '<?= docroot() ?>';
-</script>
+? });

@@ -12,7 +12,35 @@ use Encode;
 use Carp;
 
 use App::Mobirc::Model::Message;
+use App::Mobirc::Model::Channel;
+use App::Mobirc::Model::Server;
 use App::Mobirc::Util;
+
+my $id = 0;
+
+has server => (
+    is       => 'ro',
+    isa      => 'App::Mobirc::Model::Server',
+    lazy     => 1,
+    default => sub {
+        my $self = shift;
+        App::Mobirc::Model::Server->new(
+            id              => $self->id,
+            post_command_cb => sub {
+                $self->post_command(@_);
+            }
+          ),
+    },
+    handles => [qw/get_channel add_channel/],
+);
+
+has id => (
+    is => 'ro',
+    isa => 'Str',
+    default => sub {
+        ++$id
+    },
+);
 
 has timeout => (
     is      => 'ro',
@@ -67,7 +95,7 @@ has desc => (
     default => '',
 );
 
-has server => (
+has host => (
     is       => 'ro',
     isa      => 'Str',
     required => 1,
@@ -84,56 +112,52 @@ has password => (
     isa => 'Str',
 );
 
-hook process_command => sub {
-    my ( $self, $global_context, $command, $channel ) = @_;
+sub post_command {
+    my ( $self, $command, $channel ) = @_;
 
     my $irc_incode = $self->incode;
-    if ( $command && $channel->name =~ /^[#*%]/ ) {
-        if ( $command =~ m{^/me(.*)} ) {
-            DEBUG "CTCP ACTION";
-            my $body = $1;
+    if ( $command =~ m{^/me(.*)} ) {
+        DEBUG "CTCP ACTION";
+        my $body = $1;
 
-            $self->conn->send_msg(
-                PRIVMSG => $channel->name() => encode_ctcp(['ACTION', $body])
-            );
+        $self->conn->send_msg(
+            PRIVMSG => $channel->name() => encode_ctcp(['ACTION', $body])
+        );
 
-            $channel->add_message(
-                who   => $self->current_nick(),
-                body  => "* " . $self->current_nick() . ' ' . $body,
-                class => 'ctcp_action',
-            );
-        }
-        elsif ( $command =~ m{^/} ) {
-            DEBUG "SENDING COMMAND";
-            $command =~ s!^/!!g;
-
-            my @args =
-              map { encode( $irc_incode, $_ ) } split /\s+/,
-              $command;
-
-            $self->conn->send_srv(@args);
-        }
-        else {
-            DEBUG "NORMAL PRIVMSG";
-
-            $self->conn->send_srv(
-                'PRIVMSG',
-                encode( $irc_incode, $channel->name ),
-                encode( $irc_incode, $command )
-            );
-
-            DEBUG "Sending command $command";
-
-            $channel->add_message(
-                who   => $self->current_nick(),
-                body  => $command,
-                class => 'public',
-            );
-        }
-        return true;
+        $channel->add_message(
+            who   => $self->current_nick(),
+            body  => "* " . $self->current_nick() . ' ' . $body,
+            class => 'ctcp_action',
+        );
     }
-    return false;
-};
+    elsif ( $command =~ m{^/} ) {
+        DEBUG "SENDING COMMAND";
+        $command =~ s!^/!!g;
+
+        my @args =
+            map { encode( $irc_incode, $_ ) } split /\s+/,
+            $command;
+
+        $self->conn->send_srv(@args);
+    }
+    else {
+        DEBUG "NORMAL PRIVMSG";
+
+        $self->conn->send_srv(
+            'PRIVMSG',
+            encode( $irc_incode, $channel->name ),
+            encode( $irc_incode, $command )
+        );
+
+        DEBUG "Sending command $command";
+
+        $channel->add_message(
+            who   => $self->current_nick(),
+            body  => $command,
+            class => 'public',
+        );
+    }
+}
 
 hook 'run_component' => sub {
     my ( $self, $global_context ) = @_;
@@ -147,7 +171,7 @@ hook 'run_component' => sub {
             DEBUG "CONNECTED";
             DEBUG "input charset is: " . $self->incode();
 
-            my $channel = $global_context->get_channel('*server*');
+            my $channel = $self->get_channel('*server*');
             $channel->add_message(
                 who   => undef,
                 body  => 'Connected to irc server!',
@@ -170,7 +194,7 @@ hook 'run_component' => sub {
             #     'command' => '353'
             # }
 
-            my $channel = $global_context->get_channel($channel_name);
+            my $channel = $self->get_channel($channel_name);
             my @nicks = map { my $x = $_; $x =~ s!^@!!; $x } split /\s+/, $nicks;
             for my $nick (@nicks) {
                 $channel->join_member($nick);
@@ -194,7 +218,7 @@ hook 'run_component' => sub {
             $channel_name =~ s/ .*//;
 
             # create channel
-            my $channel = $global_context->get_channel($channel_name);
+            my $channel = $self->get_channel($channel_name);
 
             unless ($is_myself) {
                 $channel->add_message(
@@ -222,7 +246,7 @@ hook 'run_component' => sub {
                     $message .= "($msg)";
                 }
 
-                my $channel = $global_context->get_channel($channel_name);
+                my $channel = $self->get_channel($channel_name);
                 $channel->add_message(
                     who   => undef,
                     body  => $message,
@@ -240,7 +264,7 @@ hook 'run_component' => sub {
 
             $kicker = prefix_nick($kicker);
 
-            my $channel = $global_context->get_channel($channel_name);
+            my $channel = $self->get_channel($channel_name);
             $channel->add_message(
                 who   => undef,
                 body  => "$kicker has kicked $kickee($msg)",
@@ -259,7 +283,7 @@ hook 'run_component' => sub {
             my $class        = $raw->{command};
             DEBUG "IRC_PRIVMSG($who, $channel_name, $msg)";
 
-            my $channel = $global_context->get_channel($channel_name);
+            my $channel = $self->get_channel($channel_name);
             $channel->add_message(
                 who   => $who,
                 body  => $msg,
@@ -280,7 +304,7 @@ hook 'run_component' => sub {
             DEBUG "CHANNEL_TOPIC($channel_name, $topic, $who)";
             $who = prefix_nick($who);
 
-            my $channel = $global_context->get_channel($channel_name);
+            my $channel = $self->get_channel($channel_name);
             $channel->topic($topic);
             $channel->add_message(
                 who   => undef,
@@ -296,7 +320,7 @@ hook 'run_component' => sub {
 
             $who = prefix_nick($who);
 
-            my $channel = $global_context->get_channel($channel_name);
+            my $channel = $self->get_channel($channel_name);
             my $body = sprintf( '* %s %s', $who, $msg );
             $channel->add_message(
                 who   => undef,
@@ -349,7 +373,7 @@ hook 'run_component' => sub {
     $irc->reg_cb(%cb);
     $irc->enable_ssl() if $self->ssl;
     $irc->connect(
-        $self->server,
+        $self->host,
         $self->port,
         {
             nick => $self->nick,
@@ -361,11 +385,11 @@ hook 'run_component' => sub {
     );
     $self->conn($irc);
 
-    $global_context->add_channel(
-        App::Mobirc::Model::Channel->new( name => '*server*' )
+    $self->server->add_channel(
+        App::Mobirc::Model::Channel->new( name => '*server*', server => $self->server )
     );
 
-    $global_context->irc_component($self);
+    push @{$global_context->irc_components}, $self;
 };
 
 # decoded current nick

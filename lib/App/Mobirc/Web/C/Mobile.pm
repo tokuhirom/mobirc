@@ -1,8 +1,11 @@
 package App::Mobirc::Web::C::Mobile;
+use strict;
+use warnings;
 use App::Mobirc::Web::C;
 use App::Mobirc::Util;
 use Encode;
 use MIME::Base64::URLSafe qw(urlsafe_b64decode);
+use URI::Escape qw/uri_escape/;
 
 sub dispatch_index {
     render();
@@ -14,7 +17,7 @@ sub dispatch_recent {
     my $log_counter   = 0;
     my $has_next_page = 0;
 
-    for my $channel (server->unread_channels) {
+    for my $channel (global_context->unread_channels) {
         push @target_channels, $channel;
         $log_counter += $channel->recent_log_count;
 
@@ -38,7 +41,7 @@ sub dispatch_recent {
 }
 
 sub dispatch_clear_all_unread {
-    for my $channel (server->channels) {
+    for my $channel (global_context->unread_channels) {
         $channel->clear_unread;
     }
 
@@ -51,7 +54,7 @@ sub dispatch_topics {
 }
 
 sub dispatch_keyword {
-    my $channel = server->keyword_channel;
+    my $channel = global_context->keyword_channel;
 
     my $res = render(
             param('recent_mode')
@@ -73,7 +76,9 @@ sub dispatch_channel {
     my $channel_name = decode_urlsafe_encoded('channel');
     DEBUG "show channel page: $channel_name";
 
-    my $channel = server->get_channel($channel_name);
+    my $server_id = param('server');
+    my $server = global_context->get_server($server_id) or die "Unknown server: $server_id";
+    my $channel = $server->get_channel($channel_name);
 
     my $res = render(
         $channel,
@@ -96,7 +101,7 @@ sub post_dispatch_channel {
 
     # t=time() is hack for fucking au phone.
     # au phone doesn't clear the body of <input /> when redirect to same url
-    redirect(req->uri->path . "?channel=" . $channel->name_urlsafe_encoded . '&t=' . time());
+    redirect(req->uri->path . "?channel=" . $channel->name_urlsafe_encoded . '&t=' . time() . '&server=' . uri_escape($channel->server->id));
 }
 
 sub dispatch_members {

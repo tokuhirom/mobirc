@@ -55,6 +55,7 @@ requires 'Data::OptList'         => '0.105';
 requires 'Params::Util'; # for Data::OptList
 requires 'Data::Recursive::Encode';
 requires 'Text::VisualWidth::PP' => 0.01;
+requires 'JavaScript::Value::Escape' => 0;
 
 features(
     'Irssi' => [

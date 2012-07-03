@@ -5,6 +5,7 @@ use Config::Tiny;
 use Storable;
 use App::Mobirc::Util;
 use Encode;
+use JSON;
 
 sub load {
     my ( $class, $stuff ) = @_;
@@ -13,6 +14,11 @@ sub load {
 
     if ( ref $stuff && ref $stuff eq 'HASH' ) {
         $config = Storable::dclone($stuff);
+    }
+    elsif ($stuff =~ /\.json$/) {
+        open my $fh, '<:utf8', $stuff or die "cannot open file: $!";
+        my $src = do { local $/; <$fh> };
+        $config = JSON->new->relaxed(1)->decode($src);
     }
     else {
         open my $fh, '<:utf8', $stuff or die "cannot open file: $!";

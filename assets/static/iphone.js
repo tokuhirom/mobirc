@@ -11,6 +11,9 @@ function contents_load(url) {
         function (res) {
             $('#contents').html( res.messages.join("<br />") );
             $('title').html( res.channel_name + " - mobirc" );
+        },
+        function (err) {
+            alert(err);
         }
     );
     load_url = url;
@@ -30,7 +33,7 @@ function load_menu () {
         '',
         function () {
             $('#menu .channel a').click(function () {
-                contents_load(docroot + 'iphone/channel?channel=' + encodeURIComponent($(this).text()), $(this).text());
+                contents_load(docroot + 'iphone/channel?channel=' + encodeURIComponent($(this).text()) + '&server=' + encodeURIComponent($(this).data('server')), $(this).text());
                 $(this).parent().removeClass('unread');
                 return false;
             });
