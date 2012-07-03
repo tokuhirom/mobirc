@@ -3,11 +3,15 @@
 ? wrap {
 
 ? my $message     = param('msg') || '';
-    <form action='/mobile/channel?channel=<?= $channel->name_urlsafe_encoded?>' method='post'>
+? if ($channel->server) {
+    <form action='/mobile/channel' method='post'>
+        <input type="hidden" name="channel" value="<?= $channel->name_urlsafe_encoded?>" />
+        <input type="hidden" name="server" value="<?= $channel->server->id ?>" />
         <input <? if ($message) { ?>value="<?= $message ?><? } ?>
                type="text" name="msg" size="10" />
         <input type="submit" accesskey="1" value="OK" />
     </form>
+? }
 
 ? for my $html (@$channel_page_option) {
     <?= $html ?>
@@ -24,13 +28,13 @@
 ?       }
 ?       if ($recent_mode) {
             <hr />
-            <?= pictogram('5') ?><a href="/mobile/channel?channel=<?= $channel->name_urlsafe_encoded ?>" accesskey="5">more</a>
+            <?= pictogram('5') ?><a href="/mobile/channel?channel=<?= $channel->name_urlsafe_encoded ?>&server=<?= $channel->server->id ?>" accesskey="5">more</a>
 ?       }
 ?    } else {
         <p>no message here</p>
 ?    }
     <hr />
-    <a href="/mobile/members?channel=<?= $channel->name_urlsafe_encoded ?>">members</a>
+    <a href="/mobile/members?channel=<?= $channel->name_urlsafe_encoded ?>&server=<?= $channel->server->id ?>">members</a>
 ? } else {
     <p>no such channel.</p>
 ? }

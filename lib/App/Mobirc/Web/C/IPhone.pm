@@ -12,29 +12,23 @@ sub dispatch_channel {
     my $channel_name = param('channel');
 
     my $channel = server->get_channel($channel_name);
-    my $body;
-    if (@{$channel->message_log}) {
-        my $meth = param('recent') ? 'recent_log' : 'message_log';
-        $body = encode_json(
-            {
-                messages => [
-                    map {
-                        render_irc_message( $_ )
-                    } reverse $channel->$meth
-                ],
-                channel_name => $channel->name,
-            }
-        );
+    my $meth = param('recent') ? 'recent_log' : 'message_log';
+    my $body = encode_json(
+        {
+            messages => [
+                map {
+                    render_irc_message( $_ )
+                } reverse $channel->$meth
+            ],
+            channel_name => $channel->name,
+        }
+    );
 
-        $channel->clear_unread();
-    } else {
-        $body = '';
-    }
     $channel->clear_unread();
 
     Plack::Response->new(
         200,
-        ['Content-Type' => 'text/json'],    # FIXME invalid
+        ['Content-Type' => 'text/json;charset=utf-8', 'Content-Length' => length($body)],    # FIXME invalid
         $body,
     );
 }

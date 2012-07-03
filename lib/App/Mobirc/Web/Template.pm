@@ -9,6 +9,7 @@ use Path::Class;
 use URI::Escape qw/uri_escape/;
 use App::Mobirc::Web::Base;
 use Text::VisualWidth::PP;
+use JavaScript::Value::Escape qw(javascript_value_escape);
 
 *encoded_string = *Text::MicroTemplate::encoded_string;
 sub pictogram { encoded_string(App::Mobirc::Pictogram::pictogram(@_)) }

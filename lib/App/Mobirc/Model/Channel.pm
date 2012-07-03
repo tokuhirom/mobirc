@@ -8,6 +8,13 @@ use App::Mobirc::Model::Message;
 use MIME::Base64::URLSafe;
 use Encode;
 
+has server => (
+    is => 'rw',
+    isa => 'Maybe[App::Mobirc::Model::Server]',
+    required => 1,
+    weak_ref => 1,
+);
+
 has message_log => (
     is      => 'rw',
     isa     => 'ArrayRef',
@@ -107,7 +114,7 @@ sub update_keyword_buffer {
     croak "this is class method" if blessed $class;
 
     DEBUG "UPDATE KEYWORD: $message";
-    global_context->get_channel(U '*keyword*')->add_message( $message );
+    global_context->keyword_channel()->add_message( $message );
 }
 
 sub unread_lines {
@@ -126,8 +133,7 @@ sub clear_unread {
 
 sub post_command {
     my ($self, $command) = @_;
-
-    global_context->run_hook_first('process_command', $command, $self);
+    $self->server->post_command($command, $self);
 }
 
 sub recent_log_count {
@@ -138,6 +144,15 @@ sub recent_log_count {
 sub name_urlsafe_encoded {
     my $self = shift;
     urlsafe_b64encode(encode_utf8 $self->name);
+}
+
+sub fullname {
+    my $self = shift;
+    my $name = $self->name;
+    if (0+@{global_context->servers} > 1 && $self->server) {
+        $name .= "@" . $self->server->id;
+    }
+    return $name;
 }
 
 __PACKAGE__->meta->make_immutable;

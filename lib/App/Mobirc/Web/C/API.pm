@@ -61,8 +61,10 @@ sub dispatch_channels {
                 mtime        => $_->mtime,
                 unread_lines => $_->unread_lines,
                 name         => $_->name,
+                fullname     => $_->fullname,
+                server       => $_->server->id,
             }
-        } server->channels()
+        } global_context->channels()
     ];
 
     return _render_json($channels);
@@ -79,7 +81,7 @@ sub dispatch_channel_log {
 }
 
 sub dispatch_clear_all_unread {
-    for my $channel (server->channels) {
+    for my $channel (global_context->channels) {
         $channel->clear_unread;
     }
 

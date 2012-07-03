@@ -1,0 +1,11 @@
+Release plan for 4.00
+=====================
+
+TODO
+----
+
+
+DONE
+----
+
+- support multiple servers

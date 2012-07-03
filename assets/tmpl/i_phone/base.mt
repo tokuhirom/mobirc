@@ -9,7 +9,7 @@
         <link rel="stylesheet" href="/static/mobirc.css" type="text/css" />
         <link rel="stylesheet" href="/static/iphone.css" type="text/css" />
         <title>mobirc</title>
-        <script src="/static/js/jquery-1.6.1.min.js" type="text/javascript"></script>
+        <script src="/static/js/jquery-1.7.2.min.js" type="text/javascript"></script>
         <script src="/static/iphone.js" type="text/javascript"></script>
     </head>
     <body>

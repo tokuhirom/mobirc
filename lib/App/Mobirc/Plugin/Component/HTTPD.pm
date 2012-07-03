@@ -10,6 +10,7 @@ use Plack;
 use Plack::Loader;
 use Plack::Middleware::ReverseProxy;
 use Plack::Middleware::Conditional;
+use Plack::Middleware::AccessLog;
 
 use Data::OptList;
 
@@ -54,6 +55,10 @@ hook run_component => sub {
         $app,
         condition => sub { $_[0]->{REMOTE_ADDR} eq '127.0.0.1' },
         builder => sub { Plack::Middleware::ReverseProxy->wrap( $_[0] ) }
+    );
+
+    $app = Plack::Middleware::AccessLog->wrap(
+        $app
     );
 
     # apply middleares by user's configuration

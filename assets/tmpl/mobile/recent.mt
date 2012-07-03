@@ -4,8 +4,8 @@
 
 ? for my $channel (@$channels) {
     <div class="ChannelHeader">
-        <a class="ChannelName"><?= $channel->name ?></a>
-        <a href="/mobile/channel?channel=<?= $channel->name_urlsafe_encoded ?>">more...</a>
+        <a class="ChannelName"><?= $channel->fullname ?></a>
+        <a href="/mobile/channel?channel=<?= $channel->name_urlsafe_encoded ?>&server=<?= $channel->server->id ?>">more...</a>
     </div>
 ?    for my $message (@{$channel->recent_log}) {
         <?= include('parts/irc_message', $message) ?>

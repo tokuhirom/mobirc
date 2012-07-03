@@ -20,6 +20,7 @@ sub load_plugin {
     Mouse::load_class($module);
     my $plugin = $module->new($args->{config} || {});
     $plugin->register( $self );
+    $plugin;
 }
 
 sub resolve_plugin {
