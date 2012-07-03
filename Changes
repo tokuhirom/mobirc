@@ -1,3 +1,9 @@
+4.00
+
+    - support multiple servers
+    - removed android view(is not maintenable)
+    - removed mobile-ajax view(is not maintenable)
+
 3.00
 
     - switch to plack based.
