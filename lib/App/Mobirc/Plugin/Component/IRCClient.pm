@@ -49,6 +49,12 @@ has nick => (
     required => 1,
 );
 
+has ssl => (
+    is => 'ro',
+    isa => 'Bool',
+    default => 0,
+);
+
 has username => (
     is      => 'ro',
     isa     => 'Str',
@@ -135,16 +141,6 @@ hook 'run_component' => sub {
     DEBUG "initialize ircclient";
 
     my $irc = AnyEvent::IRC::Client->new();
-    $irc->connect(
-        $self->server,
-        $self->port,
-        {
-            nick => $self->nick,
-            real => $self->desc,
-            password => $self->password,
-            timeout => $self->timeout,
-        }
-    );
     my $disconnect_msg = 1;
     my %cb             = (
         irc_001 => sub {
@@ -351,6 +347,18 @@ hook 'run_component' => sub {
     }
     $cb{privatemsg} = $cb{publicmsg};
     $irc->reg_cb(%cb);
+    $irc->enable_ssl() if $self->ssl;
+    $irc->connect(
+        $self->server,
+        $self->port,
+        {
+            nick => $self->nick,
+            real => $self->desc,
+            user => $self->username,
+            password => $self->password,
+            timeout => $self->timeout,
+        }
+    );
     $self->conn($irc);
 
     $global_context->add_channel(
