@@ -6,6 +6,8 @@ use Plack::Util;
 use HTTP::Date;
 use Plack::MIME;
 use DirHandle;
+use URI::Escape;
+use Plack::Request;
 
 # Stolen from rack/directory.rb
 my $dir_file = "<tr><td class='name'><a href='%s'>%s</a></td><td class='size'>%s</td><td class='type'>%s</td><td class='mtime'>%s</td></tr>";
@@ -41,6 +43,19 @@ sub should_handle {
     return -d $file || -f $file;
 }
 
+sub return_dir_redirect {
+    my ($self, $env) = @_;
+    my $uri = Plack::Request->new($env)->uri;
+    return [ 301,
+        [
+            'Location' => $uri . '/',
+            'Content-Type' => 'text/plain',
+            'Content-Length' => 8,
+        ],
+        [ 'Redirect' ],
+    ];
+}
+
 sub serve_path {
     my($self, $env, $dir, $fullpath) = @_;
 
@@ -48,20 +63,29 @@ sub serve_path {
         return $self->SUPER::serve_path($env, $dir, $fullpath);
     }
 
+    my $dir_url = $env->{SCRIPT_NAME} . $env->{PATH_INFO};
+
+    if ($dir_url !~ m{/$}) {
+        return $self->return_dir_redirect($env);
+    }
+
     my @files = ([ "../", "Parent Directory", '', '', '' ]);
 
     my $dh = DirHandle->new($dir);
     my @children;
     while (defined(my $ent = $dh->read)) {
+        next if $ent eq '.';
         push @children, $ent;
     }
 
     for my $basename (sort { $a cmp $b } @children) {
         my $file = "$dir/$basename";
-        my $url = $env->{SCRIPT_NAME} . $env->{PATH_INFO} . $basename;
+        my $url = $dir_url . $basename;
 
         my $is_dir = -d $file;
         my @stat = stat _;
+
+        $url = join '/', map {uri_escape($_)} split m{/}, $url;
 
         if ($is_dir) {
             $basename .= "/";

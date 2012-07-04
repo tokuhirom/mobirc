@@ -1,5 +1,6 @@
 package Plack::Middleware::NullLogger;
 use strict;
+use parent qw/Plack::Middleware/;
 
 sub call {
     my($self, $env) = @_;
@@ -19,7 +20,7 @@ Plack::Middleware::NullLogger - Send logs to /dev/null
 
   enable "NullLogger";
 
-=head1 DESCRIPTIOM
+=head1 DESCRIPTION
 
 NullLogger is a middleware component that receives logs and does
 nothing but discarding them. Might be useful to shut up all the logs

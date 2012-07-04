@@ -42,59 +42,7 @@ sub to_app {
 
 sub response_cb {
     my($self, $res, $cb) = @_;
-
-    my $body_filter = sub {
-        my($cb, $res) = @_;
-        my $filter_cb = $cb->($res);
-        # If response_cb returns a callback, treat it as a $body filter
-        if (defined $filter_cb && ref $filter_cb eq 'CODE') {
-            Plack::Util::header_remove($res->[1], 'Content-Length');
-            if (defined $res->[2]) {
-                if (ref $res->[2] eq 'ARRAY') {
-                    for my $line (@{$res->[2]}) {
-                        $line = $filter_cb->($line);
-                    }
-                    # Send EOF.
-                    my $eof = $filter_cb->( undef );
-                    push @{ $res->[2] }, $eof if defined $eof;
-                } else {
-                    my $body    = $res->[2];
-                    my $getline = sub { $body->getline };
-                    $res->[2] = Plack::Util::inline_object
-                        getline => sub { $filter_cb->($getline->()) },
-                        close => sub { $body->close };
-                }
-            } else {
-                return $filter_cb;
-            }
-        }
-    };
-
-    if (ref $res eq 'ARRAY') {
-        $body_filter->($cb, $res);
-        return $res;
-    } elsif (ref $res eq 'CODE') {
-        return sub {
-            my $respond = shift;
-            my $cb = $cb;  # To avoid the nested closure leak for 5.8.x
-            $res->(sub {
-                my $res = shift;
-                my $filter_cb = $body_filter->($cb, $res);
-                if ($filter_cb) {
-                    my $writer = $respond->($res);
-                    if ($writer) {
-                        return Plack::Util::inline_object
-                            write => sub { $writer->write($filter_cb->(@_)) },
-                            close => sub { $writer->write($filter_cb->(undef)); $writer->close };
-                    }
-                } else {
-                    return $respond->($res);
-                }
-            });
-        };
-    }
-
-    return $res;
+    Plack::Util::response_cb($res, $cb);
 }
 
 1;
@@ -133,9 +81,9 @@ Plack::App::* you should inherit from this directly.
 
 =item call ($env)
 
-You are expected to implement a C<call> method in your component. This is
-where all the work gets done. It receives the PSGI C<$env> hash-ref as an
-argument and is expected to return a proper PSGI response value.
+You are expected to implement a C<call> method in your component. This
+is where all the work gets done. It receives the PSGI C<$env> hash-ref
+as an argument and is expected to return a proper PSGI response value.
 
 =back
 
@@ -161,7 +109,27 @@ convert your component into a PSGI C<$app>. You should not ever need to
 override this method, it is recommended to use C<prepare_app> and C<call>
 instead.
 
+=item response_cb
+
+This is a wrapper for C<response_cb> in L<Plack::Util>. See
+L<Plack::Middleware/RESPONSE CALLBACK> for details.
+
 =back
+
+=head1 OBJECT LIFECYCLE
+
+Objects for the derived classes (Plack::App::* or
+Plack::Middleware::*) are created at the PSGI application compile
+phase using C<new>, C<prepare_app> and C<to_app>, and the created
+object persists during the web server lifecycle, unless it is running
+on the non-persistent environment like CGI. C<call> is invoked against
+the same object whenever a new request comes in.
+
+You can check if it is running in a persistent environment by checking
+C<psgi.run_once> key in the C<$env> being true (non-persistent) or
+false (persistent), but it is best for you to write your middleware
+safely for a persistent environment. To accomplish that, you should
+avoid saving per-request data like C<$env> in your object.
 
 =head1 BACKWARDS COMPATIBILITY
 

@@ -34,8 +34,11 @@ sub parse_options {
     my($host, $port, $socket, @listen);
 
     require Getopt::Long;
-    Getopt::Long::Configure("no_ignore_case", "pass_through");
-    Getopt::Long::GetOptions(
+    my $parser = Getopt::Long::Parser->new(
+        config => [ "no_ignore_case", "pass_through" ],
+    );
+
+    $parser->getoptions(
         "a|app=s"      => \$self->{app},
         "o|host=s"     => \$host,
         "p|port=i"     => \$port,
@@ -50,14 +53,15 @@ sub parse_options {
         'r|reload'     => sub { $self->{loader} = "Restarter" },
         'R|Reload=s'   => sub { $self->{loader} = "Restarter"; $self->loader->watch(split ",", $_[1]) },
         'L|loader=s'   => \$self->{loader},
+        "access-log=s" => \$self->{access_log},
         "h|help"       => \$self->{help},
         "v|version"    => \$self->{version},
     );
 
     my(@options, @argv);
-    while (defined($_ = shift @ARGV)) {
-        if (s/^--?//) {
-            my @v = split '=', $_, 2;
+    while (defined(my $arg = shift @ARGV)) {
+        if ($arg =~ s/^--?//) {
+            my @v = split '=', $arg, 2;
             $v[0] =~ tr/-/_/;
             if (@v == 2) {
                 push @options, @v;
@@ -67,7 +71,7 @@ sub parse_options {
                 push @options, $v[0], shift @ARGV;
             }
         } else {
-            push @argv, $_;
+            push @argv, $arg;
         }
     }
 
@@ -191,8 +195,8 @@ sub prepare_devel {
 
     $app = $self->apply_middleware($app, 'Lint');
     $app = $self->apply_middleware($app, 'StackTrace');
-    unless ($ENV{GATEWAY_INTERFACE}) {
-        $app = $self->apply_middleware($app, 'AccessLog', logger => sub { print STDERR @_ });
+    if (!$ENV{GATEWAY_INTERFACE} and !$self->{access_log}) {
+        $app = $self->apply_middleware($app, 'AccessLog');
     }
 
     push @{$self->{options}}, server_ready => sub {
@@ -230,6 +234,10 @@ sub run {
         return $self->run;
     }
 
+    unless ($self->{options}) {
+        $self->parse_options();
+    }
+
     my @args = @_ ? @_ : @{$self->{argv}};
 
     $self->setup;
@@ -239,6 +247,13 @@ sub run {
     $ENV{PLACK_ENV} ||= $self->{env} || 'development';
     if ($ENV{PLACK_ENV} eq 'development') {
         $app = $self->prepare_devel($app);
+    }
+
+    if ($self->{access_log}) {
+        open my $logfh, ">>", $self->{access_log}
+            or die "open($self->{access_log}): $!";
+        $logfh->autoflush(1);
+        $app = $self->apply_middleware($app, 'AccessLog', logger => sub { $logfh->print( @_ ) });
     }
 
     my $loader = $self->loader;
@@ -274,7 +289,7 @@ line options and pass that to C<run> method of this class.
 
 C<run> method does exactly the same thing as the L<plackup> script
 does, but one notable addition is that you can pass a PSGI application
-code reference directly with C<--app> option, rather than via C<.psgi>
+code reference directly to the method, rather than via C<.psgi>
 file path or with C<-e> switch. This would be useful if you want to
 make an installable PSGI application.
 
@@ -290,14 +305,21 @@ other backends like L<Plack::Handler::Apache2> or mod_psgi.
 If you I<really> want to make your C<.psgi> runnable as a standalone
 script, you can do this:
 
-  # foo.psgi
-  if (__FILE__ eq $0) {
+  my $app = sub { ... };
+
+  unless (caller) {
       require Plack::Runner;
-      Plack::Runner->run(@ARGV, $0);
+      my $runner = Plack::Runner->new;
+      $runner->parse_options(@ARGV);
+      return $runner->run($app);
   }
 
-  # This should always come last
-  my $app = sub { ... };
+  return $app;
+
+B<WARNING>: this section used to recommend C<if (__FILE__ eq $0)> but
+it's known to be broken since Plack 0.9971, since C<$0> is now
+I<always> set to the .psgi file path even when you run it from
+plackup.
 
 =head1 SEE ALSO
 

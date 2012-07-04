@@ -2,7 +2,8 @@ package Plack::Middleware::SimpleLogger;
 use strict;
 use parent qw(Plack::Middleware);
 use Plack::Util::Accessor qw(level);
-use POSIX;
+use POSIX ();
+use Scalar::Util ();
 
 # Should this be in Plack::Util?
 my $i = 0;
@@ -13,11 +14,14 @@ sub call {
 
     my $min = $level_numbers{ $self->level || "debug" };
 
+    my $env_ref = $env;
+    Scalar::Util::weaken($env_ref);
+
     $env->{'psgix.logger'} = sub {
         my $args = shift;
 
         if ($level_numbers{$args->{level}} >= $min) {
-            $env->{'psgi.errors'}->print($self->format_message($args->{level}, $args->{message}));
+            $env_ref->{'psgi.errors'}->print($self->format_message($args->{level}, $args->{message}));
         }
     };
 

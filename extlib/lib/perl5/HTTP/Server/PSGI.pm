@@ -40,7 +40,10 @@ sub new {
         timeout            => $args{timeout} || 300,
         server_software    => $args{server_software} || $class,
         server_ready       => $args{server_ready} || sub {},
-        max_reqs_per_child => $args{max_reqs_per_child} || 100,
+        ssl                => $args{ssl},
+        ipv6               => $args{ipv6},
+        ssl_key_file       => $args{ssl_key_file},
+        ssl_cert_file      => $args{ssl_cert_file},
     }, $class;
 
     if ($args{max_workers} && $args{max_workers} > 1) {
@@ -59,32 +62,58 @@ sub run {
     $self->accept_loop($app);
 }
 
+sub prepare_socket_class {
+    my($self, $args) = @_;
+
+    if ($self->{ssl} && $self->{ipv6}) {
+        Carp::croak("SSL and IPv6 are not supported at the same time (yet). Choose one.");
+    }
+
+    if ($self->{ssl}) {
+        eval { require IO::Socket::SSL; 1 }
+            or Carp::croak("SSL suport requires IO::Socket::SSL");
+        $args->{SSL_key_file}  = $self->{ssl_key_file};
+        $args->{SSL_cert_file} = $self->{ssl_cert_file};
+        return "IO::Socket::SSL";
+    } elsif ($self->{ipv6}) {
+        eval { require IO::Socket::IP; 1 }
+            or Carp::croak("IPv6 support requires IO::Socket::IP");
+        $self->{host}      ||= '::';
+        $args->{LocalAddr} ||= '::';
+        return "IO::Socket::IP";
+    }
+
+    return "IO::Socket::INET";
+}
+
 sub setup_listener {
     my $self = shift;
-    $self->{listen_sock} ||= IO::Socket::INET->new(
+
+    my %args = (
         Listen    => SOMAXCONN,
         LocalPort => $self->{port},
         LocalAddr => $self->{host},
         Proto     => 'tcp',
         ReuseAddr => 1,
-    ) or die "failed to listen to port $self->{port}:$!";
+    );
+
+    my $class = $self->prepare_socket_class(\%args);
+    $self->{listen_sock} ||= $class->new(%args)
+        or die "failed to listen to port $self->{port}: $!";
 
     $self->{server_ready}->($self);
 }
 
 sub accept_loop {
-    # TODO handle $max_reqs_per_child
-    my($self, $app, $max_reqs_per_child) = @_;
-    my $proc_req_count = 0;
+    my($self, $app) = @_;
 
     $app = Plack::Middleware::ContentLength->wrap($app);
 
-    while (! defined $max_reqs_per_child || $proc_req_count < $max_reqs_per_child) {
+    while (1) {
         local $SIG{PIPE} = 'IGNORE';
         if (my $conn = $self->{listen_sock}->accept) {
             $conn->setsockopt(IPPROTO_TCP, TCP_NODELAY, 1)
                 or die "setsockopt(TCP_NODELAY) failed:$!";
-            ++$proc_req_count;
             my $env = {
                 SERVER_PORT => $self->{port},
                 SERVER_NAME => $self->{host},
@@ -92,7 +121,7 @@ sub accept_loop {
                 REMOTE_ADDR => $conn->peerhost,
                 'psgi.version' => [ 1, 1 ],
                 'psgi.errors'  => *STDERR,
-                'psgi.url_scheme' => 'http',
+                'psgi.url_scheme' => $self->{ssl} ? 'https' : 'http',
                 'psgi.run_once'     => Plack::Util::FALSE,
                 'psgi.multithread'  => Plack::Util::FALSE,
                 'psgi.multiprocess' => Plack::Util::FALSE,
@@ -130,7 +159,8 @@ sub handle_connection {
                         $chunk = $buf;
                         $buf = '';
                     } else {
-                        $self->read_timeout($conn, \$chunk, $cl, 0, $self->{timeout});
+                        $self->read_timeout($conn, \$chunk, $cl, 0, $self->{timeout})
+                            or return;
                     }
                     $buffer->print($chunk);
                     $cl -= length $chunk;
@@ -253,6 +283,7 @@ sub write_timeout {
 # writes all data in buf and returns number of bytes written or undef if failed
 sub write_all {
     my ($self, $sock, $buf, $timeout) = @_;
+    return 0 unless defined $buf;
     my $off = 0;
     while (my $len = length($buf) - $off) {
         my $ret = $self->write_timeout($sock, $buf, $len, $off, $timeout)
@@ -287,11 +318,12 @@ HTTP::Server::PSGI - Standalone PSGI compatible HTTP server
 HTTP::Server::PSGI is a standalone, single-process and PSGI compatible
 HTTP server implementations.
 
-This server should be great for the development and testig, but might
-not be suitable for production.
+This server should be great for the development and testing, but might
+not be suitable for a production use.
 
 Some features in HTTP/1.1, notably chunked requests, responses and
-pipeline requests are B<NOT> supported yet.
+pipeline requests are B<NOT> supported. See L<Starman> if you want
+those features.
 
 =head1 PREFORKING
 

@@ -2,7 +2,7 @@ package Plack::Request;
 use strict;
 use warnings;
 use 5.008_001;
-our $VERSION = '0.9938';
+our $VERSION = '0.9989';
 $VERSION = eval $VERSION;
 
 use HTTP::Headers;
@@ -67,7 +67,7 @@ sub cookies {
     $self->env->{'plack.cookie.string'} = $self->env->{HTTP_COOKIE};
 
     my %results;
-    my @pairs = split "[;,] ?", $self->env->{'plack.cookie.string'};
+    my @pairs = grep /=/, split "[;,] ?", $self->env->{'plack.cookie.string'};
     for my $pair ( @pairs ) {
         # trim leading trailing whitespace
         $pair =~ s/^\s+//; $pair =~ s/\s+$//;
@@ -208,7 +208,16 @@ sub uri {
 
     my $base = $self->_uri_base;
 
-    my $path = $self->env->{PATH_INFO} || '';
+    # We have to escape back PATH_INFO in case they include stuff like
+    # ? or # so that the URI parser won't be tricked. However we should
+    # preserve '/' since encoding them into %2f doesn't make sense.
+    # This means when a request like /foo%2fbar comes in, we recognize
+    # it as /foo/bar which is not ideal, but that's how the PSGI PATH_INFO
+    # spec goes and we can't do anything about it. See PSGI::FAQ for details.
+    # http://github.com/miyagawa/Plack/issues#issue/118
+    my $path_escape_class = '^A-Za-z0-9\-\._~/';
+
+    my $path = URI::Escape::uri_escape($self->env->{PATH_INFO} || '', $path_escape_class);
     $path .= '?' . $self->env->{QUERY_STRING}
         if defined $self->env->{QUERY_STRING} && $self->env->{QUERY_STRING} ne '';
 
@@ -255,6 +264,14 @@ sub _parse_request_body {
 
     my $body = HTTP::Body->new($ct, $cl);
 
+    # HTTP::Body will create temporary files in case there was an
+    # upload.  Those temporary files can be cleaned up by telling
+    # HTTP::Body to do so. It will run the cleanup when the request
+    # env is destroyed. That the object will not go out of scope by
+    # the end of this sub we will store a reference here.
+    $self->env->{'plack.request.http.body'} = $body;
+    $body->cleanup(1);
+
     my $input = $self->input;
 
     my $buffer;
@@ -300,10 +317,9 @@ sub _parse_request_body {
 
 sub _make_upload {
     my($self, $upload) = @_;
-    Plack::Request::Upload->new(
-        headers => HTTP::Headers->new( %{delete $upload->{headers}} ),
-        %$upload,
-    );
+    my %copy = %$upload;
+    $copy{headers} = HTTP::Headers->new(%{$upload->{headers}});
+    Plack::Request::Upload->new(%copy);
 }
 
 1;
@@ -345,14 +361,14 @@ certainly possible but not recommended: it's like doing so with
 mod_perl's Apache::Request: yet too low level.
 
 If you're writing a web application, not a framework, then you're
-encouraged to use one of the web application frameworks that support
-PSGI, or see L<Piglet> or L<HTTP::Engine> to provide higher level
+encouraged to use one of the web application frameworks that support PSGI (L<http://plackperl.org/#frameworks>),
+or see modules like L<HTTP::Engine> to provide higher level
 Request and Response API on top of PSGI.
 
 =head1 METHODS
 
 Some of the methods defined in the earlier versions are deprecated in
-version 1.00. Take a look at L</"INCOMPATIBILITIES">.
+version 0.99. Take a look at L</"INCOMPATIBILITIES">.
 
 Unless otherwise noted, all methods and attributes are B<read-only>,
 and passing values to the method like an accessor doesn't work like
@@ -382,7 +398,7 @@ Returns the IP address of the client (C<REMOTE_ADDR>).
 
 Returns the remote host (C<REMOTE_HOST>) of the client. It may be
 empty, in which case you have to get the IP address using C<address>
-method and resolve by your own.
+method and resolve on your own.
 
 =item method
 
@@ -455,7 +471,7 @@ parameters. This hash reference is L<Hash::MultiValue> object.
 =item body_parameters
 
 Returns a reference to a hash containing posted parameters in the
-request body (POST). Similarly to C<query_parameters>, the hash
+request body (POST). As with C<query_parameters>, the hash
 reference is a L<Hash::MultiValue> object.
 
 =item parameters
@@ -494,7 +510,7 @@ Returns an L<HTTP::Headers> object containing the headers for the current reques
 =item uploads
 
 Returns a reference to a hash containing uploads. The hash reference
-is L<Hash::MultiValue> object and values are L<Plack::Request::Upload>
+is a L<Hash::MultiValue> object and values are L<Plack::Request::Upload>
 objects.
 
 =item content_encoding
@@ -525,7 +541,8 @@ Shortcut to $req->headers->user_agent.
 
 Returns GET and POST parameters with a CGI.pm-compatible param
 method. This is an alternative method for accessing parameters in
-$req->parameters.
+$req->parameters. Unlike CGI.pm, it does I<not> allow
+setting or modifying query parameters.
 
     $value  = $req->param( 'foo' );
     @values = $req->param( 'foo' );
@@ -556,24 +573,24 @@ generation in middlewares.
 
 =head2 Hash::MultiValue parameters
 
-Parameters that can take one or multiple values i.e. C<parameters>,
-C<query_parameters>, C<body_parameters> and C<uploads> store those
+Parameters that can take one or multiple values (i.e. C<parameters>,
+C<query_parameters>, C<body_parameters> and C<uploads>) store the
 hash reference as a L<Hash::MultiValue> object. This means you can use
 the hash reference as a plain hash where values are B<always> scalars
-(B<NOT> array reference), so you don't need to code ugly and unsafe
+(B<NOT> array references), so you don't need to code ugly and unsafe
 C<< ref ... eq 'ARRAY' >> anymore.
 
 And if you explicitly want to get multiple values of the same key, you
-can call the method on it, such as:
+can call the C<get_all> method on it, such as:
 
   my @foo = $req->query_parameters->get_all('foo');
 
 You can also call C<get_one> to always get one parameter independent
-of the context (unlike C<param>), and eve call C<mixed> (with
+of the context (unlike C<param>), and even call C<mixed> (with
 Hash::MultiValue 0.05 or later) to get the I<traditional> hash
 reference,
 
-  my $params = $req->prameters->mixed;
+  my $params = $req->parameters->mixed;
 
 where values are either a scalar or an array reference depending on
 input, so it might be useful if you already have the code to deal with
@@ -594,16 +611,16 @@ If your application or framework wants to dispatch (or route) actions
 based on request paths, be sure to use C<< $req->path_info >> not C<<
 $req->uri->path >>.
 
-It is because C<path_info> gives you the virtual path of the request,
+This is because C<path_info> gives you the virtual path of the request,
 regardless of how your application is mounted. If your application is
 hosted with mod_perl or CGI scripts, or even multiplexed with tools
 like L<Plack::App::URLMap>, request's C<path_info> always gives you
 the action path.
 
 Note that C<path_info> might give you an empty string, in which case
-you should assume just like C</>.
+you should assume that the path is C</>.
 
-You will also like to use C<< $req->base >> as a base prefix when
+You will also want to use C<< $req->base >> as a base prefix when
 building URLs in your templates or in redirections. It's a good idea
 for you to subclass Plack::Request and define methods such as:
 
@@ -624,7 +641,7 @@ C</app/logout?signoff=1>.
 
 =head1 INCOMPATIBILITIES
 
-In version 1.0, many utility methods are removed or deprecated, and
+In version 0.99, many utility methods are removed or deprecated, and
 most methods are made read-only.
 
 The following methods are deprecated: C<hostname>, C<url_scheme>,

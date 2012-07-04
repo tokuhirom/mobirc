@@ -27,6 +27,11 @@ sub load_class {
 sub is_real_fh ($) {
     my $fh = shift;
 
+    {
+        no warnings 'uninitialized';
+        return FALSE if -p $fh or -c _ or -b _;
+    }
+
     my $reftype = Scalar::Util::reftype($fh) or return;
     if (   $reftype eq 'IO'
         or $reftype eq 'GLOB' && *{$fh}{IO}
@@ -105,6 +110,11 @@ sub _load_sandbox {
     my $_package = $_file;
     $_package =~ s/([^A-Za-z0-9_])/sprintf("_%2x", unpack("C", $1))/eg;
 
+    _file_zero_check($_file) if $ENV{PLACK_ENV} eq 'development';
+
+    local $0 = $_file; # so FindBin etc. works
+    local @ARGV = ();  # Some frameworks might try to parse @ARGV
+
     return eval sprintf <<'END_EVAL', $_package;
 package Plack::Sandbox::%s;
 {
@@ -113,6 +123,27 @@ package Plack::Sandbox::%s;
     $app;
 }
 END_EVAL
+}
+
+sub _file_zero_check {
+    my $file = shift;
+    open my $fh, "<", $file or return;
+
+    my $code = join '', <$fh>;
+    if ($code =~ /(__FILE__\s+eq\s+\$0|\$0\s+eq\s+__FILE__)/) {
+        warn <<WARNING
+Your PSGI file ($file) seems to use the following idiom, which is known to be broken since Plack 0.9971:
+
+  if ($1) {
+      called_from_cmdline();
+  }
+
+because now \$0 is _always_ localized to the PSGI file path you're evaluating. You should switch to other alternatives such as `unless (caller) {}`. See http://bit.ly/psgi-file-0 for details.
+
+This friendly warning and the code to generate this runs only when the Plack environment (-E) is set to 'development', and will go away in the next major release of Plack.
+
+WARNING
+    }
 }
 
 sub load_psgi {
@@ -233,14 +264,75 @@ sub encode_html {
 
 sub inline_object {
     my %args = @_;
-    bless {%args}, 'Plack::Util::Prototype';
+    bless \%args, 'Plack::Util::Prototype';
+}
+
+sub response_cb {
+    my($res, $cb) = @_;
+
+    my $body_filter = sub {
+        my($cb, $res) = @_;
+        my $filter_cb = $cb->($res);
+        # If response_cb returns a callback, treat it as a $body filter
+        if (defined $filter_cb && ref $filter_cb eq 'CODE') {
+            Plack::Util::header_remove($res->[1], 'Content-Length');
+            if (defined $res->[2]) {
+                if (ref $res->[2] eq 'ARRAY') {
+                    for my $line (@{$res->[2]}) {
+                        $line = $filter_cb->($line);
+                    }
+                    # Send EOF.
+                    my $eof = $filter_cb->( undef );
+                    push @{ $res->[2] }, $eof if defined $eof;
+                } else {
+                    my $body    = $res->[2];
+                    my $getline = sub { $body->getline };
+                    $res->[2] = Plack::Util::inline_object
+                        getline => sub { $filter_cb->($getline->()) },
+                        close => sub { $body->close };
+                }
+            } else {
+                return $filter_cb;
+            }
+        }
+    };
+
+    if (ref $res eq 'ARRAY') {
+        $body_filter->($cb, $res);
+        return $res;
+    } elsif (ref $res eq 'CODE') {
+        return sub {
+            my $respond = shift;
+            my $cb = $cb;  # To avoid the nested closure leak for 5.8.x
+            $res->(sub {
+                my $res = shift;
+                my $filter_cb = $body_filter->($cb, $res);
+                if ($filter_cb) {
+                    my $writer = $respond->($res);
+                    if ($writer) {
+                        return Plack::Util::inline_object
+                            write => sub { $writer->write($filter_cb->(@_)) },
+                            close => sub {
+                                my $chunk = $filter_cb->(undef);
+                                $writer->write($chunk) if defined $chunk;
+                                $writer->close;
+                            };
+                    }
+                } else {
+                    return $respond->($res);
+                }
+            });
+        };
+    }
+
+    return $res;
 }
 
 package Plack::Util::Prototype;
 
 our $AUTOLOAD;
 sub can {
-    exists $_[0]->{$_[1]};
+    $_[0]->{$_[1]};
 }
 
 sub AUTOLOAD {
@@ -342,7 +434,7 @@ Iterate through I<$body> which is an array reference or
 IO::Handle-like object and pass each line (which is NOT really
 guaranteed to be a I<line>) to the callback function.
 
-It internally sets the buffer length C<$/> to 4096 in case it reads
+It internally sets the buffer length C<$/> to 65536 in case it reads
 the binary file, unless otherwise set in the caller's code.
 
 =item load_psgi
@@ -392,7 +484,7 @@ reference. The methods that read existent header value handles header
 name as case insensitive.
 
   my $hdrs = [ 'Content-Type' => 'text/plain' ];
-  my $v = Plack::Util::header_get('content-type'); # 'text/plain'
+  my $v = Plack::Util::header_get($hdrs, 'content-type'); # 'text/plain'
 
 =item headers
 
@@ -432,6 +524,10 @@ HTTP response, i.e. it's 100, 101, 204 or 304.
 Creates an instant object that can react to methods passed in the
 constructor. Handy to create when you need to create an IO stream
 object for input or errors.
+
+=item response_cb
+
+See L<Plack::Middleware/RESPONSE CALLBACK> for details.
 
 =back
 

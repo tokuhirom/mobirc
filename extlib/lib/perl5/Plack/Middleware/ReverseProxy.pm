@@ -4,18 +4,20 @@ use strict;
 use warnings;
 use 5.008_001;
 use parent qw(Plack::Middleware);
-our $VERSION = '0.06';
+our $VERSION = '0.14';
 
 sub call {
     my $self = shift;
     my $env = shift;
 
-    # in apache httpd.conf (RequestHeader set X-Forwarded-HTTPS %{HTTPS}s)
+    # in apache2 httpd.conf (RequestHeader set X-Forwarded-HTTPS %{HTTPS}s)
     $env->{HTTPS} = $env->{'HTTP_X_FORWARDED_HTTPS'}
         if $env->{'HTTP_X_FORWARDED_HTTPS'};
-    $env->{HTTPS} = 'ON' if $env->{'HTTP_X_FORWARDED_PROTO'};    # Pound
+    $env->{HTTPS} = 'ON'
+        if $env->{'HTTP_X_FORWARDED_PROTO'} && $env->{'HTTP_X_FORWARDED_PROTO'} eq 'https';    # Pound
     $env->{'psgi.url_scheme'}  = 'https' if $env->{HTTPS} && uc $env->{HTTPS} eq 'ON';
     my $default_port = $env->{'psgi.url_scheme'} eq 'https' ? 443 : 80;
+
 
     # If we are running as a backend server, the user will always appear
     # as 127.0.0.1. Select the most recent upstream IP (last in the list)
@@ -25,12 +27,24 @@ sub call {
     }
 
     if ( $env->{HTTP_X_FORWARDED_HOST} ) {
+
+        # in apache1 ServerName example.com:443
+        if ( $env->{HTTP_X_FORWARDED_SERVER} ) {
+            my ( $host, ) = $env->{HTTP_X_FORWARDED_SERVER} =~ /([^,\s]+)$/;
+            if ( $host =~ /^(.+):(\d+)$/ ) {
+#            $host = $1;
+                $env->{SERVER_PORT} = $2;
+                $env->{'psgi.url_scheme'}  = 'https' if $env->{SERVER_PORT} == 443;
+            }
+            $env->{HTTP_HOST} = $host;
+        }
+
         my ( $host, ) = $env->{HTTP_X_FORWARDED_HOST} =~ /([^,\s]+)$/;
         if ( $host =~ /^(.+):(\d+)$/ ) {
 #            $host = $1;
             $env->{SERVER_PORT} = $2;
         } elsif ( $env->{HTTP_X_FORWARDED_PORT} ) {
-            # in apache httpd.conf (RequestHeader set X-Forwarded-Port 8443)
+            # in apache2 httpd.conf (RequestHeader set X-Forwarded-Port 8443)
             $env->{SERVER_PORT} = $env->{HTTP_X_FORWARDED_PORT};
             $host .= ":$env->{SERVER_PORT}";
             $env->{'psgi.url_scheme'} = 'https'

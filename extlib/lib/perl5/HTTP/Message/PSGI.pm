@@ -5,6 +5,7 @@ use parent qw(Exporter);
 our @EXPORT = qw( req_to_psgi res_from_psgi );
 
 use Carp ();
+use HTTP::Status qw(status_message);
 use URI::Escape ();
 use Plack::Util;
 use Try::Tiny;
@@ -27,12 +28,6 @@ sub req_to_psgi {
     $uri->port(80)          unless $uri->port;
     $uri->host_port($host)  unless !$host || ( $host eq $uri->host_port );
 
-    # STUPID: If the request URI is utf-8 decoded, methods like ->path
-    # and ->host returns decoded strings in ascii, which causes double
-    # encoded strings in uri_unescape and URI concatenation in
-    # Plack::Request :/
-    utf8::downgrade $$uri;
-
     my $input;
     my $content = $req->content;
     if (ref $content eq 'CODE') {
@@ -44,10 +39,12 @@ sub req_to_psgi {
         }
     } else {
         open $input, "<", \$content;
+        $req->content_length(length $content)
+            unless defined $req->content_length;
     }
 
     my $env = {
-        PATH_INFO         => URI::Escape::uri_unescape($uri->path),
+        PATH_INFO         => URI::Escape::uri_unescape($uri->path || '/'),
         QUERY_STRING      => $uri->query || '',
         SCRIPT_NAME       => '',
         SERVER_NAME       => $uri->host,
@@ -56,7 +53,7 @@ sub req_to_psgi {
         REMOTE_ADDR       => '127.0.0.1',
         REMOTE_HOST       => 'localhost',
         REMOTE_PORT       => int( rand(64000) + 1000 ),                   # not in RFC 3875
-        REQUEST_URI       => $uri->path_query,                            # not in RFC 3875
+        REQUEST_URI       => $uri->path_query || '/',                     # not in RFC 3875
         REQUEST_METHOD    => $req->method,
         'psgi.version'      => [ 1, 1 ],
         'psgi.url_scheme'   => $uri->scheme eq 'https' ? 'https' : 'http',
@@ -85,6 +82,12 @@ sub req_to_psgi {
         $env->{PATH_INFO} =~ s/^\/+/\//;
     }
 
+    if (!defined($env->{HTTP_HOST}) && $req->uri->can('host')) {
+        $env->{HTTP_HOST} = $req->uri->host;
+        $env->{HTTP_HOST} .= ':' . $req->uri->port
+            if $req->uri->port ne $req->uri->default_port;
+    }
+
     return $env;
 }
 
@@ -110,6 +113,7 @@ sub _res_from_psgi {
 
     my $convert_resp = sub {
         my $res = HTTP::Response->new($status);
+        $res->message(status_message($status));
         $res->headers->header(@$headers) if @$headers;
 
         if (ref $body eq 'ARRAY') {

@@ -3,8 +3,12 @@ use strict;
 use warnings;
 use constant RUNNING_IN_HELL => $^O eq 'MSWin32';
 
+use Scalar::Util qw(blessed);
 use Plack::Util;
 use FCGI;
+use HTTP::Status qw(status_message);
+use URI;
+use URI::Escape;
 
 sub new {
     my $class = shift;
@@ -14,9 +18,10 @@ sub new {
     $self->{keep_stderr} ||= 0;
     $self->{nointr}      ||= 0;
     $self->{daemonize}   ||= $self->{detach}; # compatibility
-    $self->{nproc}       ||= 1;
+    $self->{nproc}       ||= 1 unless blessed $self->{manager};
     $self->{pid}         ||= $self->{pidfile}; # compatibility
     $self->{listen}      ||= [ ":$self->{port}" ] if $self->{port}; # compatibility
+    $self->{backlog}     ||= 100;
     $self->{manager}     = 'FCGI::ProcManager' unless exists $self->{manager};
 
     $self;
@@ -26,26 +31,30 @@ sub run {
     my ($self, $app) = @_;
 
     my $sock = 0;
-    if ($self->{listen}) {
+    if (-S STDIN) {
+        # running from web server. Do nothing
+        # Note it should come before listen check because of plackup's default
+    } elsif ($self->{listen}) {
         my $old_umask = umask;
         unless ($self->{leave_umask}) {
             umask(0);
         }
-        $sock = FCGI::OpenSocket( $self->{listen}->[0], 100 )
+        $sock = FCGI::OpenSocket( $self->{listen}->[0], $self->{backlog} )
             or die "failed to open FastCGI socket: $!";
         unless ($self->{leave_umask}) {
             umask($old_umask);
         }
+    } elsif (!RUNNING_IN_HELL) {
+        die "STDIN is not a socket: specify a listen location";
     }
-    elsif (!RUNNING_IN_HELL) {
-        -S STDIN
-            or die "STDIN is not a socket: specify a listen location";
-    }
+
+    @{$self}{qw(stdin stdout stderr)} 
+      = (IO::Handle->new, IO::Handle->new, IO::Handle->new);
 
     my %env;
     my $request = FCGI::Request(
-        \*STDIN, \*STDOUT,
-        ($self->{keep_stderr} ? \*STDOUT : \*STDERR), \%env, $sock,
+        $self->{stdin}, $self->{stdout},
+        ($self->{keep_stderr} ? $self->{stdout} : $self->{stderr}), \%env, $sock,
         ($self->{nointr} ? 0 : &FCGI::FAIL_ACCEPT_ON_INTR),
     );
 
@@ -55,11 +64,21 @@ sub run {
         $self->daemon_fork if $self->{daemonize};
 
         if ($self->{manager}) {
-            Plack::Util::load_class($self->{manager});
-            $proc_manager = $self->{manager}->new({
-                n_processes => $self->{nproc},
-                pid_fname   => $self->{pid},
-            });
+            if (blessed $self->{manager}) {
+                for (qw(nproc pid proc_title)) {
+                    die "Don't use '$_' when passing in a 'manager' object"
+                        if $self->{$_};
+                }
+                $proc_manager = $self->{manager};
+            } else {
+                Plack::Util::load_class($self->{manager});
+                $proc_manager = $self->{manager}->new({
+                    n_processes => $self->{nproc},
+                    pid_fname   => $self->{pid},
+                    (exists $self->{proc_title}
+                         ? (pm_title => $self->{proc_title}) : ()),
+                });
+            }
 
             # detach *before* the ProcManager inits
             $self->daemon_detach if $self->{daemonize};
@@ -78,18 +97,24 @@ sub run {
             %env,
             'psgi.version'      => [1,1],
             'psgi.url_scheme'   => ($env{HTTPS}||'off') =~ /^(?:on|1)$/i ? 'https' : 'http',
-            'psgi.input'        => *STDIN,
-            'psgi.errors'       => *STDERR, # FCGI.pm redirects STDERR in Accept() loop, so just print STDERR
-                                            # print to the correct error handle based on keep_stderr
+            'psgi.input'        => $self->{stdin},
+            'psgi.errors'       => $self->{stderr}, # FCGI.pm redirects STDERR in Accept() loop, so just print STDERR
+                                                    # print to the correct error handle based on keep_stderr
             'psgi.multithread'  => Plack::Util::FALSE,
             'psgi.multiprocess' => Plack::Util::TRUE,
             'psgi.run_once'     => Plack::Util::FALSE,
             'psgi.streaming'    => Plack::Util::TRUE,
             'psgi.nonblocking'  => Plack::Util::FALSE,
+            'psgix.harakiri'    => defined $proc_manager,
         };
 
         delete $env->{HTTP_CONTENT_TYPE};
         delete $env->{HTTP_CONTENT_LENGTH};
+
+        # lighttpd munges multiple slashes in PATH_INFO into one. Try recovering it
+        my $uri = URI->new("http://localhost" .  $env->{REQUEST_URI});
+        $env->{PATH_INFO} = uri_unescape($uri->path);
+        $env->{PATH_INFO} =~ s/^\Q$env->{SCRIPT_NAME}\E//;
 
         if ($env->{SERVER_SOFTWARE} && $env->{SERVER_SOFTWARE} =~ m!lighttpd[-/]1\.(\d+\.\d+)!) {
             no warnings;
@@ -101,6 +126,11 @@ sub run {
                      "This friendly warning will go away in the next major release of Plack.";
             }
             $env->{SERVER_NAME} =~ s/:\d+$//; # cut off port number
+        }
+
+        # root access for mod_fastcgi
+        if (!exists $env->{PATH_INFO}) {
+            $env->{PATH_INFO} = '';
         }
 
         my $res = Plack::Util::run_app $app, $env;
@@ -117,17 +147,27 @@ sub run {
             die "Bad response $res";
         }
 
+        # give pm_post_dispatch the chance to do things after the client thinks
+        # the request is done
+        $request->Finish;
+
         $proc_manager && $proc_manager->pm_post_dispatch();
+
+        if ($proc_manager && $env->{'psgix.harakiri.commit'}) {
+            $proc_manager->pm_exit("safe exit with harakiri");
+        }
     }
 }
 
 sub _handle_response {
     my ($self, $res) = @_;
 
-    *STDOUT->autoflush(1);
+    $self->{stdout}->autoflush(1);
+    binmode $self->{stdout};
 
     my $hdrs;
-    $hdrs = "Status: $res->[0]\015\012";
+    my $message = status_message($res->[0]);
+    $hdrs = "Status: $res->[0] $message\015\012";
 
     my $headers = $res->[1];
     while (my ($k, $v) = splice @$headers, 0, 2) {
@@ -135,9 +175,9 @@ sub _handle_response {
     }
     $hdrs .= "\015\012";
 
-    print STDOUT $hdrs;
+    print { $self->{stdout} } $hdrs;
 
-    my $cb = sub { print STDOUT $_[0] };
+    my $cb = sub { print { $self->{stdout} } $_[0] };
     my $body = $res->[2];
     if (defined $body) {
         Plack::Util::foreach($body, $cb);
@@ -183,7 +223,7 @@ Plack::Handler::FCGI - FastCGI handler for Plack
   # Roll your own
   my $server = Plack::Handler::FCGI->new(
       nproc  => $num_proc,
-      listen => $listen,
+      listen => [ $port_or_socket ],
       detach => 1,
   );
   $server->run($app);
@@ -200,8 +240,8 @@ FastCGI daemon or a .fcgi script.
 
 =item listen
 
-    listen => '/path/to/socket'
-    listen => ':8080'
+    listen => [ '/path/to/socket' ]
+    listen => [ ':8080' ]
 
 Listen on a socket path, hostname:port, or :port.
 
@@ -233,13 +273,25 @@ Specify a FCGI::ProcManager sub-class
 
 Daemonize the process.
 
+=item proc-title
+
+Specify process title
+
 =item keep-stderr
 
 Send STDERR to STDOUT instead of the webserver
 
+=item backlog
+
+Maximum length of the queue of pending connections
+
 =back
 
 =head2 WEB SERVER CONFIGURATIONS
+
+In all cases, you will want to install L<FCGI> and L<FGCI::ProcManager>.
+You may find it most convenient to simply install L<Task::Plack> which
+includes both of these.
 
 =head3 nginx
 
@@ -260,7 +312,7 @@ Unix domain socket and run it at the server's root URL (/).
         fastcgi_param  CONTENT_TYPE     $content_type;
         fastcgi_param  CONTENT_LENGTH   $content_length;
         fastcgi_param  REQUEST_URI      $request_uri;
-        fastcgi_param  SEREVR_PROTOCOL  $server_protocol;
+        fastcgi_param  SERVER_PROTOCOL  $server_protocol;
         fastcgi_param  REMOTE_ADDR      $remote_addr;
         fastcgi_param  REMOTE_PORT      $remote_port;
         fastcgi_param  SERVER_ADDR      $server_addr;
@@ -278,11 +330,29 @@ See L<http://wiki.nginx.org/NginxFcgiExample> for more details.
 
 =head3 Apache mod_fastcgi
 
-You can use C<FastCgiExternalServer> as normal.
+After installing C<mod_fastcgi>, you should add the C<FastCgiExternalServer>
+directive to your Apache config:
 
   FastCgiExternalServer /tmp/myapp.fcgi -socket /tmp/fcgi.sock
 
-See L<http://www.fastcgi.com/mod_fastcgi/docs/mod_fastcgi.html#FastCgiExternalServer> for more details.
+  ## Then set up the location that you want to be handled by fastcgi:
+
+  # EITHER from a given path
+  Alias /myapp/ /tmp/myapp.fcgi/
+
+  # OR at the root
+  Alias / /tmp/myapp.fcgi/
+
+Now you can use plackup to listen to the socket that you've just configured in Apache.
+
+  $  plackup -s FCGI --listen /tmp/myapp.sock psgi/myapp.psgi
+
+The above describes the "standalone" method, which is usually appropriate.
+There are other methods, described in more detail at 
+L<Catalyst::Engine::FastCGI/Standalone_server_mode> (with regards to Catalyst, but which may be set up similarly for Plack).
+
+See also L<http://www.fastcgi.com/mod_fastcgi/docs/mod_fastcgi.html#FastCgiExternalServer>
+for more details.
 
 =head3 lighttpd
 
@@ -292,7 +362,7 @@ To host the app in the root path, you're recommended to use lighttpd
   fastcgi.server = ( "/" =>
      ((
        "socket" => "/tmp/fcgi.sock",
-       "check-local" => "disable"
+       "check-local" => "disable",
        "fix-root-scriptname" => "enable",
      ))
 
@@ -307,9 +377,9 @@ To mount in the non-root path over TCP:
 
   fastcgi.server = ( "/foo" =>
      ((
-       "host" = "127.0.0.1"
-       "port" = "5000"
-       "check-local" => "disable"
+       "host" = "127.0.0.1",
+       "port" = "5000",
+       "check-local" => "disable",
      ))
 
 It's recommended that your mount path does B<NOT> have the trailing

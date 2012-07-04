@@ -23,12 +23,16 @@ sub watch {
 sub _fork_and_start {
     my($self, $server) = @_;
 
+    delete $self->{pid}; # re-init in case it's a restart
+
     my $pid = fork;
     die "Can't fork: $!" unless defined $pid;
 
-    return $server->run($self->{builder}->()) if $pid == 0; # child
-
-    $self->{pid} = $pid;
+    if ($pid == 0) { # child
+        return $server->run($self->{builder}->());
+    } else {
+        $self->{pid} = $pid;
+    }
 }
 
 sub _kill_child {
@@ -38,12 +42,11 @@ sub _kill_child {
     warn "Killing the existing server (pid:$pid)\n";
     kill 'TERM' => $pid;
     waitpid($pid, 0);
-    warn "Successfully killed! Restarting the new server process.\n";
 }
 
 sub valid_file {
     my($self, $file) = @_;
-    $file->{path} !~ m![/\\][\._]|\.bak$|~$!;
+    $file->{path} !~ m![/\\][\._]|\.bak$|~$|_flymake\.p[lm]!;
 }
 
 sub run {
@@ -55,6 +58,7 @@ sub run {
     require Filesys::Notify::Simple;
     my $watcher = Filesys::Notify::Simple->new($self->{watch});
     warn "Watching @{$self->{watch}} for file updates.\n";
+    local $SIG{TERM} = sub { $self->_kill_child; exit(0); };
 
     while (1) {
         my @restart;
@@ -75,7 +79,9 @@ sub run {
         }
 
         $self->_kill_child;
+        warn "Successfully killed! Restarting the new server process.\n";
         $self->_fork_and_start($server, $builder);
+        return unless $self->{pid};
     }
 }
 

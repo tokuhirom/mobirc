@@ -10,7 +10,7 @@ sub prepare_app {
 
     my $auth = $self->authenticator or die 'authenticator is not set';
     if (Scalar::Util::blessed($auth) && $auth->can('authenticate')) {
-        $self->authenticator(sub { $auth->authenticate(@_) });
+        $self->authenticator(sub { $auth->authenticate(@_[0,1]) }); # because Authen::Simple barfs on 3 params
     } elsif (ref $auth ne 'CODE') {
         die 'authenticator should be a code reference or an object that responds to authenticate()';
     }
@@ -22,10 +22,12 @@ sub call {
     my $auth = $env->{HTTP_AUTHORIZATION}
         or return $self->unauthorized;
 
-    if ($auth =~ /^Basic (.*)$/) {
+    # note the 'i' on the regex, as, accoring to RFC2617 this is a 
+    # "case-insensitive token to identify the authentication scheme"
+    if ($auth =~ /^Basic (.*)$/i) {
         my($user, $pass) = split /:/, (MIME::Base64::decode($1) || ":");
         $pass = '' unless defined $pass;
-        if ($self->authenticator->($user, $pass)) {
+        if ($self->authenticator->($user, $pass, $env)) {
             $env->{REMOTE_USER} = $user;
             return $self->app->($env);
         }
@@ -103,13 +105,15 @@ with standalone Perl PSGI web servers such as L<Starman> or
 L<HTTP::Server::Simple::PSGI>.
 
 However, in a web server configuration where you can't achieve this
-(i.e. using your application via mod_perl, CGI or FastCGI), this
-middleware does not work since your application can't know the value
-of C<Authorization:> header.
+(i.e. using your application via Apache's mod_cgi), this middleware
+does not work since your application can't know the value of
+C<Authorization:> header.
 
-If you use Apache as a web server and CGI or mod_perl to run your PSGI
-application, you can use mod_rewrite to pass the Authorization header
-to the application with the rewrite rule like following.
+If you use Apache as a web server and CGI to run your PSGI
+application, you can either a) compile Apache with
+C<-DSECURITY_HOLE_PASS_AUTHORIZATION> option, or b) use mod_rewrite to
+pass the Authorization header to the application with the rewrite rule
+like following.
 
   RewriteEngine on
   RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization},L]

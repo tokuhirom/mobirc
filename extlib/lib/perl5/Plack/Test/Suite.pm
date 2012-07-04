@@ -16,17 +16,32 @@ use Try::Tiny;
 
 my $share_dir = try { File::ShareDir::dist_dir('Plack') } || 'share';
 
+$ENV{PLACK_TEST_SCRIPT_NAME} = '';
+
 # 0: test name
 # 1: request generator coderef.
 # 2: request handler
 # 3: test case for response
 our @TEST = (
     [
+        'SCRIPT_NAME',
+        sub {
+            my $cb = shift;
+            my $res = $cb->(GET "http://127.0.0.1/");
+            is $res->content, $ENV{PLACK_TEST_SCRIPT_NAME};
+        },
+        sub {
+            my $env = shift;
+            return [ 200, ["Content-Type", "text/plain"], [ $env->{SCRIPT_NAME} ] ];
+        },
+    ],
+    [
         'GET',
         sub {
             my $cb = shift;
             my $res = $cb->(GET "http://127.0.0.1/?name=miyagawa");
             is $res->code, 200;
+            is $res->message, 'OK';
             is $res->header('content_type'), 'text/plain';
             is $res->content, 'Hello, name=miyagawa';
         },
@@ -45,6 +60,7 @@ our @TEST = (
             my $cb = shift;
             my $res = $cb->(POST "http://127.0.0.1/", [name => 'tatsuhiko']);
             is $res->code, 200;
+            is $res->message, 'OK';
             is $res->header('Client-Content-Length'), 14;
             is $res->header('Client-Content-Type'), 'application/x-www-form-urlencoded';
             is $res->header('content_type'), 'text/plain';
@@ -69,13 +85,14 @@ our @TEST = (
         sub {
             my $cb = shift;
             my $chunk = "abcdefgh" x 12000;
-            my $req = HTTP::Request->new(POST => "http://127.0.0.1");
+            my $req = HTTP::Request->new(POST => "http://127.0.0.1/");
             $req->content_length(length $chunk);
             $req->content_type('application/octet-stream');
             $req->content($chunk);
 
             my $res = $cb->($req);
             is $res->code, 200;
+            is $res->message, 'OK';
             is $res->header('Client-Content-Length'), length $chunk;
             is length $res->content, length $chunk;
             is Digest::MD5::md5_hex($res->content), Digest::MD5::md5_hex($chunk);
@@ -106,6 +123,7 @@ our @TEST = (
             my $cb = shift;
             my $res = $cb->(POST "http://127.0.0.1/");
             is $res->code, 200;
+            is $res->message, 'OK';
             is $res->header('content_type'), 'text/plain';
             is $res->content, 'http';
         },
@@ -124,6 +142,7 @@ our @TEST = (
             my $cb  = shift;
             my $res = $cb->(GET "http://127.0.0.1/");
             is $res->code, 200;
+            is $res->message, 'OK';
             is $res->header('content_type'), 'text/plain';
             like $res->content, qr/^package /;
             like $res->content, qr/END_MARK_FOR_TESTING$/;
@@ -144,6 +163,7 @@ our @TEST = (
             my $cb  = shift;
             my $res = $cb->(GET "http://127.0.0.1/foo.jpg");
             is $res->code, 200;
+            is $res->message, 'OK';
             is $res->header('content_type'), 'image/jpeg';
             is length $res->content, 4745;
         },
@@ -163,6 +183,7 @@ our @TEST = (
             my $cb  = shift;
             my $res = $cb->(GET "http://127.0.0.1/baybridge.jpg");
             is $res->code, 200;
+            is $res->message, 'OK';
             is $res->header('content_type'), 'image/jpeg';
             is length $res->content, 79838;
             is Digest::MD5::md5_hex($res->content), '983726ae0e4ce5081bef5fb2b7216950';
@@ -184,6 +205,7 @@ our @TEST = (
             my $cb  = shift;
             my $res = $cb->(GET "http://127.0.0.1/foo/?dankogai=kogaidan", Foo => "Bar");
             is $res->code, 200;
+            is $res->message, 'OK';
             is $res->header('content_type'), 'text/plain';
             is $res->content, 'Bar';
         },
@@ -202,6 +224,7 @@ our @TEST = (
             my $cb  = shift;
             my $res = $cb->(GET "http://127.0.0.1/foo/?dankogai=kogaidan", Cookie => "foo");
             is $res->code, 200;
+            is $res->message, 'OK';
             is $res->header('content_type'), 'text/plain';
             is $res->content, 'foo';
         },
@@ -220,9 +243,11 @@ our @TEST = (
             my $cb  = shift;
             my $res = $cb->(GET "http://127.0.0.1/foo/?dankogai=kogaidan");
             is $res->code, 200;
+            is $res->message, 'OK';
             is $res->header('content_type'), 'text/plain';
             is $res->content, join("\n",
                 'REQUEST_METHOD:GET',
+                "SCRIPT_NAME:$ENV{PLACK_TEST_SCRIPT_NAME}",
                 'PATH_INFO:/foo/',
                 'QUERY_STRING:dankogai=kogaidan',
                 'SERVER_NAME:127.0.0.1',
@@ -232,7 +257,7 @@ our @TEST = (
         sub {
             my $env = shift;
             my $body;
-            $body .= $_ . ':' . $env->{$_} . "\n" for qw/REQUEST_METHOD PATH_INFO QUERY_STRING SERVER_NAME SERVER_PORT/;
+            $body .= $_ . ':' . $env->{$_} . "\n" for qw/REQUEST_METHOD SCRIPT_NAME PATH_INFO QUERY_STRING SERVER_NAME SERVER_PORT/;
             return [
                 200,
                 [ 'Content-Type' => 'text/plain', ],
@@ -273,11 +298,28 @@ our @TEST = (
         },
     ],
     [
+        '% encoding in PATH_INFO (outside of URI characters)',
+        sub {
+            my $cb  = shift;
+            my $res = $cb->(GET "http://127.0.0.1/foo%E3%81%82");
+            is $res->content, "/foo\x{e3}\x{81}\x{82}";
+        },
+        sub {
+            my $env = shift;
+            return [
+                200,
+                [ 'Content-Type' => 'text/plain', ],
+                [ $env->{PATH_INFO} ],
+            ];
+        },
+    ],
+    [
         'SERVER_PROTOCOL is required',
         sub {
             my $cb  = shift;
             my $res = $cb->(GET "http://127.0.0.1/foo/?dankogai=kogaidan");
             is $res->code, 200;
+            is $res->message, 'OK';
             is $res->header('content_type'), 'text/plain';
             like $res->content, qr{^HTTP/1\.[01]$};
         },
@@ -372,6 +414,7 @@ our @TEST = (
             my $cb  = shift;
             my $res = $cb->(GET "http://127.0.0.1/");
             is $res->code, 500;
+            is $res->message, 'Internal Server Error';
         },
         sub {
             my $env = shift;
@@ -445,6 +488,7 @@ our @TEST = (
             my $cb  = shift;
             my $res = $cb->(GET "http://127.0.0.1/");
             is $res->code, 304;
+            is $res->message, 'Not Modified';
             is $res->content, '';
             ok ! defined $res->header('content_type'), "No Content-Type";
             ok ! defined $res->header('content_length'), "No Content-Length";
@@ -460,7 +504,7 @@ our @TEST = (
         sub {
             my $cb  = shift;
             my $res = $cb->(GET "http://127.0.0.1/foo/bar%20baz%73?x=a");
-            is $res->content, '/foo/bar%20baz%73?x=a';
+            is $res->content, $ENV{PLACK_TEST_SCRIPT_NAME} . "/foo/bar%20baz%73?x=a";
         },
         sub {
             my $env = shift;
@@ -473,6 +517,7 @@ our @TEST = (
             my $cb  = shift;
             my $res = $cb->(GET "http://127.0.0.1/foo.jpg");
             is $res->code, 200;
+            is $res->message, 'OK';
             is $res->header('content_type'), 'image/jpeg';
             is length $res->content, 4745;
         },
@@ -496,6 +541,7 @@ our @TEST = (
             $req->header('X-Foo' => $v);
             my $res = $cb->($req);
             is $res->code, 200;
+            is $res->message, 'OK';
             is $res->content, $v;
         },
         sub {
@@ -515,6 +561,7 @@ our @TEST = (
             return if $res->code == 501;
 
             is $res->code, 200;
+            is $res->message, 'OK';
             is $res->header('content_type'), 'text/plain';
             is $res->content, 'Hello, name=miyagawa';
         },
@@ -539,6 +586,7 @@ our @TEST = (
             return if $res->code == 501;
 
             is $res->code, 200;
+            is $res->message, 'OK';
             is $res->header('content_type'), 'text/plain';
             is $res->content, 'Hello, name=miyagawa';
         },
@@ -574,11 +622,23 @@ our @TEST = (
         },
     ],
     [
+        'newlines',
+        sub {
+            my $cb = shift;
+            my $res = $cb->(GET "http://127.0.0.1/");
+            is length($res->content), 7;
+        },
+        sub {
+            return [ 200, [ "Content-Type", "text/plain" ], [ "Bar\nBaz" ] ];
+        },
+    ],
+    [
         'test 404',
         sub {
             my $cb = shift;
             my $res = $cb->(GET "http://127.0.0.1/");
             is $res->code, 404;
+            is $res->message, 'Not Found';
             is $res->content, 'Not Found';
         },
         sub {
@@ -614,6 +674,61 @@ our @TEST = (
             return [ 200, [ "Content-Type", "text/plain" ], [ "OK" ] ];
         },
     ],
+    [
+        'handle Authorization header',
+        sub {
+            my $cb  = shift;
+            SKIP: {
+                skip "Authorization header is unsupported under CGI", 4 if ($ENV{PLACK_TEST_HANDLER} || "") eq "CGI";
+
+                {
+                    my $req = HTTP::Request->new(
+                        GET => "http://127.0.0.1/",
+                    );
+                    $req->push_header(Authorization => 'Basic XXXX');
+                    my $res = $cb->($req);
+                    is $res->header('X-AUTHORIZATION'), 1;
+                    is $res->content, 'Basic XXXX';
+                };
+
+                {
+                    my $req = HTTP::Request->new(
+                        GET => "http://127.0.0.1/",
+                    );
+                    my $res = $cb->($req);
+                    is $res->header('X-AUTHORIZATION'), 0;
+                    is $res->content, '';
+                };
+            };
+        },
+        sub {
+            my $env = shift;
+            return [
+                200,
+                [ 'Content-Type' => 'text/plain', 'X-AUTHORIZATION' => exists($env->{HTTP_AUTHORIZATION}) ? 1 : 0 ],
+                [ $env->{HTTP_AUTHORIZATION} || '' ],
+            ];
+        },
+    ],
+    [
+        'repeated slashes',
+        sub {
+            my $cb = shift;
+            my $res = $cb->(GET "http://127.0.0.1//foo///bar/baz");
+            is $res->code, 200;
+            is $res->message, 'OK';
+            is $res->header('content_type'), 'text/plain';
+            is $res->content, '//foo///bar/baz';
+        },
+        sub {
+            my $env = shift;
+            return [
+                200,
+                [ 'Content-Type' => 'text/plain', ],
+                [ $env->{PATH_INFO} ],
+            ];
+        },
+    ],
 );
 
 sub runtests {
@@ -647,6 +762,7 @@ sub run_server_tests {
                 my $cb = sub {
                     my $req = shift;
                     $req->uri->port($http_port || $port);
+                    $req->uri->path(($ENV{PLACK_TEST_SCRIPT_NAME}||"") . $req->uri->path);
                     $req->header('X-Plack-Test' => $i);
                     return $ua->request($req);
                 };
@@ -658,6 +774,7 @@ sub run_server_tests {
             my $port = shift;
             my $app  = $class->test_app_handler;
             $server->($port, $app);
+            exit(0); # for Test::TCP
         },
         port => $server_port,
     );

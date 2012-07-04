@@ -1,7 +1,7 @@
 package URI::_punycode;
 
 use strict;
-our $VERSION = "0.03";
+our $VERSION = "0.04";
 
 require Exporter;
 our @ISA    = qw(Exporter);
@@ -91,8 +91,7 @@ sub decode_punycode {
 
 sub encode_punycode {
     my $input = shift;
-    # my @input = split //, $input; # doesn't work in 5.6.x!
-    my @input = map substr($input, $_, 1), 0..length($input)-1;
+    my @input = split //, $input;
 
     my $n     = INITIAL_N;
     my $delta = 0;

@@ -25,7 +25,10 @@ sub handler {
 }
 
 # Overriding
-sub _recalc_paths {}
+sub fixup_path {
+    my ($class, $r, $env) = @_;
+    $env->{PATH_INFO} =~ s{^$env->{SCRIPT_NAME}}{};
+}
 
 1;
 

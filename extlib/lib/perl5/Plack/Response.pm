@@ -1,7 +1,7 @@
 package Plack::Response;
 use strict;
 use warnings;
-our $VERSION = '0.9938';
+our $VERSION = '0.9989';
 $VERSION = eval $VERSION;
 
 use Plack::Util::Accessor qw(body status);
@@ -65,7 +65,8 @@ sub content_encoding {
 }
 
 sub location {
-    shift->headers->header('Location' => @_);
+    my $self = shift;
+    return $self->headers->header('Location' => @_);
 }
 
 sub redirect {
@@ -85,15 +86,23 @@ sub finalize {
     my $self = shift;
     Carp::croak "missing status" unless $self->status();
 
-    $self->_finalize_cookies();
+    my $headers = $self->headers->clone;
+    $self->_finalize_cookies($headers);
 
     return [
         $self->status,
         +[
             map {
                 my $k = $_;
-                map { ( $k => $_ ) } $self->headers->header($_);
-            } $self->headers->header_field_names
+                map {
+                    my $v = $_;
+                    $v =~ s/\015\012[\040|\011]+/chr(32)/ge; # replace LWS with a single SP
+                    $v =~ s/\015|\012//g; # remove CR and LF since the char is invalid here
+
+                    ( $k => $v )
+                } $headers->header($_);
+
+            } $headers->header_field_names
         ],
         $self->_body,
     ];
@@ -103,7 +112,7 @@ sub _body {
     my $self = shift;
     my $body = $self->body;
        $body = [] unless defined $body;
-    if (!ref $body or Scalar::Util::blessed($body) && overload::Method($body, q(""))) {
+    if (!ref $body or Scalar::Util::blessed($body) && overload::Method($body, q("")) && !$body->can('getline')) {
         return [ $body ];
     } else {
         return $body;
@@ -111,11 +120,11 @@ sub _body {
 }
 
 sub _finalize_cookies {
-    my $self = shift;
+    my($self, $headers) = @_;
 
     while (my($name, $val) = each %{$self->cookies}) {
         my $cookie = $self->_bake_cookie($name, $val);
-        $self->headers->push_header( 'Set-Cookie' => $cookie );
+        $headers->push_header('Set-Cookie' => $cookie);
     }
 }
 
@@ -220,6 +229,10 @@ headers.
 Gets and sets HTTP response body. Setter can take either a string, an
 array ref, or an IO::Handle-like object. C<content> is an alias.
 
+Note that this method doesn't automatically set I<Content-Length> for
+the response. You have to set it manually if you want, with the
+C<content_length> method (see below).
+
 =item header
 
   $res->header('X-Foo' => 'bar');
@@ -242,9 +255,16 @@ Shortcut for the equivalent get/set methods in C<< $res->headers >>.
 
 Sets redirect URL with an optional status code, which defaults to 302.
 
+Note that this method doesn't normalize the given URI string. Users of
+this module have to be responsible about properly encoding URI paths
+and parameters.
+
 =item location
 
 Gets and sets C<Location> header.
+
+Note that this method doesn't normalize the given URI string in the
+setter. See above in C<redirect> for details.
 
 =item cookies
 
@@ -266,6 +286,13 @@ B<does not> convert string formats such as C<+3M>.
       domain => '.example.com',
       expires => time + 24 * 60 * 60,
   };
+
+=item finalize
+
+  $res->finalize;
+
+Returns the status code, headers, and body of this response as a PSGI
+response array reference.
 
 =back
 

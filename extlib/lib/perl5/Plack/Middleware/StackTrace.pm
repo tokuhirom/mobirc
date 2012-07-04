@@ -10,7 +10,7 @@ use Plack::Util::Accessor qw( force no_print_errors );
 our $StackTraceClass = "Devel::StackTrace";
 
 # Optional since it needs PadWalker
-if ($ENV{PLACK_STACKTRACE_LEXICALS} && try { require Devel::StackTrace::WithLexicals; 1 }) {
+if (try { require Devel::StackTrace::WithLexicals; Devel::StackTrace::WithLexicals->VERSION(0.08); 1 }) {
     $StackTraceClass = "Devel::StackTrace::WithLexicals";
 }
 
@@ -19,18 +19,29 @@ sub call {
 
     my $trace;
     local $SIG{__DIE__} = sub {
-        $trace = $StackTraceClass->new;
+        $trace = $StackTraceClass->new(
+            indent => 1, message => munge_error($_[0], [ caller ]),
+            ignore_package => __PACKAGE__,
+        );
         die @_;
     };
 
     my $caught;
-    my $res = try { $self->app->($env) } catch { $caught = $_ };
+    my $res = try {
+        $self->app->($env);
+    } catch {
+        $caught = $_;
+        [ 500, [ "Content-Type", "text/plain; charset=utf-8" ], [ no_trace_error(utf8_safe($caught)) ] ];
+    };
 
     if ($trace && ($caught || ($self->force && ref $res eq 'ARRAY' && $res->[0] == 500)) ) {
-        my $text = trace_as_string($trace);
+        my $text = $trace->as_string;
+        my $html = $trace->as_html;
+        $env->{'plack.stacktrace.text'} = $text;
+        $env->{'plack.stacktrace.html'} = $html;
         $env->{'psgi.errors'}->print($text) unless $self->no_print_errors;
         if (($env->{HTTP_ACCEPT} || '*/*') =~ /html/) {
-            $res = [500, ['Content-Type' => 'text/html; charset=utf-8'], [ utf8_safe($trace->as_html) ]];
+            $res = [500, ['Content-Type' => 'text/html; charset=utf-8'], [ utf8_safe($html) ]];
         } else {
             $res = [500, ['Content-Type' => 'text/plain; charset=utf-8'], [ utf8_safe($text) ]];
         }
@@ -44,19 +55,28 @@ sub call {
     return $res;
 }
 
-sub trace_as_string {
-    my $trace = shift;
+sub no_trace_error {
+    my $msg = shift;
+    chomp($msg);
 
-    my $st = '';
-    my $first = 1;
-    foreach my $f ( $trace->frames() ) {
-        $st .= "\t" unless $first;
-        $st .= $f->as_string($first) . "\n";
-        $first = 0;
-    }
+    return <<EOF;
+The application raised the following error:
 
-    return $st;
+  $msg
 
+and the StackTrace middleware couldn't catch its stack trace, possibly because your application overrides \$SIG{__DIE__} by itself, preventing the middleware from working correctly. Remove the offending code or module that does it: known examples are CGI::Carp and Carp::Always.
+EOF
+}
+
+sub munge_error {
+    my($err, $caller) = @_;
+    return $err if ref $err;
+
+    # Ugly hack to remove " at ... line ..." automatically appended by perl
+    # If there's a proper way to do this, please let me know.
+    $err =~ s/ at \Q$caller->[1]\E line $caller->[2]\.\n$//;
+
+    return $err;
 }
 
 sub utf8_safe {
@@ -90,7 +110,10 @@ Plack::Middleware::StackTrace - Displays stack trace when your app dies
 =head1 DESCRIPTION
 
 This middleware catches exceptions (run-time errors) happening in your
-application and displays nice stack trace screen.
+application and displays nice stack trace screen. The stack trace is
+also stored in the environment as a plaintext and HTML under the key
+C<plack.stacktrace.text> and C<plack.stacktrace.html> respectively, so
+that middleware futher up the stack can reference it.
 
 This middleware is enabled by default when you run L<plackup> in the
 default I<development> mode.

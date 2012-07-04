@@ -12,16 +12,28 @@ sub call {
 
     $self->response_cb($res, sub {
         my $res = shift;
+
         my $h = Plack::Util::headers($res->[1]);
         if ( $self->etag_matches($h, $env) || $self->not_modified_since($h, $env) ) {
             $res->[0] = 304;
             $h->remove($_) for qw( Content-Type Content-Length Content-Disposition );
-            $res->[2] = [];
+            if ($res->[2]) {
+                $res->[2] = [];
+            } else {
+                return sub {
+                    return defined $_[0] ? '' : undef;
+                };
+            }
         }
     });
 }
 
 no warnings 'uninitialized';
+
+# RFC 2616 14.25 says it's OK and expected to use 'eq' :)
+# > Note: When handling an If-Modified-Since header field, some
+# > servers will use an exact date comparison function, rather than a
+# > less-than function, for deciding whether to send a 304 ...
 
 sub etag_matches {
     my($self, $h, $env) = @_;
@@ -46,12 +58,12 @@ __END__
 
 =head1 NAME
 
-Plack::Middleware::ConditionalGET - Middleware to add "conditional", GET
+Plack::Middleware::ConditionalGET - Middleware to enable conditional GET
 
 =head1 SYNOPSIS
 
   builder {
-      enable "Plack::Middleware::ConditionalGET";
+      enable "ConditionalGET";
       ....
   };
 

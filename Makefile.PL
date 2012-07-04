@@ -14,7 +14,7 @@ requires 'AnyEvent::IRC' => 0.95;
 requires 'Plack'                           => 0.9938;
 requires 'Twiggy'                          => 0.1005;
 requires 'Plack::Request'                  => 0.09;
-requires 'Plack::Middleware::ReverseProxy' => 0.04;
+requires 'Plack::Middleware::ReverseProxy' => 0.14;
 requires 'Tatsumaki'                       => 0.1010;
 
 # Mouse.

@@ -10,7 +10,7 @@ sub wrap {
     my($self, $app) = @_;
 
     unless (ref $app eq 'CODE' or overload::Method($app, '&{}')) {
-        Carp::croak("PSGI app should be a code reference: ", (defined $app ? $app : "undef"));
+        die("PSGI app should be a code reference: ", (defined $app ? $app : "undef"));
     }
 
     $self->SUPER::wrap($app);
@@ -27,69 +27,78 @@ sub call {
 
 sub validate_env {
     my ($self, $env) = @_;
-    unless ($env->{'REQUEST_METHOD'}) {
-        Carp::croak('missing env param: REQUEST_METHOD');
+    unless ($env->{REQUEST_METHOD}) {
+        die('Missing env param: REQUEST_METHOD');
     }
-    unless ($env->{'REQUEST_METHOD'} =~ /^[A-Z]+$/) {
-        Carp::croak("invalid env param: REQUEST_METHOD($env->{REQUEST_METHOD})");
+    unless ($env->{REQUEST_METHOD} =~ /^[A-Z]+$/) {
+        die("Invalid env param: REQUEST_METHOD($env->{REQUEST_METHOD})");
     }
-    unless (defined($env->{'SCRIPT_NAME'})) { # allows empty string
-        Carp::croak('missing mandatory env param: SCRIPT_NAME');
+    unless (defined($env->{SCRIPT_NAME})) { # allows empty string
+        die('Missing mandatory env param: SCRIPT_NAME');
     }
-    unless (defined($env->{'PATH_INFO'})) { # allows empty string
-        Carp::croak('missing mandatory env param: PATH_INFO');
+    if ($env->{SCRIPT_NAME} eq '/') {
+        die('SCRIPT_NAME must not be /');
     }
-    unless (defined($env->{'SERVER_NAME'})) {
-        Carp::croak('missing mandatory env param: SERVER_NAME');
+    unless (defined($env->{PATH_INFO})) { # allows empty string
+        die('Missing mandatory env param: PATH_INFO');
     }
-    unless ($env->{'SERVER_NAME'} ne '') {
-        Carp::croak('SERVER_NAME must not be empty string');
+    unless (defined($env->{SERVER_NAME})) {
+        die('Missing mandatory env param: SERVER_NAME');
     }
-    unless (defined($env->{'SERVER_PORT'})) {
-        Carp::croak('missing mandatory env param: SERVER_PORT');
+    if ($env->{SERVER_NAME} eq '') {
+        die('SERVER_NAME must not be empty string');
     }
-    unless ($env->{'SERVER_PORT'} ne '') {
-        Carp::croak('SERVER_PORT must not be empty string');
+    unless (defined($env->{SERVER_PORT})) {
+        die('Missing mandatory env param: SERVER_PORT');
     }
-    unless (!defined($env->{'SERVER_PROTOCOL'}) || $env->{'SERVER_PROTOCOL'} =~ m{^HTTP/1.\d$}) {
-        Carp::croak('invalid SERVER_PROTOCOL');
+    if ($env->{SERVER_PORT} eq '') {
+        die('SERVER_PORT must not be empty string');
+    }
+    if (defined($env->{SERVER_PROTOCOL}) and $env->{SERVER_PROTOCOL} !~ m{^HTTP/1.\d$}) {
+        die("Invalid SERVER_PROTOCOL: $env->{SEREVR_PROTOCOL}");
     }
     for my $param (qw/version url_scheme input errors multithread multiprocess/) {
         unless (exists $env->{"psgi.$param"}) {
-            Carp::croak("missing psgi.$param");
+            die("Missing psgi.$param");
         }
     }
     unless (ref($env->{'psgi.version'}) eq 'ARRAY') {
-        Carp::croak('psgi.version should be ArrayRef');
+        die("psgi.version should be ArrayRef: $env->{'psgi.version'}");
     }
     unless (scalar(@{$env->{'psgi.version'}}) == 2) {
-        Carp::croak('psgi.version should contain 2 elements');
+        die('psgi.version should contain 2 elements, not ', scalar(@{$env->{'psgi.version'}}));
     }
     unless ($env->{'psgi.url_scheme'} =~ /^https?$/) {
-        Carp::croak('psgi.version should be "http" or "https"');
+        die("psgi.url_scheme should be 'http' or 'https': ", $env->{'psgi.url_scheme'});
     }
     if ($env->{"psgi.version"}->[1] == 1) { # 1.1
         for my $param (qw(streaming nonblocking run_once)) {
             unless (exists $env->{"psgi.$param"}) {
-                Carp::croak("missing psgi.$param");
+                die("Missing psgi.$param");
             }
         }
     }
     if ($env->{HTTP_CONTENT_TYPE}) {
-        Carp::croak('HTTP_CONTENT_TYPE should not exist');
+        die('HTTP_CONTENT_TYPE should not exist');
     }
     if ($env->{HTTP_CONTENT_LENGTH}) {
-        Carp::croak('HTTP_CONTENT_LENGTH should not exist');
+        die('HTTP_CONTENT_LENGTH should not exist');
     }
+}
+
+sub is_possibly_fh {
+    my $fh = shift;
+
+    ref $fh eq 'GLOB' &&
+    *{$fh}{IO} &&
+    *{$fh}{IO}->can('getline');
 }
 
 sub validate_res {
     my ($self, $res, $streaming) = @_;
 
-    my $croak = $streaming ? \&Carp::confess : \&Carp::croak;
-
-    unless (ref($res) and ref($res) eq 'ARRAY' || ref($res) eq 'CODE') {
-        $croak->('response should be array ref or code ref');
+    unless (ref($res) eq 'ARRAY' or ref($res) eq 'CODE') {
+        die("Response should be array ref or code ref: $res");
     }
 
     if (ref $res eq 'CODE') {
@@ -97,30 +106,62 @@ sub validate_res {
     }
 
     unless (@$res == 3 || ($streaming && @$res == 2)) {
-        $croak->('response needs to be 3 element array, or 2 element in streaming');
+        die('Response needs to be 3 element array, or 2 element in streaming');
     }
 
     unless ($res->[0] =~ /^\d+$/ && $res->[0] >= 100) {
-        $croak->('status code needs to be an integer greater than or equal to 100');
+        die("Status code needs to be an integer greater than or equal to 100: $res->[0]");
     }
 
     unless (ref $res->[1] eq 'ARRAY') {
-        $croak->('Headers needs to be an array ref');
+        die("Headers needs to be an array ref: $res->[1]");
+    }
+
+    my @copy = @{$res->[1]};
+    unless (@copy % 2 == 0) {
+        die('The number of response headers needs to be even, not odd(', scalar(@copy), ')');
+    }
+
+    while(my($key, $val) = splice(@copy, 0, 2)) {
+        if (lc $key eq 'status') {
+            die('Response headers MUST NOT contain a key named Status');
+        }
+        if ($key =~ /[:\r\n]|[-_]$/) {
+            die("Response headers MUST NOT contain a key with : or newlines, or that end in - or _: $key");
+        }
+        unless ($key =~ /^[a-zA-Z][0-9a-zA-Z\-_]*$/) {
+            die("Response headers MUST consist only of letters, digits, _ or - and MUST start with a letter: $key");
+        }
+        if ($val =~ /[\000-\037]/) {
+            die("Response headers MUST NOT contain characters below octal \037: $val");
+        }
+        if (!defined $val) {
+            die("Response headers MUST be a defined string");
+        }
     }
 
     # @$res == 2 is only right in psgi.streaming, and it's already checked.
     unless (@$res == 2 ||
             ref $res->[2] eq 'ARRAY' ||
             Plack::Util::is_real_fh($res->[2]) ||
+            is_possibly_fh($res->[2]) ||
             (blessed($res->[2]) && $res->[2]->can('getline'))) {
-        $croak->('body should be an array ref or filehandle');
+        die("Body should be an array ref or filehandle: $res->[2]");
     }
 
-    if (ref $res->[2] eq 'ARRAY' && grep utf8::is_utf8($_), @{$res->[2]}) {
-        $croak->('body must be bytes and should not contain wide characters (UTF-8 strings).');
+    if (ref $res->[2] eq 'ARRAY' && grep _is_really_utf8($_), @{$res->[2]}) {
+        die("Body must be bytes and should not contain wide characters (UTF-8 strings)");
     }
 
     return $res;
+}
+
+# NOTE: Some modules like HTML:: or XML:: could possibly generate
+# ASCII only strings with utf8 flags on. They're actually safe to
+# print, so there's no need to give warnings about it.
+sub _is_really_utf8 {
+    my $str = shift;
+    utf8::is_utf8($str) && $str =~ /[^\x00-\x7f]/;
 }
 
 1;
@@ -149,6 +190,31 @@ web server that implements the PSGI interface.
 
 This middleware is enabled by default when you run plackup or other
 launcher tools with the default environment I<development> value.
+
+=head1 DEBUGGING
+
+Because of how this middleware works, it may not be easy to debug Lint
+errors when you encounter one, unless you're writing a PSGI web server
+or a framework.
+
+For example, when you're an application developer (user of some
+framework) and see errors like:
+
+  Body should be an array ref or filehandle at lib/Plack/Middleware/Lint.pm line XXXX
+
+there's no clue about which line of I<your application> produces that
+error.
+
+We're aware of the issue, and have a plan to spit out more helpful
+errors to diagnose the issue. But until then, currently there are some
+workarounds to make this easier. For now, the easiest one would be to
+enable L<Plack::Middleware::REPL> outside of the Lint middleware,
+like:
+
+  plackup -e 'enable "REPL"; enable "Lint"' app.psgi
+
+so that the Lint errors are caught by the REPL shell, where you can
+inspect all the variables in the response.
 
 =head1 AUTHOR
 

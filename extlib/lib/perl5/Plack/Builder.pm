@@ -38,6 +38,17 @@ sub add_middleware_if {
 
 # do you want remove_middleware() etc.?
 
+sub _mount {
+    my ($self, $location, $app) = @_;
+
+    if (!$self->{_urlmap}) {
+        $self->{_urlmap} = Plack::App::URLMap->new;
+    }
+
+    $self->{_urlmap}->map($location => $app);
+    $self->{_urlmap};
+}
+
 sub to_app {
     my($self, $app) = @_;
 
@@ -56,7 +67,15 @@ our $_add = our $_add_if = our $_mount = sub {
 sub add      { Carp::carp("add is deprecated. Use 'enable'"); $_add->(@_) }
 sub enable         { $_add->(@_) }
 sub enable_if(&$@) { $_add_if->(@_) }
-sub mount          { $_mount->(@_) }
+
+sub mount {
+    my $self = shift;
+    if (Scalar::Util::blessed($self)) {
+        $self->_mount(@_);
+    }else{
+        $_mount->($self, @_);
+    }
+}
 
 sub builder(&) {
     my $block = shift;
@@ -78,9 +97,14 @@ sub builder(&) {
     };
 
     my $app = $block->();
-    if ($mount_is_called && $app ne $urlmap) {
-        Carp::carp("You used mount() in builder block but the last line (app) isn't using mount().\n" .
-                       "This causes all mount() mappings ignored. See perldoc Plack::Builder for details.");
+
+    if ($mount_is_called) {
+        if ($app ne $urlmap) {
+            Carp::carp("You used mount() in a builder block, but the last line (app) isn't using mount().\n" .
+                       "This causes all mount() mappings to be ignored. See perldoc Plack::Builder for details.");
+        } else {
+            $app = $app->to_app;
+        }
     }
 
     $self->to_app($app);
@@ -102,16 +126,10 @@ Plack::Builder - OO and DSL to enable Plack Middlewares
   my $app = sub { ... };
 
   builder {
-      enable "Plack::Middleware::Foo";
-      enable "Plack::Middleware::Bar", opt => "val";
-      enable "Plack::Middleware::Baz";
-      enable sub {
-          my $app = shift;
-          sub {
-              my $env = shift;
-              $app->($env);
-          };
-      };
+      enable "Deflater";
+      enable "Session", store => "File";
+      enable "Debug", panels => [ qw(DBITrace Memory Timer) ];
+      enable "+My::Plack::Middleware";
       $app;
   };
 
@@ -119,13 +137,20 @@ Plack::Builder - OO and DSL to enable Plack Middlewares
 
   builder {
       mount "/foo" => builder {
-          enable "Plack::Middleware::Foo";
+          enable "Foo";
           $app;
       };
 
       mount "/bar" => $app2;
       mount "http://example.com/" => builder { $app3 };
   };
+
+  # using OO interface
+
+  my $builder = Plack::Builder->new();
+  $builder->add_middleware('Foo', opt => 1);
+  $app = $builder->mount('/app' => $app);
+  $app = $builder->to_app($app);
 
 =head1 DESCRIPTION
 
@@ -134,13 +159,14 @@ wrap your application with Plack::Middleware subclasses. The
 middleware you're trying to use should use L<Plack::Middleware> as a
 base class to use this DSL, inspired by Rack::Builder.
 
-Whenever you call C<add> on any middleware, the middleware app is
+Whenever you call C<enable> on any middleware, the middleware app is
 pushed to the stack inside the builder, and then reversed when it
-actually creates a wrapped application handler, so:
+actually creates a wrapped application handler. "Plack::Middleware::"
+is added as a prefix by default. So:
 
   builder {
-      enable "Plack::Middleware::Foo";
-      enable "Plack::Middleware::Bar", opt => "val";
+      enable "Foo";
+      enable "Bar", opt => "val";
       $app;
   };
 
@@ -149,22 +175,37 @@ is syntactically equal to:
   $app = Plack::Middleware::Bar->wrap($app, opt => "val");
   $app = Plack::Middleware::Foo->wrap($app);
 
-In other words, you're supposed to C<add> middleware from outer to inner.
+In other words, you're supposed to C<enable> middleware from outer to inner.
 
-Additionally, you can call C<enable> with a coderef, which would take
-C<$app> and returns a another psgi-app which consumes C<$env> in runtime.  So:
+=head1 INLINE MIDDLEWARE
+
+Plack::Builder allows you to code middleware inline using a nested
+code reference.
+
+If the first argument to C<enable> is a code reference, it will be
+passed an C<$app> and is supposed to return another code reference
+which is PSGI application that consumes C<$env> in runtime. So:
+
+  builder {
+      enable sub {
+          my $app = shift;
+          sub {
+              my $env = shift;
+              # do preprocessing
+              my $res = $app->($env);
+              # do postprocessing
+              return $res;
+          };
+      };
+      $app;
+  };
+
+is equal to:
 
   my $mw = sub {
       my $app = shift;
       sub { my $env = shift; $app->($env) };
   };
-
-  builder {
-      enable $mw;
-      $app;
-  };
-
-is syntactically equal to:
 
   $app = $mw->($app);
 
@@ -176,7 +217,7 @@ Plack::Builder has a native support for L<Plack::App::URLMap> with C<mount> meth
   my $app = builder {
       mount "/foo" => $app1;
       mount "/bar" => builder {
-          enable "Plack::Middleware::Foo";
+          enable "Foo";
           $app2;
       };
   };
@@ -184,20 +225,55 @@ Plack::Builder has a native support for L<Plack::App::URLMap> with C<mount> meth
 See L<Plack::App::URLMap>'s C<map> method to see what they mean. With
 builder you can't use C<map> as a DSL, for the obvious reason :)
 
-B<Note>: Once you use C<mount> in your builder code, you have to use
+B<NOTE>: Once you use C<mount> in your builder code, you have to use
 C<mount> for all the paths, including the root path (C</>). You can't
 have the default app in the last line of C<builder> like:
 
+  my $app = sub {
+      my $env = shift;
+      ...
+  };
+
   builder {
       mount "/foo" => sub { ... };
-      sub {
-          my $env = shift; # THIS DOESN'T WORK
-      };
+      $app; # THIS DOESN'T WORK
   };
 
 You'll get warnings saying that your mount configuration will be
-ignored.  Instead you should use C<< mount "/" => ... >> in the last
+ignored. Instead you should use C<< mount "/" => ... >> in the last
 line to set the default fallback app.
+
+  builder {
+      mount "/foo" => sub { ... };
+      mount "/" => $app;
+  }
+
+Note that the C<builder> DSL returns a whole new PSGI application, which means
+
+=over 4
+
+=item *
+
+C<builder { ... }> should normally the last statement of a C<.psgi>
+file, because the return value of C<builder> is the application that
+actually is executed.
+
+=item *
+
+You can nest your C<builder> block, mixed with C<mount> (see URLMap
+support above):
+
+  builder {
+      mount "/foo" => builder {
+          mount "/bar" => $app;
+      }
+  }
+
+will locate the C<$app> under C</foo/bar> since the inner C<builder>
+block puts it under C</bar> and it results a new PSGI application
+which is located under C</foo> because of the outer C<builder> block.
+
+=back
 
 =head1 CONDITIONAL MIDDLEWARE SUPPORT
 

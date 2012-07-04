@@ -3,36 +3,68 @@ use strict;
 use warnings;
 use IO::Handle;
 
+# copied from HTTP::Status
+my %StatusCode = (
+    100 => 'Continue',
+    101 => 'Switching Protocols',
+    102 => 'Processing',                      # RFC 2518 (WebDAV)
+    200 => 'OK',
+    201 => 'Created',
+    202 => 'Accepted',
+    203 => 'Non-Authoritative Information',
+    204 => 'No Content',
+    205 => 'Reset Content',
+    206 => 'Partial Content',
+    207 => 'Multi-Status',                    # RFC 2518 (WebDAV)
+    300 => 'Multiple Choices',
+    301 => 'Moved Permanently',
+    302 => 'Found',
+    303 => 'See Other',
+    304 => 'Not Modified',
+    305 => 'Use Proxy',
+    307 => 'Temporary Redirect',
+    400 => 'Bad Request',
+    401 => 'Unauthorized',
+    402 => 'Payment Required',
+    403 => 'Forbidden',
+    404 => 'Not Found',
+    405 => 'Method Not Allowed',
+    406 => 'Not Acceptable',
+    407 => 'Proxy Authentication Required',
+    408 => 'Request Timeout',
+    409 => 'Conflict',
+    410 => 'Gone',
+    411 => 'Length Required',
+    412 => 'Precondition Failed',
+    413 => 'Request Entity Too Large',
+    414 => 'Request-URI Too Large',
+    415 => 'Unsupported Media Type',
+    416 => 'Request Range Not Satisfiable',
+    417 => 'Expectation Failed',
+    422 => 'Unprocessable Entity',            # RFC 2518 (WebDAV)
+    423 => 'Locked',                          # RFC 2518 (WebDAV)
+    424 => 'Failed Dependency',               # RFC 2518 (WebDAV)
+    425 => 'No code',                         # WebDAV Advanced Collections
+    426 => 'Upgrade Required',                # RFC 2817
+    449 => 'Retry with',                      # unofficial Microsoft
+    500 => 'Internal Server Error',
+    501 => 'Not Implemented',
+    502 => 'Bad Gateway',
+    503 => 'Service Unavailable',
+    504 => 'Gateway Timeout',
+    505 => 'HTTP Version Not Supported',
+    506 => 'Variant Also Negotiates',         # RFC 2295
+    507 => 'Insufficient Storage',            # RFC 2518 (WebDAV)
+    509 => 'Bandwidth Limit Exceeded',        # unofficial
+    510 => 'Not Extended',                    # RFC 2774
+);
+
 sub new { bless {}, shift }
 
 sub run {
     my ($self, $app) = @_;
 
-    my $env = {
-        %ENV,
-        'psgi.version'    => [ 1, 1 ],
-        'psgi.url_scheme' => ($ENV{HTTPS}||'off') =~ /^(?:on|1)$/i ? 'https' : 'http',
-        'psgi.input'      => *STDIN,
-        'psgi.errors'     => *STDERR,
-        'psgi.multithread'  => 0,
-        'psgi.multiprocess' => 1,
-        'psgi.run_once'     => 1,
-        'psgi.streaming'    => 1,
-        'psgi.nonblocking'  => 1,
-    };
-
-    delete $env->{HTTP_CONTENT_TYPE};
-    delete $env->{HTTP_CONTENT_LENGTH};
-    $env->{'HTTP_COOKIE'} ||= $ENV{COOKIE}; # O'Reilly server bug
-
-    if (!exists $env->{PATH_INFO}) {
-        $env->{PATH_INFO} = '';
-    }
-
-    if ($env->{SCRIPT_NAME} eq '/') {
-        $env->{SCRIPT_NAME} = '';
-        $env->{PATH_INFO}   = '/' . $env->{PATH_INFO};
-    }
+    my $env = $self->setup_env();
 
     my $res = $app->($env);
     if (ref $res eq 'ARRAY') {
@@ -48,13 +80,55 @@ sub run {
     }
 }
 
+sub setup_env {
+    my ( $self, $override_env ) = @_;
+
+    $override_env ||= {};
+
+    binmode STDIN;
+    binmode STDERR;
+
+    my $env = {
+        %ENV,
+        'psgi.version'    => [ 1, 1 ],
+        'psgi.url_scheme' => ($ENV{HTTPS}||'off') =~ /^(?:on|1)$/i ? 'https' : 'http',
+        'psgi.input'      => *STDIN,
+        'psgi.errors'     => *STDERR,
+        'psgi.multithread'  => 0,
+        'psgi.multiprocess' => 1,
+        'psgi.run_once'     => 1,
+        'psgi.streaming'    => 1,
+        'psgi.nonblocking'  => 1,
+        %{ $override_env },
+    };
+
+    delete $env->{HTTP_CONTENT_TYPE};
+    delete $env->{HTTP_CONTENT_LENGTH};
+    $env->{'HTTP_COOKIE'} ||= $ENV{COOKIE}; # O'Reilly server bug
+
+    if (!exists $env->{PATH_INFO}) {
+        $env->{PATH_INFO} = '';
+    }
+
+    if ($env->{SCRIPT_NAME} eq '/') {
+        $env->{SCRIPT_NAME} = '';
+        $env->{PATH_INFO}   = '/' . $env->{PATH_INFO};
+    }
+
+    return $env;
+}
+
+
+
 sub _handle_response {
     my ($self, $res) = @_;
 
     *STDOUT->autoflush(1);
+    binmode STDOUT;
 
     my $hdrs;
-    $hdrs = "Status: $res->[0]\015\012";
+    my $message = $StatusCode{$res->[0]};
+    $hdrs = "Status: $res->[0] $message\015\012";
 
     my $headers = $res->[1];
     while (my ($k, $v) = splice(@$headers, 0, 2)) {
@@ -126,6 +200,16 @@ CGI-compatible perl-based web server:
 =head1 DESCRIPTION
 
 This is a handler module to run any PSGI application as a CGI script.
+
+=head1 UTILITY METHODS
+
+=head2 setup_env()
+
+  my $env = Plack::Handler::CGI->setup_env();
+  my $env = Plack::Handler::CGI->setup_env(\%override_env);
+
+Sets up the PSGI environment hash for a CGI request from C<< %ENV >>> and returns it.
+You can can provide a hashref of key/value pairs to override the defaults if you would like.
 
 =head1 SEE ALSO
 

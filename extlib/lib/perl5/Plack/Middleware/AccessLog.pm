@@ -8,8 +8,8 @@ use Carp ();
 use Plack::Util;
 
 my %formats = (
-    common => "%h %l %u %t \"%r\" %>s %b",
-    combined => "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\"",
+    common => '%h %l %u %t "%r" %>s %b',
+    combined => '%h %l %u %t "%r" %>s %b "%{Referer}i" "%{User-agent}i"',
 );
 
 use POSIX ();
@@ -45,8 +45,9 @@ sub log_line {
     my $block_handler = sub {
         my($block, $type) = @_;
         if ($type eq 'i') {
-            $block =~ s/-/_/;
-            return _safe($env->{"HTTP_" . uc($block)}) || "-";
+            $block =~ s/-/_/g;
+            my $val = _safe($env->{"HTTP_" . uc($block)});
+            return defined $val ? $val : "-";
         } elsif ($type eq 'o') {
             return scalar $h->get($block) || "-";
         } elsif ($type eq 't') {
@@ -57,18 +58,21 @@ sub log_line {
         }
     };
 
+
     my %char_handler = (
         '%' => sub { '%' },
         h => sub { $env->{REMOTE_ADDR} || '-' },
         l => sub { '-' },
         u => sub { $env->{REMOTE_USER} || '-' },
-        t => sub { "[" . $strftime->("%d/%b/%Y %H:%M:%S", localtime) . "]" },
+        t => sub { "[" . $strftime->('%d/%b/%Y:%H:%M:%S %z', localtime) . "]" },
         r => sub { _safe($env->{REQUEST_METHOD}) . " " . _safe($env->{REQUEST_URI}) .
                    " " . $env->{SERVER_PROTOCOL} },
         s => sub { $status },
         b => sub { $opts->{content_length} || $h->get('Content-Length') || "-" },
         T => sub { $opts->{time} ? int($opts->{time}) : "-" },
-        D => sub { $opts->{time} || "-" },
+        D => sub { $opts->{time} ? $opts->{time} * 1000000 : "-" },
+        v => sub { $env->{SERVER_NAME} || '-' },
+        V => sub { $env->{HTTP_HOST} || $env->{SERVER_NAME} || '-' },
     );
 
     my $char_handler = sub {
@@ -127,7 +131,8 @@ Plack::Middleware::AccessLog - Logs requests like Apache's log format
 Plack::Middleware::AccessLog forwards the request to the given app and
 logs request and response details to the logger callback. The format
 can be specified using Apache-like format strings (or C<combined> or
-C<common> for the default formats).
+C<common> for the default formats). If none is specified C<combined> is
+used.
 
 This middleware uses calculable content-length by checking body type,
 and can not log the time taken to serve requests. It also logs the
@@ -146,17 +151,39 @@ default C<development> environment.
 =item format
 
   enable "Plack::Middleware::AccessLog",
-      format => "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\"";
+      format => '%h %l %u %t "%r" %>s %b "%{Referer}i" "%{User-agent}i"';
 
 Takes a format string (or a preset template C<combined> or C<custom>)
-to specify the log format. This middleware implements subset of
-Apache's LogFormat templates.
+to specify the log format. This middleware implements a subset of
+L<Apache's LogFormat templates|http://httpd.apache.org/docs/2.0/mod/mod_log_config.html>:
+
+   %%    a percent sign
+   %h    REMOTE_ADDR from the PSGI environment, or -
+   %l    remote logname not implemented (currently always -)
+   %u    REMOTE_USER from the PSGI environment, or -
+   %t    [local timestamp, in default format]
+   %r    REQUEST_METHOD, REQUEST_URI and SERVER_PROTOCOL from the PSGI environment
+   %s    the HTTP status code of the response
+   %b    content length
+   %T    custom field for handling times in subclasses
+   %D    custom field for handling sub-second times in subclasses
+   %v    SERVER_NAME from the PSGI environment, or -
+   %V    HTTP_HOST or SERVER_NAME from the PSGI environment, or -
+
+Some of these format fields are only supported by middleware that subclasses C<AccessLog>.
+
+In addition, custom values can be referenced, using C<%{name}>,
+with one of the mandatory modifier flags C<i>, C<o> or C<t>:
+
+   %{variable-name}i    HTTP_VARIABLE_NAME value from the PSGI environment
+   %{header-name}o      header-name header
+   %{time-format]t      localtime in the specified strftime format
 
 =item logger
 
   my $logger = Log::Dispatch->new(...);
   enable "Plack::Middleware::AccessLog",
-      logger => sub { $logger->log(debug => @_) };
+      logger => sub { $logger->log(level => 'debug', message => @_) };
 
 Sets a callback to print log message to. It prints to C<psgi.errors>
 output stream by default.

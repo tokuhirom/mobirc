@@ -93,7 +93,7 @@ use vars qw(@EXPORT_OK $VERSION $MY_COUNTRY %LOCAL_GUESSING $DEBUG);
 require Exporter;
 *import = \&Exporter::import;
 @EXPORT_OK = qw(uf_uri uf_uristr uf_url uf_urlstr);
-$VERSION = "4.19";
+$VERSION = "4.20";
 
 sub MY_COUNTRY() {
     for ($MY_COUNTRY) {
@@ -152,11 +152,11 @@ sub uf_uristr ($)
     s/^\s+//;
     s/\s+$//;
 
-    if (/^(www|web|home)\./) {
+    if (/^(www|web|home)[a-z0-9-]*(?:\.|$)/i) {
 	$_ = "http://$_";
 
-    } elsif (/^(ftp|gopher|news|wais|http|https)\./) {
-	$_ = "$1://$_";
+    } elsif (/^(ftp|gopher|news|wais|https|http)[a-z0-9-]*(?:\.|$)/i) {
+	$_ = lc($1) . "://$_";
 
     } elsif ($^O ne "MacOS" && 
 	    (m,^/,      ||          # absolute file name
@@ -179,6 +179,16 @@ sub uf_uristr ($)
     } elsif (!/^[a-zA-Z][a-zA-Z0-9.+\-]*:/) {      # no scheme specified
 	if (s/^([-\w]+(?:\.[-\w]+)*)([\/:\?\#]|$)/$2/) {
 	    my $host = $1;
+
+	    my $scheme = "http";
+	    if (/^:(\d+)\b/) {
+		# Some more or less well known ports
+		if ($1 =~ /^[56789]?443$/) {
+		    $scheme = "https";
+		} elsif ($1 eq "21") {
+		    $scheme = "ftp";
+		}
+	    }
 
 	    if ($host !~ /\./ && $host ne "localhost") {
 		my @guess;
@@ -213,7 +223,7 @@ sub uf_uristr ($)
 		    print STDERR "no\n" if $DEBUG;
 		}
 	    }
-	    $_ = "http://$host$_";
+	    $_ = "$scheme://$host$_";
 
 	} else {
 	    # pure junk, just return it unchanged...

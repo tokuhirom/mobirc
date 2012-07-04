@@ -6,12 +6,17 @@ use Apache2::RequestIO;
 use Apache2::RequestUtil;
 use Apache2::Response;
 use Apache2::Const -compile => qw(OK);
+use Apache2::Log;
 use APR::Table;
 use IO::Handle;
 use Plack::Util;
 use Scalar::Util;
+use URI;
+use URI::Escape;
 
 my %apps; # psgi file to $app mapping
+
+sub new { bless {}, shift }
 
 sub preload {
     my $class = shift;
@@ -44,9 +49,19 @@ sub call_app {
         'psgi.run_once'       => Plack::Util::FALSE,
         'psgi.streaming'      => Plack::Util::TRUE,
         'psgi.nonblocking'    => Plack::Util::FALSE,
+        'psgix.harakiri'      => Plack::Util::TRUE,
     };
 
-    $class->_recalc_paths($r, $env);
+    if (defined(my $HTTP_AUTHORIZATION = $r->headers_in->{Authorization})) {
+        $env->{HTTP_AUTHORIZATION} = $HTTP_AUTHORIZATION;
+    }
+
+    # Actually, we can not trust PATH_INFO from mod_perl because mod_perl squeezes multiple slashes into one slash.
+    my $uri = URI->new("http://".$r->hostname.$r->unparsed_uri);
+
+    $env->{PATH_INFO} = uri_unescape($uri->path);
+
+    $class->fixup_path($r, $env);
 
     my $res = $app->($env);
 
@@ -62,6 +77,10 @@ sub call_app {
         die "Bad response $res";
     }
 
+    if ($env->{'psgix.harakiri.commit'}) {
+        $r->child_terminate;
+    }
+
     return Apache2::Const::OK;
 }
 
@@ -72,15 +91,33 @@ sub handler {
     $class->call_app($r, $class->load_app($psgi));
 }
 
-# The method for PH::Apache2::Regitsry to override.
-sub _recalc_paths {
+# The method for PH::Apache2::Registry to override.
+sub fixup_path {
     my ($class, $r, $env) = @_;
-    my $vpath    = $env->{SCRIPT_NAME} . $env->{PATH_INFO};
-    my $location = $r->location || "/";
-       $location =~ s{/$}{};
-    (my $path_info = $vpath) =~ s/^\Q$location\E//;
 
-    $env->{SCRIPT_NAME} = $location;
+    # $env->{PATH_INFO} is created from unparsed_uri so it is raw.
+    my $path_info = $env->{PATH_INFO} || '';
+
+    # Get argument of <Location> or <LocationMatch> directive
+    # This may be string or regexp and we can't know either.
+    my $location = $r->location;
+
+    # Let's *guess* if we're in a LocationMatch directive
+    if ($location eq '/') {
+        # <Location /> could be handled as a 'root' case where we make
+        # everything PATH_INFO and empty SCRIPT_NAME as in the PSGI spec
+        $env->{SCRIPT_NAME} = '';
+    } elsif ($path_info =~ s{^($location)/?}{/}) {
+        $env->{SCRIPT_NAME} = $1 || '';
+    } else {
+        # Apache's <Location> is matched but here is not.
+        # This is something wrong. We can only respect original.
+        $r->server->log_error(
+            "Your request path is '$path_info' and it doesn't match your Location(Match) '$location'. " .
+            "This should be due to the configuration error. See perldoc Plack::Handler::Apache2 for details."
+        );
+    }
+
     $env->{PATH_INFO}   = $path_info;
 }
 

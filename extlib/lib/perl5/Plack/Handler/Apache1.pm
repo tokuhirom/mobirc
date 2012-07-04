@@ -8,6 +8,8 @@ use Scalar::Util;
 
 my %apps; # psgi file to $app mapping
 
+sub new { bless {}, shift }
+
 sub preload {
     my $class = shift;
     for my $app (@_) {
@@ -24,11 +26,14 @@ sub load_app {
 }
 
 sub handler {
-    my $r = shift;
-    my $apr = Apache::Request->new($r);
+    my $class = __PACKAGE__;
+    my $r     = shift;
+    my $psgi  = $r->dir_config('psgi_app');
+    $class->call_app($r, $class->load_app($psgi));
+}
 
-    my $psgi = $r->dir_config('psgi_app');
-    my $app = __PACKAGE__->load_app($psgi);
+sub call_app {
+    my ($class, $r, $app) = @_;
 
     $r->subprocess_env; # let Apache create %ENV for us :)
 
@@ -43,9 +48,14 @@ sub handler {
         'psgi.run_once'       => Plack::Util::FALSE,
         'psgi.streaming'      => Plack::Util::TRUE,
         'psgi.nonblocking'    => Plack::Util::FALSE,
+        'psgix.harakiri'      => Plack::Util::TRUE,
     };
 
-    my $vpath    = $env->{SCRIPT_NAME} . $env->{PATH_INFO};
+    if (defined(my $HTTP_AUTHORIZATION = $r->headers_in->{Authorization})) {
+        $env->{HTTP_AUTHORIZATION} = $HTTP_AUTHORIZATION;
+    }
+
+    my $vpath    = $env->{SCRIPT_NAME} . ($env->{PATH_INFO} || '');
 
     my $location = $r->location || "/";
        $location =~ s{/$}{};
@@ -66,6 +76,10 @@ sub handler {
     }
     else {
         die "Bad response $res";
+    }
+
+    if ($env->{'psgix.harakiri.commit'}) {
+        $r->child_terminate;
     }
 
     return OK;
