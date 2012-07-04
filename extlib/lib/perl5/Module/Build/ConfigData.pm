@@ -168,12 +168,12 @@ do{ my $x = [
        {},
        {},
        {
-         'YAML_support' => {
-                             'requires' => {
-                                             'YAML::Tiny' => '1.38'
-                                           },
-                             'description' => 'Use YAML::Tiny to write META.yml files'
-                           },
+         'license_creation' => {
+                                 'requires' => {
+                                                 'Software::License' => 0
+                                               },
+                                 'description' => 'Create licenses automatically in distributions'
+                               },
          'inc_bundling_support' => {
                                      'requires' => {
                                                      'ExtUtils::Installed' => '1.999',
@@ -181,40 +181,34 @@ do{ my $x = [
                                                    },
                                      'description' => 'Bundle Module::Build in inc/'
                                    },
-         'HTML_support' => {
-                             'requires' => {
-                                             'Pod::Html' => 0
-                                           },
-                             'description' => 'Create HTML documentation'
-                           },
-         'PPM_support' => {
-                            'requires' => {
-                                            'IO::File' => '1.13'
-                                          },
-                            'description' => 'Generate PPM files for distributions'
-                          },
          'manpage_support' => {
                                 'requires' => {
                                                 'Pod::Man' => 0
                                               },
                                 'description' => 'Create Unix man pages'
                               },
-         'license_creation' => {
-                                 'requires' => {
-                                                 'Software::License' => 0
-                                               },
-                                 'description' => 'Create licenses automatically in distributions'
-                               },
+         'PPM_support' => {
+                            'requires' => {
+                                            'IO::File' => '1.13'
+                                          },
+                            'description' => 'Generate PPM files for distributions'
+                          },
          'dist_authoring' => {
                                'requires' => {
                                                'Archive::Tar' => '1.09'
                                              },
-                               'description' => 'Create new distributions',
                                'recommends' => {
-                                                 'Pod::Readme' => '0.04',
-                                                 'Module::Signature' => '0.21'
-                                               }
-                             }
+                                                 'Module::Signature' => '0.21',
+                                                 'Pod::Readme' => '0.04'
+                                               },
+                               'description' => 'Create new distributions'
+                             },
+         'HTML_support' => {
+                             'requires' => {
+                                             'Pod::Html' => 0
+                                           },
+                             'description' => 'Create HTML documentation'
+                           }
        }
      ];
 $x; }

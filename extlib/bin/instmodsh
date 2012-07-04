@@ -1,6 +1,6 @@
-#!/home/tokuhirom/perl5/perlbrew/perls/perl-5.8.1/bin/perl -w
+#!/usr/local/perl/5.16.0/bin/perl -w
 
-eval 'exec /home/tokuhirom/perl5/perlbrew/perls/perl-5.8.1/bin/perl -w -S $0 ${1+"$@"}'
+eval 'exec /usr/local/perl/5.16.0/bin/perl -w -S $0 ${1+"$@"}'
     if 0; # not running under some shell
 
 use strict;
