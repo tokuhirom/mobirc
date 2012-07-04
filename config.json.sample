@@ -1,0 +1,68 @@
+{
+    # global settings
+    "global": {
+        "password": "kogaidan",
+        "keywords": ["your-name-here"],
+        "log_max": 40
+    },
+    # load plugins
+    "plugin": [
+        # irc connection 1
+        {
+            "module": "Component::IRCClient",
+            "config": {
+                "host":"127.0.0.1",
+                "port":"6667",
+                "nick":"john1",
+                "desc":"john-freenode1",
+                "username":"john-freenode1",
+                "password":"pa55w0rd",
+                "incode":"utf-8",
+                "id":"f1",
+                "ssl": 1
+            },
+        },
+        # irc connection 2
+        {
+            "module": "Component::IRCClient",
+            "config": {
+                "host":"127.0.0.1",
+                "port":"6667",
+                "nick":"john2",
+                "desc":"john-freenode2",
+                "username":"john-freenode2",
+                "password":"pa55w0rd",
+                "incode":"utf-8",
+                "id":"f2",
+                "ssl": 1
+            },
+        },
+        # irc connection 3
+        {
+            "module": "Component::IRCClient",
+            "config": {
+                "host":"127.0.0.1",
+                "port":"6667",
+                "nick":"john",
+                "desc":"john-ircnet",
+                "username":"john-ircnet",
+                "password":"pa55w0rd",
+                "incode":"utf-8",
+                "id":"ircnet",
+                "ssl": 1
+            },
+        },
+        # http server settings
+        {
+            "module": "Component::HTTPD",
+            "config": {
+                "port": 5000
+            },
+        },
+        # make links clickable
+        {
+            "module":"MessageBodyFilter::Clickable",
+            "config": { }
+        }
+    ]
+}

@@ -20,3 +20,4 @@ extlib/lib/perl5/x86_64-*/**/*.so
 extlib/lib/perl5/x86_64-linux/auto/HTML/Parser/Parser.so
 extlib/lib/perl5/x86_64-linux-gnu-thread-multi/auto/HTML/Parser/Parser.so
 MANIFEST.bak
+config.json
