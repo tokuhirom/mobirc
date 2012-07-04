@@ -1,5 +1,6 @@
-#!/bin/sh
+#!/bin/zsh
 rm -rf extlib/man/
+rm -rf extlib/**/.meta/**/install.json
 
 # remove HTML::Parser, Digest::SHA1
 rm -rf \
