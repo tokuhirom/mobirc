@@ -103,3 +103,22 @@ __END__
     <body>
     </body>
 </html>
+===
+--- input
+<?xml version="1.0" encoding="UTF-8"?>
+<html lang="ja" xml:lang="ja" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>foobar</title>
+<body>
+<img src="/dankogai.png">
+</body>
+</html>
+--- expected
+<html lang="ja" xml:lang="ja" xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <title>foobar</title>
+    </head>
+    <body>
+		<img src="/foo/dankogai.png" />
+    </body>
+</html>
