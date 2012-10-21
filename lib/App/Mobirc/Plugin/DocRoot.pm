@@ -23,6 +23,17 @@ hook env_filter => sub {
     $env->{SCRIPT_NAME} = $root;
 };
 
+hook response_filter => sub {
+    my ($self, $global_context, $res) = @_;
+
+    if (my $loc = $res->header('Location')) {
+        my $root = $self->root;
+        $root =~ s!/$!!;
+        $loc = $root . $loc if $loc !~ /^\Q$root\E/;
+        return $res->header( Location => $loc );
+    }
+};
+
 hook html_filter => sub {
     my ($self, $global_context, $req, $content) = validate_hook('html_filter', @_);
 
@@ -38,6 +49,13 @@ hook html_filter => sub {
         if (my $href = $elem->attr('href')) {
             if ($href =~ m{^/}) {
                 $elem->attr(href => $root . $href);
+            }
+        }
+    }
+    for my $elem ($tree->findnodes('//img')) {
+        if (my $href = $elem->attr('src')) {
+            if ($href =~ m{^/}) {
+                $elem->attr(src => $root . $href);
             }
         }
     }
