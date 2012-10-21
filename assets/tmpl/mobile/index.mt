@@ -20,7 +20,7 @@
 
 <hr />
 
-<?= pictogram('0') ?><a href="/mobile/#top" accesskey="0">refresh list</a><br />
+<?= pictogram('0') ?><a href="/mobile/" accesskey="0">refresh list</a><br />
 ? if (global_context->has_unread_message) {
     <span>*</span><a href="/mobile/recent" accesskey="*">recent</a><br />
 ? }
