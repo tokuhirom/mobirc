@@ -1,6 +1,7 @@
 use inc::Module::Install;
 name 'mobirc';
 all_from 'lib/App/Mobirc.pm';
+author 'Tokuhiro Matsuno';
 
 # ~/perl5/perlbrew/perls/perl-5.8.1/bin/perl -I extlib/lib/perl5/ tools/cpanm -nv -L extlib --installdeps .
 
@@ -71,7 +72,7 @@ requires 'Test::More' => 0.94;
 test_requires 'Test::More';
 test_requires 'Text::Diff';
 test_requires 'Test::Requires';
-test_requires 'Test::Base::Less::Less';
+test_requires 'Test::Base::Less';
 author_tests('xt');
 install_script 'mobirc';
 WriteAll;
