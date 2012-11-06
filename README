@@ -1,55 +1,17 @@
-mobirc
-======================================================
+NAME
+    App::Mobirc - pluggable IRC to HTTP gateway
 
-If you want a Japanese version of this file, please see http://github.com/tokuhirom/mobirc/wikis/readmeja
+DESCRIPTION
+    mobirc is a pluggable IRC to HTTP gateway.
 
-What's this?
-------------------------------------------------------
+AUTHOR
+    Tokuhiro Matsuno <tokuhirom@gmail.com>
 
-mobirc is HTTP2IRC gateway.
+    and Mobirc AUTHORS.
 
-This application supports following environments:
+LICENSE
+    Copyright (C) Tokuhiro Matsuno
 
-    - Japanese mobile phones(docomo, softbank, ezweb, willcom)
-    - iPhone, Android
-    - PC(Ajax)
-
-based on
-
-    - pluggable architecture
-    - perl
-    - AnyEvent
-
-Requirements
-------------------------------------------------------
-
-    perl 5.10.0 or later(5.10.1 or later is recommended)
-    LWP
-
-How to install?
-------------------------------------------------------
-
-Install LWP(libwww-perl) first.
-
-    git clone git://github.com/tokuhirom/mobirc.git
-
-or
-
-    wget -O mobirc.tgz http://github.com/tokuhirom/mobirc/tarball/master
-    tar xzvf mobirc.tgz
-    cd tokuhirom-mobirc-*
-
-and, run following command.
-
-    cp config.ini.sample config.ini
-    vi config.ini # edit configuration file for your environemnt
-    ./mobirc
-
-How to support HTTP::Engine's middleware?
-------------------------------------------------------
-
-    [Component::HTTPD]
-    middlewares=["Plack::Middleware::ModuleReload"]
-
-please write the middleware name & configuration by the JSON form.
+    This library is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself.
 
