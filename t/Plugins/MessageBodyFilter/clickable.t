@@ -1,23 +1,18 @@
 use t::Utils;
 use Test::Base::Less;
+use Test::Requires 'YAML';
 use App::Mobirc;
 
 plan tests => 1*blocks;
 
-filters {
-    input => ['yaml', 'clickable' ]
-};
-
-sub clickable {
-    my $x = shift;
+for my $block (blocks) {
     create_global_context(); # create fresh context :)
-
+    my $x = YAML::Load($block->input);
     global_context->load_plugin( { module => 'MessageBodyFilter::Clickable', config => $x->{conf} } );
-    my ($res, ) = global_context->run_hook_filter('message_body_filter', $x->{text});
-    $res;
+    my ($got, ) = global_context->run_hook_filter('message_body_filter', $x->{text});
+    is($got, $block->expected, $block->name);
 }
-
-run_is input => 'expected';
+done_testing;
 
 __END__
 

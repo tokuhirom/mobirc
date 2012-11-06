@@ -2,13 +2,12 @@ use t::Utils;
 use App::Mobirc;
 
 use Test::Base::Less;
-eval q{ use String::IRC };
-plan skip_all => "String::IRC is not installed." if $@;
+use Test::Requires 'String::IRC';
 
 global_context->load_plugin( { module => 'MessageBodyFilter::IRCColor', config => { no_decorate => 0} } );
 
 filters {
-    input => ['eval', 'decorate_irc_color'],
+    input => ['eval', \&decorate_irc_color],
 };
 
 sub decorate_irc_color {
@@ -17,7 +16,11 @@ sub decorate_irc_color {
     return $x;
 }
 
-run_is input => 'expected';
+run {
+    my $block = shift;
+    is($block->input, $block->expected);
+};
+done_testing;
 
 __END__
 

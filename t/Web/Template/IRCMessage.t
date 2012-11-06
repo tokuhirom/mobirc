@@ -2,32 +2,33 @@ use t::Utils;
 use App::Mobirc::Web::View;
 use App::Mobirc;
 use Test::Base::Less;
-plan tests => 1*blocks;
+use Test::Requires 'YAML', 'Test::LongString';
+use Test::Deep;
 
 local $ENV{TZ} = 'Asia/Tokyo';
 
 filters {
-    input => [qw/yaml message render strip/],
-    expected => ['strip'],
+    input => [\&YAML::Load],
+    expected => [\&strip],
 };
 
-run_is 'input' => 'expected';
-
-sub message {
-    my $in = shift;
-    App::Mobirc::Model::Message->new( $in );
-}
-
-sub render {
-    my $msg = shift;
-    test_view('parts/irc_message.mt', $msg);
-}
+run {
+    my $block = shift;
+    no warnings 'redefine';
+    local *App::Mobirc::Plugin::Component::IRCClient::current_nick = sub { 'tokuhirom' };
+    my $message = App::Mobirc::Model::Message->new( $block->input );
+    my $got = test_view('parts/irc_message.mt', $message);
+    is_string(strip($got), $block->expected);
+};
+done_testing;
 
 sub strip {
+    local $_ = shift;
     s!^\n!!;
-    s!\n$!!;
+    s!\n+$!!;
     s!^\s*$!!smg;
     $_ .= "\n";
+    $_;
 }
 
 __END__

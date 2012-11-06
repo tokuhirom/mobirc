@@ -136,5 +136,6 @@ sub test_view {
 }
 
 create_global_context();
+global_context->run_hook('run_component');
 
 1;

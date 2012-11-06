@@ -5,21 +5,15 @@ use App::Mobirc;
 
 global_context->load_plugin( 'HTMLFilter::CompressHTML' );
 
-filters {
-    input => [qw/compress/],
-};
-
-run_is input => 'expected';
-
-sub compress {
-    my $html = shift;
-    my $c = undef;
+for my $block (blocks) {
     test_he_filter {
         my $req = shift;
+        my $html = $block->input;
         ($req, $html) = global_context->run_hook_filter('html_filter', $req, $html);
+        is($html, $block->expected);
     };
-    $html;
 }
+done_testing;
 
 __END__
 

@@ -2,15 +2,18 @@ use t::Utils;
 use Test::Base::Less;
 use App::Mobirc::Web::Router;
 use HTTP::Request;
-
-plan tests => 1*blocks;
+use Test::Requires 'YAML';
 
 filters {
-    input    => ['router'],
-    expected => [qw/yaml/],
+    input    => [\&router],
+    expected => [\&YAML::Load],
 };
 
-run_is_deeply input => 'expected';
+run {
+    my $block = shift;
+    is_deeply($block->input, $block->expected);
+};
+done_testing;
 
 sub router {
     my $uri = shift;

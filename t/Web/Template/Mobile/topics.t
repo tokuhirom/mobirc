@@ -9,7 +9,10 @@ use App::Mobirc::Util;
 my $channel = server->get_channel(U '#tester');
 $channel->topic('hoge');
 
+note 'rendering topics';
 my $got = test_view('mobile/topics.mt');
+
+note 'OK, just test it.';
 
 my $expected = <<'...';
 <?xml version="1.0" encoding="UTF-8" ?>
@@ -26,10 +29,14 @@ my $expected = <<'...';
     <body>
         <a name="top"></a>
 
-    <div class="OneTopic">
-        <a href="/mobile/channel?channel=I3Rlc3Rlcg">#tester</a><br />
-        <span>hoge</span><br />
-    </div>
+      <div class="OneTopic">
+          <a href="/mobile/channel?channel=I3Rlc3Rlcg">#tester</a><br />
+          <span>hoge</span><br />
+      </div>
+      <div class="OneTopic">
+          <a href="/mobile/channel?channel=KnNlcnZlcio">*server*</a><br />
+          <span></span><br />
+      </div>
 
 <hr />
 <div class="GoToTop">

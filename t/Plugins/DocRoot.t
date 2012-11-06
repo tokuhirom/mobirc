@@ -8,9 +8,14 @@ my $global_context = global_context();
 $global_context->load_plugin( {module => 'DocRoot', config => {root => '/foo/'}} );
 
 filters {
-    input    => [qw/convert strip_spaces/],
-    expected => [qw/strip_spaces/],
+    input    => [\&convert, \&strip_spaces],
+    expected => [\&strip_spaces],
 };
+
+for my $block (blocks) {
+    is($block->input, $block->expected);
+}
+done_testing;
 
 sub convert {
     my $html = shift;
@@ -24,11 +29,11 @@ sub convert {
 }
 
 sub strip_spaces {
+    local $_ = shift;
     s/\n\s*//g;
     s/\n//g;
 }
 
-run_is input => 'expected';
 
 __END__
 
