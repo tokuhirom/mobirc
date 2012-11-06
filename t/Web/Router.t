@@ -1,5 +1,5 @@
 use t::Utils;
-use Test::Base;
+use Test::Base::Less;
 use App::Mobirc::Web::Router;
 use HTTP::Request;
 

@@ -1,7 +1,7 @@
 use t::Utils;
 use App::Mobirc;
 
-use Test::Base;
+use Test::Base::Less;
 eval q{ use String::IRC };
 plan skip_all => "String::IRC is not installed." if $@;
 

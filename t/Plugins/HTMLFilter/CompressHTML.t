@@ -1,6 +1,6 @@
 use t::Utils;
 use App::Mobirc::Plugin::HTMLFilter::CompressHTML;
-use Test::Base;
+use Test::Base::Less;
 use App::Mobirc;
 
 global_context->load_plugin( 'HTMLFilter::CompressHTML' );

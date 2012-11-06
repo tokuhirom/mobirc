@@ -1,7 +1,7 @@
 use t::Utils;
 use App::Mobirc::Web::View;
 use App::Mobirc;
-use Test::Base;
+use Test::Base::Less;
 plan tests => 1*blocks;
 
 local $ENV{TZ} = 'Asia/Tokyo';

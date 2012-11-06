@@ -71,9 +71,8 @@ requires 'Test::More' => 0.94;
 test_requires 'Test::More';
 test_requires 'Text::Diff';
 test_requires 'Test::Requires';
+test_requires 'Test::Base::Less::Less';
 author_tests('xt');
 install_script 'mobirc';
-use_test_base;
-auto_include;
 WriteAll;
 

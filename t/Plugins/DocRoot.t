@@ -2,7 +2,7 @@ use t::Utils;
 use utf8;
 use App::Mobirc;
 use Encode;
-use Test::Base;
+use Test::Base::Less;
 
 my $global_context = global_context();
 $global_context->load_plugin( {module => 'DocRoot', config => {root => '/foo/'}} );
