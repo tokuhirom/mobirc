@@ -191,4 +191,7 @@ and Mobirc AUTHORS.
 
 =head1 LICENSE
 
-same as perl itself
+Copyright (C) Tokuhiro Matsuno
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
