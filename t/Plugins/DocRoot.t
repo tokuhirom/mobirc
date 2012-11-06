@@ -2,6 +2,7 @@ use t::Utils;
 use utf8;
 use App::Mobirc;
 use Encode;
+use Test::Requires 'HTML::TreeBuilder::XPath';
 use Test::Base::Less;
 
 my $global_context = global_context();

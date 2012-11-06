@@ -1,5 +1,6 @@
 use t::Utils;
 use Test::More;
+use Test::Requires 'HTML::TreeBuilder::XPath';
 plan tests => 1;
 use App::Mobirc;
 require App::Mobirc::Plugin::HTMLFilter::DoCoMoCSS;

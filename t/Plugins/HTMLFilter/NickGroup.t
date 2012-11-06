@@ -1,5 +1,6 @@
 use t::Utils;
 use Test::More;
+use Test::Requires 'HTML::TreeBuilder::XPath';
 plan tests => 3;
 use App::Mobirc;
 
