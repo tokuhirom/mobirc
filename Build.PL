@@ -12,6 +12,14 @@ my $builder = Module::Build->new(
         'Text::Diff'       => 0,
         'Test::Requires'   => 0,
         'Test::Base::Less' => 0,
+        (
+            $ENV{TRAVIS} ? (
+                'HTML::TreeBuilder::XPath' => 0,
+                'POE::Component::Server::IRC' => 0,
+                'Text::VisualWidth::UTF8' => 0,
+                'Test::LongString' => 0,
+            ) : ()
+        )
     },
     requires => {
         perl => 5.008001,
