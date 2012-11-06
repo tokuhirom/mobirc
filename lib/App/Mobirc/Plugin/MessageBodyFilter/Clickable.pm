@@ -111,8 +111,8 @@ sub process_http {
         }eg
     }
 
-    $link_string = encode_entities(uri_unescape($link_string),  q(<>&"));
-    my $encoded_uri = encode_entities($uri, q(<>&"));
+    $link_string = encode_entities(uri_unescape($link_string),  q(<>&"'));
+    my $encoded_uri = encode_entities($uri, q(<>&"'));
 
     if ( $self->redirector ) {
         $out =
@@ -186,9 +186,9 @@ sub process_default {
     }
     return sprintf(
         qq{<a href="%s" rel="nofollow" class="url" target="%s">%s</a>},
-        encode_entities($uri, q(<>&")),
+        encode_entities($uri, q(<>&"')),
         $self->http_link_target,
-        encode_entities($link_string, q(<>&")),
+        encode_entities($link_string, q(<>&"')),
     );
 }
 

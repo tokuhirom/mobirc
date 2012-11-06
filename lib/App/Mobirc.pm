@@ -185,7 +185,7 @@ mobirc is a pluggable IRC to HTTP gateway.
 
 =head1 AUTHOR
 
-Tokuhiro Matsuno E<lt>tokuhirom AAJKLFJEF@ GMAIL COME<gt>
+Tokuhiro Matsuno E<lt>tokuhirom@gmail.comE<gt>
 
 and Mobirc AUTHORS.
 

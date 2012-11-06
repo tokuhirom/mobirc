@@ -3,15 +3,14 @@ use Test::Base::Less;
 use Test::Requires 'YAML';
 use App::Mobirc;
 
-plan tests => 1*blocks;
-
-for my $block (blocks) {
+run {
+    my $block = shift;
     create_global_context(); # create fresh context :)
     my $x = YAML::Load($block->input);
     global_context->load_plugin( { module => 'MessageBodyFilter::Clickable', config => $x->{conf} } );
     my ($got, ) = global_context->run_hook_filter('message_body_filter', $x->{text});
-    is($got, $block->expected, $block->name);
-}
+    is($got, $block->expected, $block->name . ' at line ' . $block->get_lineno);
+};
 done_testing;
 
 __END__
@@ -73,13 +72,6 @@ text: mailto:aaa@example.com
 conf:
   pocket_hatena: 0
 --- expected: <a href="mailto:aaa@example.com" rel="nofollow" class="url" target="_blank">mailto:aaa@example.com</a>
-
-=== mailto
---- input
-text: <aaa@example.com>
-conf:
-  pocket_hatena: 0
---- expected: <a href="mailto:aaa@example.com" rel="nofollow" class="url" target="_blank">&lt;mailto:aaa@example.com&gt;</a>
 
 === pocket hatena
 --- input
