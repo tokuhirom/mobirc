@@ -22,7 +22,7 @@ my $builder = Module::Build->new(
         )
     },
     requires => {
-        perl => 5.008001,
+        perl => 5.0100,
 
         # AnyEvent
         'AnyEvent'      => 5.271,
