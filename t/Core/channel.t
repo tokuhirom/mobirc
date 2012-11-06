@@ -6,6 +6,7 @@ use App::Mobirc::Util;
 use App::Mobirc::Model::Server;
 
 describe 'keyword', sub {
+    ok(server);
     test_channel->add_message(
         App::Mobirc::Model::Message->new( body => 'foobar', class => 'public', )
     );
@@ -28,9 +29,10 @@ describe 'stopword', sub {
 describe 'add & get', sub {
     my $channel = App::Mobirc::Model::Channel->new(
         name => U '#test',
+        server => server(),
     );
-    global_context->add_channel($channel);
-    isa_ok global_context->get_channel(U '#test'), 'App::Mobirc::Model::Channel';
+    server->add_channel($channel);
+    isa_ok server->get_channel(U '#test'), 'App::Mobirc::Model::Channel';
 };
 
 

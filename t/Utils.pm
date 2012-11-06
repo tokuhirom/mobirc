@@ -32,15 +32,33 @@ sub import {
 }
 
 sub create_global_context {
-    App::Mobirc->new(
+    my $c = App::Mobirc->new(
         config => {
             httpd  => { lines => 40 },
             global => {
-                keywords => [qw/foo/], stopwords => [qw/foo31/],
+                keywords => [qw/foo/],
+                stopwords => [qw/foo31/],
                 assets_dir => File::Spec->catfile(Cwd::cwd(), 'assets'),
-            }
+            },
+            plugin => [
+                +{
+                    "module" => "Component::IRCClient",
+                    "config" => {
+                        "host"=>"127.0.0.1",
+                        "port"=>"6667",
+                        "nick"=>"john1",
+                        "desc"=>"john-freenode1",
+                        "username"=>"john-freenode1",
+                        "password"=>"pa55w0rd",
+                        "incode"=>"utf-8",
+                        "id"=>"f1",
+                        "ssl"=> 1,
+                    },
+                }
+            ],
         }
     );
+    return $c;
 }
 
 sub test_he {
@@ -77,7 +95,11 @@ sub test_he_filter(&) {
 }
 
 sub server () {
-    global_context->server
+    my $c = global_context;
+    unless (@{$c->irc_components}) {
+        $c->run_hook('run_component');
+    }
+    $c->servers->[0];
 }
 
 {
@@ -87,7 +109,7 @@ sub server () {
     *App::Mobirc::current_nick = sub { 'tokuhirom' };
 }
 
-sub keyword_channel () { server->get_channel(U "*keyword*") }
+sub keyword_channel () { global_context->keyword_channel() }
 
 sub test_channel    () { server->get_channel(U '#test') }
 
