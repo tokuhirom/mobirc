@@ -22,7 +22,7 @@ test_tcp(
                     {
                         module => 'Component::IRCClient',
                         config => {
-                            server => 'localhost',
+                            host   => 'localhost',
                             port   => $port,
                             nick   => 'john',
                         },
@@ -37,10 +37,11 @@ test_tcp(
 
         # wait connection: mobirc to ircd.
         my $t; $t = AE::timer(0, 1, sub {
-            return unless $c->irc_component->conn->registered();
+            my ($irc_component) = @{$c->irc_components};
+            return unless $irc_component->conn->registered();
 
-            $c->irc_component()->conn()->send_msg("JOIN" => '#foo');
-            $c->irc_component()->conn()->send_msg("JOIN" => '#finished');
+            $irc_component->conn()->send_msg("JOIN" => '#foo');
+            $irc_component->conn()->send_msg("JOIN" => '#finished');
 
             # tester thread
             my $irc = AnyEvent::IRC::Client->new();
@@ -73,7 +74,7 @@ test_tcp(
                             $irc->send_msg("PRIVMSG", '#foo', "THIS IS にほんご");
                             $irc->send_msg("PRIVMSG", '#foo', encode_ctcp(['ACTION', "too"]));
                             $irc->send_msg("PRIVMSG", '#foo', "DNBK");
-                            $c->run_hook_first('process_command' => 'process_command:test', $c->get_channel('#foo'));
+                            $c->irc_components->[0]->post_command('process_command:test', $irc_component->server->get_channel('#foo'));
                             $irc->send_msg("JOIN", '#finished');
                             undef $t;
                         });
@@ -94,7 +95,8 @@ test_tcp(
         # finalizer thread
         my $finalizer = AE::timer(0, 5, sub {
             diag "Testing";
-            my $chan = $c->get_channel('#finished');
+            my $server = $c->irc_components->[0]->server;
+            my $chan = $server->get_channel('#finished');
             if (scalar(@{$chan->message_log()}) > 0) {
                 $cv->send(1);
             }
@@ -104,7 +106,8 @@ test_tcp(
 
         diag "finished";
         subtest '#foo' => sub {
-            my @logs = $c->get_channel('#foo')->message_log();
+            my $server = $c->irc_components->[0]->server;
+            my @logs = $server->get_channel('#foo')->message_log();
             my @msgs = (
                 {
                     class => 'join',
@@ -155,7 +158,7 @@ test_tcp(
                          next LOOP;
                     }
                 }
-                ok 0, "$m->{class},$m->{body}";
+                fail "$m->{class},$m->{body}";
             }
           # for my $l (@logs) {
           #     note "$l->{class}: $l->{body}";
@@ -168,9 +171,10 @@ test_tcp(
  #          is join("", map { $_->body } @logs), 'PRIVATE TALK';
  #      }
         subtest 'finalized' => sub {
-            my @logs = $c->get_channel('#finished')->message_log();
+            my $server = $c->irc_components->[0]->server;
+            my @logs = $server->get_channel('#finished')->message_log();
             like join("\n", map { $_->body } @logs), qr/FINISHED!/;
-            is join(',', sort { $a cmp $b } map { $_->name } $c->server->channels), "#finished,#foo,*server*,john", 'channels';
+            is join(',', sort { $a cmp $b } map { $_->name } $server->channels), "#finished,#foo,*server*,auth,john", 'channels';
             done_testing;
         };
 

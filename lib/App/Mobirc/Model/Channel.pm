@@ -9,6 +9,7 @@ use App::Mobirc::Util;
 use App::Mobirc::Model::Message;
 use MIME::Base64::URLSafe;
 use Encode;
+use Tatsumaki::MessageQueue;
 
 has server => (
     is => 'rw',
