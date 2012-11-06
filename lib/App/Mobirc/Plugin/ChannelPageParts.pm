@@ -1,5 +1,6 @@
 package App::Mobirc::Plugin::ChannelPageParts;
 use strict;
+use warnings;
 use App::Mobirc::Plugin;
 use Text::MicroTemplate qw/build_mt/;
 

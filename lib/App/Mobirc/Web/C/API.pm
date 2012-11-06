@@ -1,4 +1,6 @@
 package App::Mobirc::Web::C::API;
+use strict;
+use warnings;
 use App::Mobirc::Web::C;
 use App::Mobirc::Util;
 use Encode;

@@ -1,5 +1,6 @@
 package App::Mobirc::Model::Server;
 use strict;
+use warnings;
 use Mouse;
 use App::Mobirc::Model::Channel;
 use Carp;

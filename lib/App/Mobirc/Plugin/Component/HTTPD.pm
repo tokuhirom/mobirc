@@ -1,5 +1,6 @@
 package App::Mobirc::Plugin::Component::HTTPD;
 use strict;
+use warnings;
 use App::Mobirc::Plugin;
 
 use App::Mobirc;

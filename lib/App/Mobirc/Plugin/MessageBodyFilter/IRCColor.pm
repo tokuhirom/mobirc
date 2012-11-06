@@ -1,5 +1,6 @@
 package App::Mobirc::Plugin::MessageBodyFilter::IRCColor;
 use strict;
+use warnings;
 use App::Mobirc::Plugin;
 
 has no_decorate => (

@@ -1,4 +1,6 @@
 package App::Mobirc::Plugin;
+use strict;
+use warnings;
 use Mouse;
 use base qw/Exporter/;
 use Scalar::Util qw/blessed/;

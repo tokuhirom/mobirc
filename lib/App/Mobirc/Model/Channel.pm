@@ -1,4 +1,6 @@
 package App::Mobirc::Model::Channel;
+use strict;
+use warnings;
 use Mouse;
 use Scalar::Util qw/blessed/;
 use Carp;

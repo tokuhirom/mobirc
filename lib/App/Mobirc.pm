@@ -1,4 +1,6 @@
 package App::Mobirc;
+use strict;
+use warnings;
 use Mouse;
 with 'App::Mobirc::Role::Plaggable';
 use 5.01000;
@@ -183,7 +185,9 @@ mobirc is a pluggable IRC to HTTP gateway.
 
 =head1 AUTHOR
 
-Tokuhiro Matsuno and Mobirc AUTHORS.
+Tokuhiro Matsuno E<lt>tokuhirom AAJKLFJEF@ GMAIL COME<gt>
+
+and Mobirc AUTHORS.
 
 =head1 LICENSE
 

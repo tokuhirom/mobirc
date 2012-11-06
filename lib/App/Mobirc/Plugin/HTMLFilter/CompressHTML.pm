@@ -1,6 +1,7 @@
 package App::Mobirc::Plugin::HTMLFilter::CompressHTML;
 # vim:expandtab:
 use strict;
+use warnings;
 use App::Mobirc::Plugin;
 use App::Mobirc::Util;
 use App::Mobirc::Validator;

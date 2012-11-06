@@ -1,5 +1,6 @@
 package App::Mobirc::Plugin::ExpireHeader;
 use strict;
+use warnings;
 use App::Mobirc::Plugin;
 use App::Mobirc::Util;
 use App::Mobirc::Web::Handler;

@@ -1,6 +1,7 @@
 package App::Mobirc::Plugin::MessageBodyFilter::Clickable;
 # vim:expandtab:
 use strict;
+use warnings;
 use App::Mobirc::Plugin;
 use URI::Find;
 use URI::Escape;

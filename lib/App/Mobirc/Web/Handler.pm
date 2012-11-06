@@ -1,4 +1,6 @@
 package App::Mobirc::Web::Handler;
+use strict;
+use warnings;
 use Mouse;
 use Scalar::Util qw/blessed/;
 use HTTP::Session;

@@ -1,4 +1,6 @@
 package App::Mobirc::Web::C::Static;
+use strict;
+use warnings;
 use Mouse;
 use App::Mobirc::Web::C;
 use App::Mobirc::Util;

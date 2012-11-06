@@ -1,5 +1,6 @@
 package App::Mobirc::Plugin::HTMLFilter::NickGroup;
 use strict;
+use warnings;
 use App::Mobirc::Plugin;
 use List::Util qw/first/;
 use Encode;

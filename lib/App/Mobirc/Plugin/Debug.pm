@@ -1,5 +1,6 @@
 package App::Mobirc::Plugin::Debug;
 use strict;
+use warnings;
 use App::Mobirc::Plugin;
 use utf8;
 

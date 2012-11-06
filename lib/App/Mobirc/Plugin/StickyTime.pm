@@ -1,5 +1,6 @@
 package App::Mobirc::Plugin::StickyTime;
 use strict;
+use warnings;
 use App::Mobirc::Plugin;
 use App::Mobirc::Util;
 use HTML::StickyQuery;

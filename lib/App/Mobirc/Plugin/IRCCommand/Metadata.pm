@@ -1,5 +1,6 @@
 package App::Mobirc::Plugin::IRCCommand::Metadata;
 use strict;
+use warnings;
 use App::Mobirc::Plugin;
 use App::Mobirc::Util;
 use Encode;
@@ -21,3 +22,5 @@ hook on_irc_notice => sub {
 	}
 
 }
+
+1;

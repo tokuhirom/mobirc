@@ -1,5 +1,6 @@
 package App::Mobirc::Plugin::HTMLFilter::DoCoMoCSS;
 use strict;
+use warnings;
 use App::Mobirc::Plugin;
 use CSS::Tiny;
 use HTML::Selector::XPath qw(selector_to_xpath);

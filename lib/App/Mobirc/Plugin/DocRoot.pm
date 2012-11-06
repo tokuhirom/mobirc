@@ -1,5 +1,6 @@
 package App::Mobirc::Plugin::DocRoot;
 use strict;
+use warnings;
 use App::Mobirc::Plugin;
 use App::Mobirc::Util;
 use Encode;

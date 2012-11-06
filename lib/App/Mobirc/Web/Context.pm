@@ -1,4 +1,6 @@
 package App::Mobirc::Web::Context;
+use strict;
+use warnings;
 use Mouse;
 use HTTP::MobileAttribute plugins => [qw/IS Core/];
 

@@ -1,4 +1,6 @@
 package App::Mobirc::Model::Message;
+use strict;
+use warnings;
 use Mouse;
 use App::Mobirc::Util;
 use HTML::Entities;

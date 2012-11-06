@@ -1,4 +1,6 @@
 package App::Mobirc::Web::C::Root;
+use strict;
+use warnings;
 use App::Mobirc::Web::C;
 use Encode;
 use MIME::Base64::URLSafe qw(urlsafe_b64encode);

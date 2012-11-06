@@ -1,5 +1,6 @@
 package App::Mobirc::Role::Plaggable;
 use strict;
+use warnings;
 use Mouse::Role;
 use 5.00800;
 our $VERSION = '0.04';

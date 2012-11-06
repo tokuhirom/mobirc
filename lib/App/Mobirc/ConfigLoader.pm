@@ -16,12 +16,12 @@ sub load {
         $config = Storable::dclone($stuff);
     }
     elsif ($stuff =~ /\.json$/) {
-        open my $fh, '<:utf8', $stuff or die "cannot open file: $!";
+        open my $fh, '<:encoding(utf8)', $stuff or die "cannot open file: $!";
         my $src = do { local $/; <$fh> };
         $config = JSON->new->relaxed(1)->decode($src);
     }
     else {
-        open my $fh, '<:utf8', $stuff or die "cannot open file: $!";
+        open my $fh, '<:encoding(utf8)', $stuff or die "cannot open file: $!";
         my $ini = Config::Tiny->read_string(do { local $/; <$fh> });
         close $fh;
 

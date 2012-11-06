@@ -1,5 +1,6 @@
 package App::Mobirc::Plugin::IRCCommand::TiarraLog;
 use strict;
+use warnings;
 use App::Mobirc::Plugin;
 use Encode;
 use App::Mobirc::Util;
