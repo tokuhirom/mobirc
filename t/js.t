@@ -2,11 +2,12 @@
 use strict;
 use warnings;
 use Test::More;
+use Test::Requires 'Text::SimpleTable';
 use Text::SimpleTable;
 use File::Find::Rule;
 
 plan skip_all => 'this test requires "jsl" command'
-  unless `jsl` =~ /JavaScript Lint/;
+  unless (`jsl`||'') =~ /JavaScript Lint/;
 
 my @files = File::Find::Rule->file()->name('*.js')->in('assets/static/');
 plan tests => 1 * @files;
