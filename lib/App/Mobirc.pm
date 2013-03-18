@@ -98,7 +98,7 @@ sub run {
 sub is_my_nick {
     my ($self, $who) = @_; $who // die;
     for my $nick (map { $_->current_nick } @{$self->irc_components}) {
-        if ($who eq $nick) {
+        if ($nick && $who eq $nick) {
             return 1;
         }
     }
