@@ -40,7 +40,7 @@ my $expected = <<'...';
 
 <hr />
 <div class="GoToTop">
-    8 <a accesskey="8" href="/mobile/">ch list</a>
+    0 <a accesskey="0" href="/mobile/">ch list</a>
 </div>
 
 
