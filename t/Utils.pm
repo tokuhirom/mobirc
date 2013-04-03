@@ -87,7 +87,8 @@ sub test_he_filter(&) {
 
     global_context();
 
-    test_he( HTTP::Request->new('GET', '/', ['User-Agent' => 'MYPC']), sub {
+    my $ua = $ENV{'MOBIRC_TEST_USER_AGENT'} || 'MYPC';
+    test_he( HTTP::Request->new('GET', '/', ['User-Agent' => $ua]), sub {
         my $req = shift;
         $cb->($req);
         return Plack::Response->new( 200 );
