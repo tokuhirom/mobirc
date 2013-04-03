@@ -1,7 +1,7 @@
 use t::Utils;
 use lib 'extlib';
 use App::Mobirc::Web::View;
-use Test::More tests => 1;
+use Test::More tests => 2;
 use Text::Diff;
 use Path::Class;
 use App::Mobirc;
