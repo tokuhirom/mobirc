@@ -239,7 +239,7 @@ hook 'run_component' => sub {
             $channel_name =~ s/ .*//;
 
             if ($is_myself) {
-                $global_context->delete_channel($channel_name);
+                $self->delete_channel($channel_name);
             }
             else {
                 my $message = "$who leaves";
