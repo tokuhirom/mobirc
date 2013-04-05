@@ -24,14 +24,6 @@
       ]
    },
    "prereqs" : {
-      "build" : {
-         "requires" : {
-            "Test::Base::Less" : "0",
-            "Test::More" : "0.98",
-            "Test::Requires" : "0",
-            "Text::Diff" : "0"
-         }
-      },
       "configure" : {
          "requires" : {
             "CPAN::Meta" : "0",
@@ -88,6 +80,25 @@
             "YAML" : "0.68",
             "parent" : "0.223",
             "perl" : "5.01000"
+         },
+         "suggests" : {
+            "Glib" : "0.4",
+            "POE::Loop::Glib" : "0.0034",
+            "POE::Session::Irssi" : "0.4"
+         }
+      },
+      "test" : {
+         "recommends" : {
+            "HTML::TreeBuilder::XPath" : "0",
+            "POE::Component::Server::IRC" : "0",
+            "Test::LongString" : "0",
+            "Text::VisualWidth::UTF8" : "0"
+         },
+         "requires" : {
+            "Test::Base::Less" : "0",
+            "Test::More" : "0.98",
+            "Test::Requires" : "0",
+            "Text::Diff" : "0"
          }
       }
    },
@@ -103,7 +114,7 @@
          "web" : "https://github.com/tokuhirom/mobirc"
       }
    },
-   "version" : "4.04",
+   "version" : "4.05",
    "x_contributors" : [
       "miyagawa <miyagawa@d0d07461-0603-4401-acd4-de1884942a52>",
       "yappo <yappo@d0d07461-0603-4401-acd4-de1884942a52>",

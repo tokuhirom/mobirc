@@ -38,9 +38,9 @@ requires 'parent', '0.223';
 requires 'perl', '5.01';
 
 # irssi
-recommends 'POE::Session::Irssi', '0.4';
-recommends 'Glib',                '0.4';
-recommends 'POE::Loop::Glib',     '0.0034';
+suggests 'POE::Session::Irssi', '0.4';
+suggests 'Glib',                '0.4';
+suggests 'POE::Loop::Glib',     '0.0034';
 
 on test => sub {
     requires 'Test::Base::Less';
