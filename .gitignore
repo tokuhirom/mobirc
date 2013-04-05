@@ -27,3 +27,8 @@ config.json
 /Build
 *.bak
 /_build
+/mobirc-*
+/.build
+/_build_params
+!Build/
+!META.json
