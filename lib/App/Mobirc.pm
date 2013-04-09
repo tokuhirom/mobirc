@@ -16,7 +16,7 @@ use App::Mobirc::Types 'Config';
 use Text::MicroTemplate::File;
 use App::Mobirc::Web::Template;
 
-our $VERSION = '4.04';
+our $VERSION = '4.05';
 
 has keyword_channel => (
     is => 'rw',
@@ -98,7 +98,7 @@ sub run {
 sub is_my_nick {
     my ($self, $who) = @_; $who // die;
     for my $nick (map { $_->current_nick } @{$self->irc_components}) {
-        if ($who eq $nick) {
+        if ($nick && $who eq $nick) {
             return 1;
         }
     }

@@ -1,0 +1,145 @@
+{
+   "abstract" : "pluggable IRC to HTTP gateway",
+   "author" : [
+      "Tokuhiro Matsuno <tokuhirom@gmail.com>"
+   ],
+   "dynamic_config" : 0,
+   "generated_by" : "Minilla/v0.0.49, CPAN::Meta::Converter version 2.120921",
+   "license" : [
+      "perl_5"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : "2"
+   },
+   "name" : "mobirc",
+   "no_index" : {
+      "directory" : [
+         "t",
+         "xt",
+         "inc",
+         "share",
+         "eg",
+         "examples"
+      ]
+   },
+   "prereqs" : {
+      "configure" : {
+         "requires" : {
+            "CPAN::Meta" : "0",
+            "CPAN::Meta::Prereqs" : "0",
+            "Module::Build" : "0.38"
+         }
+      },
+      "develop" : {
+         "requires" : {
+            "Pod::Wordlist::hanekomu" : "0",
+            "Test::CPAN::Meta" : "0",
+            "Test::MinimumVersion" : "0.10108",
+            "Test::Pod" : "1.41",
+            "Test::Spelling" : "0"
+         }
+      },
+      "runtime" : {
+         "requires" : {
+            "Any::Moose" : "0.13",
+            "AnyEvent" : "5.271",
+            "AnyEvent::IRC" : "0.95",
+            "CSS::Tiny" : "1.15",
+            "Config::Tiny" : "2.12",
+            "Data::OptList" : "0.105",
+            "Data::Recursive::Encode" : "0",
+            "Exporter" : "5.62",
+            "HTML::Entities" : "1.35",
+            "HTML::StickyQuery" : "0.12",
+            "HTTP::MobileAttribute" : "0.21",
+            "HTTP::Session" : "0.44",
+            "JSON" : "2.09",
+            "JavaScript::Value::Escape" : "0",
+            "List::MoreUtils" : "0.22",
+            "MIME::Base64::URLSafe" : "0.01",
+            "Module::Find" : "0.06",
+            "Mouse" : "0.6",
+            "MouseX::Types" : "0.05",
+            "Params::Util" : "0",
+            "Params::Validate" : "0.91",
+            "Path::Class" : "0.19",
+            "Plack" : "0.9938",
+            "Plack::Middleware::ReverseProxy" : "0.14",
+            "Plack::Request" : "0.09",
+            "Router::Simple" : "0.05",
+            "String::CamelCase" : "0.01",
+            "String::IRC" : "0.04",
+            "Tatsumaki" : "0.101",
+            "Text::MicroTemplate" : "0.13",
+            "Text::VisualWidth::PP" : "0.01",
+            "Twiggy" : "0.1005",
+            "UNIVERSAL::require" : "0.11",
+            "URI" : "1.36",
+            "URI::Find" : "20100505",
+            "YAML" : "0.68",
+            "parent" : "0.223",
+            "perl" : "5.01000"
+         },
+         "suggests" : {
+            "Glib" : "0.4",
+            "POE::Loop::Glib" : "0.0034",
+            "POE::Session::Irssi" : "0.4"
+         }
+      },
+      "test" : {
+         "recommends" : {
+            "HTML::TreeBuilder::XPath" : "0",
+            "POE::Component::Server::IRC" : "0",
+            "Test::LongString" : "0",
+            "Text::VisualWidth::UTF8" : "0"
+         },
+         "requires" : {
+            "Test::Base::Less" : "0",
+            "Test::More" : "0.98",
+            "Test::Requires" : "0",
+            "Text::Diff" : "0"
+         }
+      }
+   },
+   "release_status" : "unstable",
+   "resources" : {
+      "bugtracker" : {
+         "web" : "https://github.com/tokuhirom/mobirc/issues"
+      },
+      "homepage" : "https://github.com/tokuhirom/mobirc",
+      "repository" : {
+         "type" : "git",
+         "url" : "git://github.com/tokuhirom/mobirc.git",
+         "web" : "https://github.com/tokuhirom/mobirc"
+      }
+   },
+   "version" : "4.05",
+   "x_contributors" : [
+      "miyagawa <miyagawa@d0d07461-0603-4401-acd4-de1884942a52>",
+      "yappo <yappo@d0d07461-0603-4401-acd4-de1884942a52>",
+      "typester <typester@d0d07461-0603-4401-acd4-de1884942a52>",
+      "mayuki <mayuki@d0d07461-0603-4401-acd4-de1884942a52>",
+      "xcezx <xcezx@d0d07461-0603-4401-acd4-de1884942a52>",
+      "drry <drry@d0d07461-0603-4401-acd4-de1884942a52>",
+      "kan <kan@d0d07461-0603-4401-acd4-de1884942a52>",
+      "klm <klm@d0d07461-0603-4401-acd4-de1884942a52>",
+      "elim <elim@d0d07461-0603-4401-acd4-de1884942a52>",
+      "hakobe <hakobe@d0d07461-0603-4401-acd4-de1884942a52>",
+      "otsune <otsune@d0d07461-0603-4401-acd4-de1884942a52>",
+      "cho45 <cho45@d0d07461-0603-4401-acd4-de1884942a52>",
+      "topia <topia@d0d07461-0603-4401-acd4-de1884942a52>",
+      "kga <kga@d0d07461-0603-4401-acd4-de1884942a52>",
+      "aerith <aerith@d0d07461-0603-4401-acd4-de1884942a52>",
+      "hirose31 <hirose31@d0d07461-0603-4401-acd4-de1884942a52>",
+      "retlet <retlet@d0d07461-0603-4401-acd4-de1884942a52>",
+      "walf443 <walf443@d0d07461-0603-4401-acd4-de1884942a52>",
+      "tokuhirom <tokuhirom@d0d07461-0603-4401-acd4-de1884942a52>",
+      "Tokuhiro Matsuno <tokuhirom@gp.ath.cx>",
+      "Masafumi Otsune <info@otsune.com>",
+      "hidek <hide@hide-k.net>",
+      "HIROSE Masaaki <hirose31@gmail.com>",
+      "cho45 <cho45@lowreal.net>",
+      "mattn <mattn.jp@gmail.com>"
+   ]
+}
