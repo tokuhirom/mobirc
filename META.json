@@ -4,7 +4,7 @@
       "Tokuhiro Matsuno <tokuhirom@gmail.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Minilla/v0.0.49, CPAN::Meta::Converter version 2.120921",
+   "generated_by" : "Minilla/v0.0.52, CPAN::Meta::Converter version 2.120921",
    "license" : [
       "perl_5"
    ],
@@ -114,7 +114,7 @@
          "web" : "https://github.com/tokuhirom/mobirc"
       }
    },
-   "version" : "4.05",
+   "version" : "4.06",
    "x_contributors" : [
       "miyagawa <miyagawa@d0d07461-0603-4401-acd4-de1884942a52>",
       "yappo <yappo@d0d07461-0603-4401-acd4-de1884942a52>",
