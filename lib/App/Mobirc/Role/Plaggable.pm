@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Mouse::Role;
 use 5.00800;
-our $VERSION = '4.06';
+our $VERSION = '4.07';
 use Scalar::Util qw/blessed/;
 use Carp;
 

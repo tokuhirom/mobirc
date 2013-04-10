@@ -16,7 +16,7 @@ use App::Mobirc::Types 'Config';
 use Text::MicroTemplate::File;
 use App::Mobirc::Web::Template;
 
-our $VERSION = '4.06';
+our $VERSION = '4.07';
 
 has keyword_channel => (
     is => 'rw',
