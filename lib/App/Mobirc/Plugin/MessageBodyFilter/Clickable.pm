@@ -141,6 +141,17 @@ sub process_http {
             $self->http_extract_image,
             $link_string );
     } elsif
+       ( $self->http_extract_image && $uri->host eq 'gyazo.com' && $uri->path =~ /^\/[0-9a-z]+$/) {
+        # If gyazo.com/xxxxx.png is given, it should be extracted above.
+        $out =
+        sprintf(
+            '<a href="%s" rel="nofollow" class="url" target="%s"><img src="http://mgw.hatena.ne.jp/?url=%s&amp;size=%s" alt="%s"/></a>',
+            $encoded_uri,
+            $self->http_link_target,
+            $encoded_uri . '.png',
+            $self->http_extract_image,
+            $link_string );
+    } elsif
        ( $self->http_extract_map && $uri->host =~ /maps?\.google(?:\.co\.jp|\.com)/ && $uri->path eq '/maps') {
         my ($lat, $lon) = $uri->query_param('q') =~ /([+-]?\d+\.\d+)\s*,\s*([+-]?\d+\.\d+)/;
         $out = 

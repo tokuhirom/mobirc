@@ -80,6 +80,22 @@ conf:
   pocket_hatena: 1
 --- expected: <a href="http://d.hatena.ne.jp/" rel="nofollow" class="url" target="_blank">http://d.hatena.ne.jp/</a><a href="http://mgw.hatena.ne.jp/?url=http%3A%2F%2Fd.hatena.ne.jp%2F;noimage=0;split=1" rel="nofollow" class="pocket_hatena" target="_blank">[ph]</a>
 
+=== image
+--- input
+text: http://www.st-hatena.com/users/sf/sfujiwara/user_p.gif
+conf:
+  pocket_hatena: 1
+  http_extract_image: 1
+--- expected: <a href="http://www.st-hatena.com/users/sf/sfujiwara/user_p.gif" rel="nofollow" class="url" target="_blank"><img src="http://mgw.hatena.ne.jp/?url=http://www.st-hatena.com/users/sf/sfujiwara/user_p.gif&amp;size=1" alt="http://www.st-hatena.com/users/sf/sfujiwara/user_p.gif"/></a><a href="http://mgw.hatena.ne.jp/?url=http%3A%2F%2Fwww.st-hatena.com%2Fusers%2Fsf%2Fsfujiwara%2Fuser_p.gif;noimage=0;split=1" rel="nofollow" class="pocket_hatena" target="_blank">[ph]</a>
+
+=== gyazo
+--- input
+text: http://gyazo.com/592b8c3f43ade50aa4be5df75723b054
+conf:
+  pocket_hatena: 1
+  http_extract_image: 1
+--- expected: <a href="http://gyazo.com/592b8c3f43ade50aa4be5df75723b054" rel="nofollow" class="url" target="_blank"><img src="http://mgw.hatena.ne.jp/?url=http://gyazo.com/592b8c3f43ade50aa4be5df75723b054.png&amp;size=1" alt="http://gyazo.com/592b8c3f43ade50aa4be5df75723b054"/></a><a href="http://mgw.hatena.ne.jp/?url=http%3A%2F%2Fgyazo.com%2F592b8c3f43ade50aa4be5df75723b054;noimage=0;split=1" rel="nofollow" class="pocket_hatena" target="_blank">[ph]</a>
+
 === au_pcsv
 --- input
 text: http://d.hatena.ne.jp/
