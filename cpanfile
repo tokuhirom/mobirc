@@ -1,4 +1,3 @@
-requires 'Any::Moose', '0.13';
 requires 'AnyEvent', '5.271';
 requires 'AnyEvent::IRC', '0.95';
 requires 'CSS::Tiny', '1.15';
