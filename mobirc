@@ -7,8 +7,6 @@ use FindBin;
 use Config;
 
 use lib File::Spec->catfile( $FindBin::Bin, 'lib');
-use lib File::Spec->catfile( $FindBin::Bin, 'extlib/lib/perl5/');
-use lib File::Spec->catfile( $FindBin::Bin, "extlib/lib/perl5/$Config{archname}");
 
 use Encode;
 use Carp;
