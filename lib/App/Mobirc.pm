@@ -183,6 +183,13 @@ App::Mobirc - pluggable IRC to HTTP gateway
 
 mobirc is a pluggable IRC to HTTP gateway.
 
+=head1 INSTALL
+
+    > git clone https://github.com/tokuhirom/mobirc.git
+    > cd mobirc/
+    > curl -L http://cpanmin.us/ | perl - --installdeps . -l extlib/
+    > perl -Mlib=extlib/lib/perl5/ mobirc
+
 =head1 AUTHOR
 
 Tokuhiro Matsuno E<lt>tokuhirom@gmail.comE<gt>

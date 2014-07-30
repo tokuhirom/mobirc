@@ -4,7 +4,7 @@
       "Tokuhiro Matsuno <tokuhirom@gmail.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Minilla/v0.0.53, CPAN::Meta::Converter version 2.120921",
+   "generated_by" : "Minilla/v2.1.1, CPAN::Meta::Converter version 2.141520",
    "license" : [
       "perl_5"
    ],
@@ -21,29 +21,27 @@
          "share",
          "eg",
          "examples",
-         "author"
+         "author",
+         "builder"
       ]
    },
    "prereqs" : {
       "configure" : {
          "requires" : {
-            "CPAN::Meta" : "0",
-            "CPAN::Meta::Prereqs" : "0",
             "Module::Build" : "0.38"
          }
       },
       "develop" : {
          "requires" : {
-            "Pod::Wordlist::hanekomu" : "0",
             "Test::CPAN::Meta" : "0",
-            "Test::MinimumVersion" : "0.10108",
+            "Test::MinimumVersion::Fast" : "0.04",
+            "Test::PAUSE::Permissions" : "0.04",
             "Test::Pod" : "1.41",
-            "Test::Spelling" : "0"
+            "Test::Spellunker" : "v0.2.7"
          }
       },
       "runtime" : {
          "requires" : {
-            "Any::Moose" : "0.13",
             "AnyEvent" : "5.271",
             "AnyEvent::IRC" : "0.95",
             "CSS::Tiny" : "1.15",
@@ -111,7 +109,7 @@
       "homepage" : "https://github.com/tokuhirom/mobirc",
       "repository" : {
          "type" : "git",
-         "url" : "git://github.com/tokuhirom/mobirc.git",
+         "url" : "git://github.com/tokuhirom/mobirc",
          "web" : "https://github.com/tokuhirom/mobirc"
       }
    },
@@ -141,6 +139,7 @@
       "hidek <hide@hide-k.net>",
       "HIROSE Masaaki <hirose31@gmail.com>",
       "cho45 <cho45@lowreal.net>",
-      "mattn <mattn.jp@gmail.com>"
+      "mattn <mattn.jp@gmail.com>",
+      "Takashi Masuda <masutaka.net@gmail.com>"
    ]
 }
